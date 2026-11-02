@@ -11,6 +11,7 @@ Provides modular processing functions for:
 import os
 import io
 import math
+import zlib
 from typing import List, Optional, Tuple, Union
 from PIL import Image, ImageOps
 import pymupdf
@@ -270,8 +271,79 @@ def pdf_to_images(
 
 
 # ==============================================================================
-# 3. COMPRESSION (IMAGE & PDF)
+# 3. COMPRESSION & EXACT SIZE MATCHING (IMAGE & PDF)
 # ==============================================================================
+
+def pad_image_to_target_bytes(data: bytes, target_bytes: int, fmt: str) -> bytes:
+    """
+    Safely pad an image to strictly maintain size within -1 KB to -5 KB of target_bytes
+    (specifically target - 2 KB), 100% compliant with standard decoders.
+    Supports JPEG (COM markers), PNG (tEXt chunks), and WEBP (skip chunks).
+    """
+    desired = target_bytes - 2048  # Target is exactly 2 KB below user target
+    if len(data) >= desired:
+        return data
+
+    needed = desired - len(data)
+    fmt = fmt.upper()
+
+    if fmt in ("JPEG", "JPG"):
+        if data.endswith(b"\xff\xd9") and needed >= 4:
+            body = data[:-2]
+            chunks = []
+            rem = needed
+            while rem > 0:
+                cur = min(rem, 65530)
+                if cur < 4:
+                    break
+                payload_len = cur - 4
+                marker = b"\xff\xfe" + (payload_len + 2).to_bytes(2, "big") + (b"0" * payload_len)
+                chunks.append(marker)
+                rem -= cur
+            return body + b"".join(chunks) + (b"0" * rem) + b"\xff\xd9"
+
+    elif fmt == "PNG":
+        iend = data.rfind(b"IEND")
+        if iend != -1:
+            before_iend = data[:iend - 4]
+            iend_chunk = data[iend - 4:]
+            keyword = b"Comment\x00"
+            overhead = 12 + len(keyword)
+            if needed >= overhead:
+                payload = needed - overhead
+                payload_data = keyword + (b"0" * payload)
+                crc = zlib.crc32(b"tEXt" + payload_data)
+                chunk = len(payload_data).to_bytes(4, "big") + b"tEXt" + payload_data + crc.to_bytes(4, "big")
+                return before_iend + chunk + iend_chunk
+
+    elif fmt == "WEBP":
+        if data.startswith(b"RIFF") and data[8:12] == b"WEBP" and needed >= 8:
+            payload_len = needed - 8
+            chunk = b"skip" + payload_len.to_bytes(4, "little") + (b"0" * payload_len)
+            new_riff_len = len(data) - 8 + len(chunk)
+            return data[:4] + new_riff_len.to_bytes(4, "little") + data[8:] + chunk
+
+    return data
+
+
+def pad_pdf_to_target_bytes(data: bytes, target_bytes: int) -> bytes:
+    """
+    Safely pad a PDF to strictly maintain size within -1 KB to -5 KB of target_bytes
+    (specifically target - 2 KB) by inserting standard comments before %%EOF.
+    """
+    desired = target_bytes - 2048
+    if len(data) >= desired:
+        return data
+
+    needed = desired - len(data)
+    eof = data.rfind(b"%%EOF")
+    if eof != -1 and needed > 5:
+        pad_len = needed - 3
+        comment = b"% " + (b"0" * pad_len) + b"\n"
+        return data[:eof] + comment + data[eof:]
+
+    return data
+
 
 def compress_image(
     input_path: str,
@@ -281,8 +353,8 @@ def compress_image(
     output_format: Optional[str] = None
 ) -> Tuple[str, int, int]:
     """
-    Compress image either by quality percentage or to a target size in KB.
-    Returns: (output_path, original_size, compressed_size)
+    Compress image or increase file size to exact target size in KB (within -1 to 5 KB range).
+    Returns: (output_path, original_size, final_size)
     """
     if not os.path.exists(input_path):
         raise FileNotFoundError(f"Input file not found: {input_path}")
@@ -326,16 +398,26 @@ def compress_image(
             if pil_img.mode not in ("RGB", "RGBA"):
                 pil_img = pil_img.convert("RGBA")
 
-        # --- MODE 1: Target KB Compression ---
+        # --- MODE 1: Target KB Compression OR Size Increase ---
         if target_kb is not None and target_kb > 0:
             target_bytes = int(target_kb * 1024)
+            desired_bytes = target_bytes - 2048
 
-            # If PNG is requested for target size, lossy webp/jpeg or indexed PNG is needed
             current_img = pil_img.copy()
-            best_buf = None
-            best_diff = float("inf")
 
-            # Try adjusting quality and, if needed, downscale resolution smoothly
+            # First test: if saving at quality 95 is already <= desired_bytes,
+            # we can save at crisp 95 quality and pad to exact target!
+            test_buf = io.BytesIO()
+            current_img.save(test_buf, format=save_format, quality=95, optimize=True)
+            if test_buf.tell() <= desired_bytes:
+                raw_bytes = test_buf.getvalue()
+                final_bytes = pad_image_to_target_bytes(raw_bytes, target_bytes, save_format)
+                with open(output_path, "wb") as f:
+                    f.write(final_bytes)
+                return output_path, orig_size, os.path.getsize(output_path)
+
+            # If original is larger, compress down to fit within desired_bytes
+            best_buf = None
             scale = 1.0
             for attempt in range(8):
                 low_q = 10
@@ -346,16 +428,12 @@ def compress_image(
                     mid_q = (low_q + high_q) // 2
                     buf = io.BytesIO()
                     if save_format == "PNG":
-                        # For PNG target size, try optimizing or quantizing
-                        if scale < 1.0:
-                            current_img.save(buf, format="PNG", optimize=True)
-                        else:
-                            current_img.save(buf, format="PNG", optimize=True)
+                        current_img.save(buf, format="PNG", optimize=True)
                     else:
                         current_img.save(buf, format=save_format, quality=mid_q, optimize=True)
 
                     s = buf.tell()
-                    if s <= target_bytes:
+                    if s <= desired_bytes:
                         current_attempt_buf = buf
                         low_q = mid_q + 1  # Try higher quality
                     else:
@@ -365,25 +443,26 @@ def compress_image(
                     best_buf = current_attempt_buf
                     break
 
-                # If even quality 10 is > target_bytes, reduce dimensions by 15% and retry
+                # If even quality 10 is > desired_bytes, downscale dimensions by 15% and retry
                 scale *= 0.85
                 new_w = max(10, int(pil_img.width * scale))
                 new_h = max(10, int(pil_img.height * scale))
                 current_img = pil_img.resize((new_w, new_h), Image.Resampling.LANCZOS)
 
-            # Fallback if target was ridiculously small
             if best_buf is None:
                 best_buf = io.BytesIO()
                 current_img.save(best_buf, format=save_format, quality=10, optimize=True)
 
+            raw_bytes = best_buf.getvalue()
+            # Fine-tune to exactly match the target within -1 to 5 KB!
+            final_bytes = pad_image_to_target_bytes(raw_bytes, target_bytes, save_format)
             with open(output_path, "wb") as f:
-                f.write(best_buf.getvalue())
+                f.write(final_bytes)
 
         # --- MODE 2: Quality Percentage Compression ---
         else:
             q = max(5, min(100, int(quality)))
             if save_format == "PNG":
-                # PNG lossless compression with optimize
                 pil_img.save(output_path, format="PNG", optimize=True)
             elif save_format == "WEBP":
                 pil_img.save(output_path, format="WEBP", quality=q, method=6)
@@ -421,11 +500,15 @@ def compress_pdf(
     first_size = temp_buf.tell()
 
     target_bytes = int(target_kb * 1024) if (target_kb is not None and target_kb > 0) else None
+    desired_bytes = (target_bytes - 2048) if target_bytes else None
 
     # If first attempt meets target or no target specified & not aggressive
-    if (target_bytes is None and not aggressive) or (target_bytes is not None and first_size <= target_bytes):
+    if (desired_bytes is None and not aggressive) or (desired_bytes is not None and first_size <= desired_bytes):
+        raw_bytes = temp_buf.getvalue()
+        if target_bytes:
+            raw_bytes = pad_pdf_to_target_bytes(raw_bytes, target_bytes)
         with open(output_path, "wb") as f:
-            f.write(temp_buf.getvalue())
+            f.write(raw_bytes)
         doc.close()
         return output_path, orig_size, os.path.getsize(output_path)
 
@@ -456,12 +539,19 @@ def compress_pdf(
         new_page = new_doc.new_page(width=rect.width, height=rect.height)
         new_page.insert_image(rect, stream=img_data)
 
-    new_doc.save(output_path, garbage=4, deflate=True, clean=True)
+    temp_out = io.BytesIO()
+    new_doc.save(temp_out, garbage=4, deflate=True, clean=True)
     new_doc.close()
     doc.close()
 
-    compressed_size = os.path.getsize(output_path)
-    return output_path, orig_size, compressed_size
+    raw_bytes = temp_out.getvalue()
+    if target_bytes:
+        raw_bytes = pad_pdf_to_target_bytes(raw_bytes, target_bytes)
+    with open(output_path, "wb") as f:
+        f.write(raw_bytes)
+
+    final_size = os.path.getsize(output_path)
+    return output_path, orig_size, final_size
 
 
 # ==============================================================================

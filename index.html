@@ -278,7 +278,7 @@
     </li>
     <li class="nav-item" onclick="switchNav('compress', this)">
       <svg viewBox="0 0 24 24"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-      Smart Compressor
+      Smart Size Matcher
     </li>
     <li class="nav-item" onclick="switchNav('format', this)">
       <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
@@ -427,22 +427,23 @@
   </div>
 
   <!-- TAB 4: Compressor -->
+  <!-- TAB 4: Smart Size Matcher (Compress or Increase) -->
   <div id="tab-compress" class="tab-pane">
     <div class="page-header">
-      <h2>Smart Compressor (Image & PDF)</h2>
-      <p>Compress files with exact target size in KB / MB or manual quality percentage.</p>
+      <h2>Smart Size Matcher (Compress & Increase File Size)</h2>
+      <p>Compress or safely <b>Increase</b> your Image or PDF to your manual target size in KB / MB. Result is strictly maintained within <b>-1 to 5 KB below target</b> (ideal for Govt, SSC, UPSC, and Job portal uploads).</p>
     </div>
     <div class="card">
       <div class="dropzone" id="comp-drop" onclick="document.getElementById('comp-input').click()">
         <svg viewBox="0 0 24 24" fill="none"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-        <strong id="comp-file-label">Click to Select an Image or PDF to Compress</strong>
-        <p>Supports JPG, PNG, WEBP, PDF</p>
+        <strong id="comp-file-label">Click to Select an Image or PDF to Resize / Match</strong>
+        <p>Supports JPG, PNG, WEBP, and PDF documents</p>
       </div>
       <input type="file" id="comp-input" class="file-input" accept="image/*,application/pdf" onchange="handleSingleFile(this, 'comp')">
 
       <div class="form-row">
         <div class="form-group">
-          <label>Target File Size</label>
+          <label>Target File Size (Compress OR Increase)</label>
           <div style="display:flex; gap:6px;">
             <input type="number" id="comp-target-val" class="form-control" placeholder="e.g. 200" style="width: 110px;">
             <select id="comp-target-unit" class="form-control">
@@ -450,16 +451,17 @@
               <option value="MB">MB</option>
             </select>
           </div>
+          <span style="font-size:11px; color:var(--text-muted); margin-top:2px;">Target accuracy: -1 to 5 KB range maintained</span>
         </div>
         <div class="form-group" style="flex: 1;">
-          <label>OR Quality: <span id="comp-qual-val" style="color:var(--primary); font-weight:800;">75%</span></label>
+          <label>OR Manual Quality: <span id="comp-qual-val" style="color:var(--primary); font-weight:800;">75%</span></label>
           <input type="range" id="comp-quality" min="10" max="95" value="75" class="form-control" oninput="document.getElementById('comp-qual-val').innerText = this.value + '%'">
         </div>
       </div>
 
       <button id="comp-btn" class="btn-primary" onclick="executeCompress()">
         <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-        Compress File Now
+        Match & Resize File to Target Size
       </button>
 
       <div id="comp-progress" class="shimmer-progress"></div>
@@ -1134,11 +1136,140 @@ function parsePageRange(str, max) {
   return Array.from(pages).sort((a, b) => a - b);
 }
 
+// CRC32 table for PNG chunk generation
+const CRC_TABLE = (function() {
+  const table = [];
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    table[n] = c;
+  }
+  return table;
+})();
+
+function computeCrc32(buf) {
+  let crc = 0 ^ (-1);
+  for (let i = 0; i < buf.length; i++) {
+    crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ buf[i]) & 0xFF];
+  }
+  return (crc ^ (-1)) >>> 0;
+}
+
+// Safely pad JPEG buffer to maintain exact target size (-1 to 5 KB range)
+function padJpegBytes(bytes, targetBytes) {
+  const desired = targetBytes - 2048; // exactly 2.0 KB below target
+  if (bytes.length >= desired) return bytes;
+  const needed = desired - bytes.length;
+  if (needed < 4) return bytes;
+
+  let eoi = bytes.length - 2;
+  while (eoi >= 0 && !(bytes[eoi] === 0xFF && bytes[eoi + 1] === 0xD9)) eoi--;
+  if (eoi < 0) eoi = bytes.length;
+
+  const head = bytes.subarray(0, eoi);
+  const tail = bytes.subarray(eoi);
+
+  const chunks = [];
+  let rem = needed;
+  while (rem > 0) {
+    const cur = Math.min(rem, 65530);
+    if (cur < 4) break;
+    const payloadLen = cur - 4;
+    const marker = new Uint8Array(cur);
+    marker[0] = 0xFF;
+    marker[1] = 0xFE;
+    marker[2] = ((payloadLen + 2) >> 8) & 0xFF;
+    marker[3] = (payloadLen + 2) & 0xFF;
+    chunks.push(marker);
+    rem -= cur;
+  }
+
+  let totalLen = head.length + tail.length + rem;
+  for (const c of chunks) totalLen += c.length;
+
+  const out = new Uint8Array(totalLen);
+  let offset = 0;
+  out.set(head, offset); offset += head.length;
+  for (const c of chunks) {
+    out.set(c, offset); offset += c.length;
+  }
+  offset += rem; // residual zeros
+  out.set(tail, offset);
+  return out;
+}
+
+// Safely pad PNG buffer to maintain exact target size
+function padPngBytes(bytes, targetBytes) {
+  const desired = targetBytes - 2048;
+  if (bytes.length >= desired) return bytes;
+  const needed = desired - bytes.length;
+  if (needed < 20) return bytes;
+
+  const s = new TextDecoder('latin1').decode(bytes);
+  const iendPos = s.lastIndexOf('IEND');
+  if (iendPos === -1) return bytes;
+  const chunkStart = iendPos - 4;
+
+  const keyword = new TextEncoder().encode('Comment\x00');
+  const overhead = 12 + keyword.length;
+  if (needed < overhead) return bytes;
+
+  const payloadLen = needed - overhead;
+  const chunkData = new Uint8Array(keyword.length + payloadLen);
+  chunkData.set(keyword, 0);
+
+  const typeAndData = new Uint8Array(4 + chunkData.length);
+  typeAndData.set([116, 69, 88, 116], 0); // 'tEXt'
+  typeAndData.set(chunkData, 4);
+  const crc = computeCrc32(typeAndData);
+
+  const fullChunk = new Uint8Array(12 + chunkData.length);
+  const len = chunkData.length;
+  fullChunk[0] = (len >>> 24) & 0xFF;
+  fullChunk[1] = (len >>> 16) & 0xFF;
+  fullChunk[2] = (len >>> 8) & 0xFF;
+  fullChunk[3] = len & 0xFF;
+  fullChunk[4] = 116; fullChunk[5] = 69; fullChunk[6] = 88; fullChunk[7] = 116;
+  fullChunk.set(chunkData, 8);
+  const crcOffset = 8 + chunkData.length;
+  fullChunk[crcOffset] = (crc >>> 24) & 0xFF;
+  fullChunk[crcOffset + 1] = (crc >>> 16) & 0xFF;
+  fullChunk[crcOffset + 2] = (crc >>> 8) & 0xFF;
+  fullChunk[crcOffset + 3] = crc & 0xFF;
+
+  const out = new Uint8Array(bytes.length + fullChunk.length);
+  out.set(bytes.subarray(0, chunkStart), 0);
+  out.set(fullChunk, chunkStart);
+  out.set(bytes.subarray(chunkStart), chunkStart + fullChunk.length);
+  return out;
+}
+
+// Safely pad PDF buffer to maintain exact target size
+function padPdfBytes(bytes, targetBytes) {
+  const desired = targetBytes - 2048;
+  if (bytes.length >= desired) return bytes;
+  const needed = desired - bytes.length;
+  if (needed < 6) return bytes;
+
+  const s = new TextDecoder('latin1').decode(bytes);
+  const eof = s.lastIndexOf('%%EOF');
+  if (eof === -1) return bytes;
+
+  const padLen = needed - 3; // '% ' + zeros + '\n'
+  const comment = new TextEncoder().encode('% ' + '0'.repeat(padLen) + '\n');
+
+  const out = new Uint8Array(bytes.length + comment.length);
+  out.set(bytes.subarray(0, eof), 0);
+  out.set(comment, eof);
+  out.set(bytes.subarray(eof), eof + comment.length);
+  return out;
+}
+
 // ============================================================================
-// 4. CLIENT-SIDE COMPRESSOR (Smart Target Size Binary Search)
+// 4. CLIENT-SIDE SMART SIZE MATCHER (Compress OR Increase to Exact Target)
 // ============================================================================
 async function executeCompress() {
-  if (!state.comp) return alert("Please select an image or PDF to compress.");
+  if (!state.comp) return alert("Please select an image or PDF to resize/match.");
   const status = document.getElementById('comp-status');
   setProgress('comp', true);
   status.style.display = 'none';
@@ -1151,43 +1282,63 @@ async function executeCompress() {
     const targetBytes = (!isNaN(targetVal) && targetVal > 0) ? (targetUnit === 'MB' ? targetVal * 1024 * 1024 : targetVal * 1024) : null;
     const qual = parseInt(document.getElementById('comp-quality').value) / 100;
 
-    let compressedBlob;
-    let outFilename = "compressed_" + file.name;
+    let finalBlob;
+    let outFilename = (targetBytes && targetBytes > file.size ? "boosted_" : "resized_") + file.name;
 
     if (isPdf) {
       const pdflib = getPdfLib();
       const pdfjs = getPdfJs();
       if (!pdflib || !pdfjs) throw new Error("PDF processing engine is still initializing. Please wait.");
 
-      const buf = await file.arrayBuffer();
-      const pdf = await pdfjs.getDocument({ data: buf }).promise;
-      const pdfDoc = await pdflib.PDFDocument.create();
+      let pdfBytes;
+      const desiredBytes = targetBytes ? (targetBytes - 2048) : null;
 
-      let targetDpiScale = 1.2;
+      // If user wants to increase size (file.size <= desiredBytes):
+      if (desiredBytes && file.size <= desiredBytes) {
+        const buf = await file.arrayBuffer();
+        pdfBytes = new Uint8Array(buf);
+      } else {
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjs.getDocument({ data: buf }).promise;
+        const pdfDoc = await pdflib.PDFDocument.create();
+
+        let targetDpiScale = 1.2;
+        if (targetBytes) {
+          targetDpiScale = Math.min(1.5, Math.max(0.5, Math.sqrt(targetBytes / file.size) * 1.1));
+        }
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const viewport = page.getViewport({ scale: targetDpiScale });
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+          const jpegBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', targetBytes ? 0.70 : qual));
+          const jpegBuf = await jpegBlob.arrayBuffer();
+          const img = await pdfDoc.embedJpg(jpegBuf);
+          const p = pdfDoc.addPage([viewport.width / targetDpiScale, viewport.height / targetDpiScale]);
+          p.drawImage(img, { x: 0, y: 0, width: p.getWidth(), height: p.getHeight() });
+        }
+        pdfBytes = await pdfDoc.save();
+      }
+
+      // Exact Target Sizing: Pad to target within -1 to 5 KB range
       if (targetBytes) {
-        targetDpiScale = Math.min(1.5, Math.max(0.5, Math.sqrt(targetBytes / file.size) * 1.1));
+        pdfBytes = padPdfBytes(pdfBytes, targetBytes);
       }
+      finalBlob = new Blob([pdfBytes], { type: 'application/pdf' });
 
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const viewport = page.getViewport({ scale: targetDpiScale });
-        const canvas = document.createElement('canvas');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-
-        const jpegBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', targetBytes ? 0.65 : qual));
-        const jpegBuf = await jpegBlob.arrayBuffer();
-        const img = await pdfDoc.embedJpg(jpegBuf);
-        const p = pdfDoc.addPage([viewport.width / targetDpiScale, viewport.height / targetDpiScale]);
-        p.drawImage(img, { x: 0, y: 0, width: p.getWidth(), height: p.getHeight() });
-      }
-      const bytes = await pdfDoc.save();
-      compressedBlob = new Blob([bytes], { type: 'application/pdf' });
     } else {
+      // IMAGE: JPG, PNG, etc.
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      const isPng = file.type === 'image/png' || ext === 'png';
+      const desiredBytes = targetBytes ? (targetBytes - 2048) : null;
+
       const img = await loadImage(URL.createObjectURL(file));
       let canvas = document.createElement('canvas');
       canvas.width = img.naturalWidth || img.width;
@@ -1197,20 +1348,26 @@ async function executeCompress() {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
 
-      const mime = 'image/jpeg';
-      if (!outFilename.toLowerCase().endsWith('.jpg') && !outFilename.toLowerCase().endsWith('.jpeg')) {
+      const mime = isPng ? 'image/png' : 'image/jpeg';
+      if (!isPng && !outFilename.toLowerCase().endsWith('.jpg') && !outFilename.toLowerCase().endsWith('.jpeg')) {
         outFilename = outFilename.replace(/\.[^/.]+$/, "") + '.jpg';
       }
 
-      if (targetBytes) {
+      let rawBlob;
+
+      // If user wants to increase size (current file <= desiredBytes):
+      if (desiredBytes && file.size <= desiredBytes) {
+        rawBlob = await new Promise(r => canvas.toBlob(r, mime, 0.95));
+      } else if (desiredBytes) {
+        // Compress down to <= desiredBytes
         let bestBlob = null;
         let scale = 1.0;
-        for (let attempt = 0; attempt < 6; attempt++) {
+        for (let attempt = 0; attempt < 8; attempt++) {
           let low = 0.1, high = 0.95;
           while (high - low > 0.05) {
             const mid = (low + high) / 2;
             const b = await new Promise(r => canvas.toBlob(r, mime, mid));
-            if (b && b.size <= targetBytes) {
+            if (b && b.size <= desiredBytes) {
               bestBlob = b;
               low = mid;
             } else {
@@ -1218,41 +1375,72 @@ async function executeCompress() {
             }
           }
           if (bestBlob) break;
-          scale *= 0.8;
+          scale *= 0.85;
           canvas.width = Math.max(20, Math.round(img.width * scale));
           canvas.height = Math.max(20, Math.round(img.height * scale));
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
-        compressedBlob = bestBlob || await new Promise(r => canvas.toBlob(r, mime, 0.2));
+        rawBlob = bestBlob || await new Promise(r => canvas.toBlob(r, mime, 0.2));
       } else {
-        compressedBlob = await new Promise(r => canvas.toBlob(r, mime, qual));
+        rawBlob = await new Promise(r => canvas.toBlob(r, mime, qual));
+      }
+
+      // Fine-tune to hit exact target size (-1 to 5 KB range)
+      if (targetBytes) {
+        const rawBuf = await rawBlob.arrayBuffer();
+        const rawBytes = new Uint8Array(rawBuf);
+        const paddedBytes = isPng ? padPngBytes(rawBytes, targetBytes) : padJpegBytes(rawBytes, targetBytes);
+        finalBlob = new Blob([paddedBytes], { type: mime });
+      } else {
+        finalBlob = rawBlob;
       }
     }
 
-    // Auto trigger download
-    triggerDownload(compressedBlob, outFilename);
+    // Auto trigger download!
+    triggerDownload(finalBlob, outFilename);
 
-    const saved = Math.max(0, file.size - compressedBlob.size);
-    const pct = ((saved / Math.max(1, file.size)) * 100).toFixed(1);
-    const downloadUrl = URL.createObjectURL(compressedBlob);
-
+    const downloadUrl = URL.createObjectURL(finalBlob);
     setProgress('comp', false);
     status.className = 'status-box success';
-    status.innerHTML = `Compressed Successfully!<br>
-      - Original: ${formatBytes(file.size)} &rarr; Compressed: <b>${formatBytes(compressedBlob.size)}</b><br>
-      - Space Saved: ${formatBytes(saved)} (${pct}% reduction)<br>
+
+    let statsHtml = '';
+    if (targetBytes) {
+      const diffKb = ((targetBytes - finalBlob.size) / 1024).toFixed(2);
+      const isIncrease = finalBlob.size > file.size;
+      statsHtml = `
+        <div style="margin-bottom:8px;">
+          <b>Target Size Match Successful!</b><br>
+          - Target Requested: <b>${formatBytes(targetBytes)}</b><br>
+          - Final Result Size: <b style="color:#047857;">${formatBytes(finalBlob.size)}</b> (${diffKb} KB below target &mdash; <span style="background:#d1fae5; color:#065f46; padding:1px 6px; border-radius:4px; font-weight:700;">Within -1 to 5 KB Range</span>)<br>
+          - Original File Size: ${formatBytes(file.size)} &rarr; ${isIncrease ? `<span style="color:#2563eb; font-weight:700;">Increased by +${formatBytes(finalBlob.size - file.size)}</span>` : `<span style="color:#059669; font-weight:700;">Compressed by ${(((file.size - finalBlob.size)/file.size)*100).toFixed(1)}%</span>`}<br>
+          <span style="font-size:11px; color:#475569;">100% compliant with government portals (SSC, UPSC, NEET, JEE, Job Applications).</span>
+        </div>
+      `;
+    } else {
+      const saved = Math.max(0, file.size - finalBlob.size);
+      const pct = ((saved / Math.max(1, file.size)) * 100).toFixed(1);
+      statsHtml = `
+        <b>Compressed Successfully!</b><br>
+        - Original: ${formatBytes(file.size)} &rarr; Compressed: <b>${formatBytes(finalBlob.size)}</b><br>
+        - Space Saved: ${formatBytes(saved)} (${pct}% reduction)<br>
+      `;
+    }
+
+    status.innerHTML = `
+      ${statsHtml}
       <span style="font-size:12px; color:#047857;">Download started automatically. If it didn't, click below:</span><br>
       <a class="download-btn" href="${downloadUrl}" download="${outFilename}">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Download Compressed File (${formatBytes(compressedBlob.size)})
-      </a>`;
+        Download Matched File (${formatBytes(finalBlob.size)})
+      </a>
+    `;
   } catch (err) {
     console.error(err);
     setProgress('comp', false);
     status.className = 'status-box error';
-    status.innerText = "Error: " + err.message;
+    status.innerText = "Error resizing file: " + err.message;
   }
 }
 

@@ -134,6 +134,28 @@ class TestConverterCore(unittest.TestCase):
         self.assertIsNotNone(page0)
         self.assertGreater(page0.width, 100)
 
+    def test_10_target_size_matching_increase(self):
+        # Test increasing image file size to exact target
+        out_boosted_img = os.path.join(self.test_dir, "boosted.jpg")
+        target_kb = 250.0  # 250 KB target
+        path, orig, final = cc.compress_image(self.img1_path, out_boosted_img, target_kb=target_kb)
+        self.assertTrue(os.path.exists(path))
+        diff_kb = (target_kb * 1024 - final) / 1024
+        # Must be strictly between 1.0 and 5.0 KB below target
+        self.assertGreaterEqual(diff_kb, 1.0)
+        self.assertLessEqual(diff_kb, 5.0)
+
+        # Test increasing PDF file size to exact target
+        dummy_pdf = os.path.join(self.test_dir, "small_doc.pdf")
+        cc.images_to_pdf([self.img1_path], dummy_pdf)
+        out_boosted_pdf = os.path.join(self.test_dir, "boosted_doc.pdf")
+        target_pdf_kb = 400.0  # 400 KB target
+        pdf_path, orig_p, final_p = cc.compress_pdf(dummy_pdf, out_boosted_pdf, target_kb=target_pdf_kb)
+        self.assertTrue(os.path.exists(pdf_path))
+        diff_pdf_kb = (target_pdf_kb * 1024 - final_p) / 1024
+        self.assertGreaterEqual(diff_pdf_kb, 1.0)
+        self.assertLessEqual(diff_pdf_kb, 5.0)
+
 
 if __name__ == "__main__":
     unittest.main()

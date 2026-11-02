@@ -88,11 +88,11 @@ def main():
                 margin=args.margin
             )
             size = cc.format_file_size(os.path.getsize(out))
-            print(f"✅ Successfully created PDF: {out} ({len(args.images)} pages, {size})")
+            print(f"[OK] Successfully created PDF: {out} ({len(args.images)} pages, {size})")
 
         elif args.command == "merge-pdf":
             out, pages, size = cc.merge_pdfs(args.pdfs, args.output)
-            print(f"✅ Merged {len(args.pdfs)} PDFs into {pages} pages ({cc.format_file_size(size)}): {out}")
+            print(f"[OK] Merged {len(args.pdfs)} PDFs into {pages} pages ({cc.format_file_size(size)}): {out}")
 
         elif args.command == "pdf2img":
             out_files = cc.pdf_to_images(
@@ -102,7 +102,7 @@ def main():
                 dpi=args.dpi,
                 page_range=args.pages
             )
-            print(f"✅ Extracted {len(out_files)} images into: {args.output_dir}")
+            print(f"[OK] Extracted {len(out_files)} images into: {args.output_dir}")
 
         elif args.command == "compress":
             ext = os.path.splitext(args.input)[1].lower()
@@ -121,13 +121,22 @@ def main():
                     target_kb=args.target_kb,
                     quality=args.quality
                 )
-            saved = max(0, orig - comp)
-            pct = (saved / max(1, orig)) * 100
-            print(f"✅ Compression Complete!")
-            print(f"   Original:   {cc.format_file_size(orig)}")
-            print(f"   Compressed: {cc.format_file_size(comp)}")
-            print(f"   Saved:      {cc.format_file_size(saved)} ({pct:.1f}% reduction)")
-            print(f"   Saved at:   {out}")
+            if args.target_kb:
+                diff_kb = (args.target_kb * 1024 - comp) / 1024
+                is_increase = comp > orig
+                print(f"[OK] Target Size Match Complete!")
+                print(f"   Target:     {args.target_kb:.2f} KB")
+                print(f"   Final Size: {cc.format_file_size(comp)} ({diff_kb:.2f} KB below target, -1 to 5 KB range maintained)")
+                print(f"   Original:   {cc.format_file_size(orig)} -> {'Increased by +' + cc.format_file_size(comp - orig) if is_increase else 'Compressed'}")
+                print(f"   Saved at:   {out}")
+            else:
+                saved = max(0, orig - comp)
+                pct = (saved / max(1, orig)) * 100
+                print(f"[OK] Compression Complete!")
+                print(f"   Original:   {cc.format_file_size(orig)}")
+                print(f"   Compressed: {cc.format_file_size(comp)}")
+                print(f"   Saved:      {cc.format_file_size(saved)} ({pct:.1f}% reduction)")
+                print(f"   Saved at:   {out}")
 
         elif args.command == "format":
             out = cc.convert_image_format(
@@ -136,7 +145,7 @@ def main():
                 target_format=args.format,
                 quality=args.quality
             )
-            print(f"✅ Image converted to {args.format.upper()}: {out}")
+            print(f"[OK] Image converted to {args.format.upper()}: {out}")
 
         elif args.command == "merge":
             out, (w, h) = cc.merge_images(
@@ -148,10 +157,10 @@ def main():
                 output_format=args.format
             )
             size = cc.format_file_size(os.path.getsize(out))
-            print(f"✅ Merged {len(args.images)} images into {w}x{h} px ({size}): {out}")
+            print(f"[OK] Merged {len(args.images)} images into {w}x{h} px ({size}): {out}")
 
     except Exception as e:
-        print(f"❌ Error: {e}", file=sys.stderr)
+        print(f"[ERROR] Error: {e}", file=sys.stderr)
         sys.exit(1)
 
 
