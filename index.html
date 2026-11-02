@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Studio Pro - All-in-One Image & PDF Engine</title>
 <!-- PDF-Lib for Client-Side PDF Creation & Merging -->
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -239,11 +242,160 @@
   .modal-close { background: none; border: none; color: #94a3b8; font-size: 22px; cursor: pointer; padding: 4px; }
   .modal-close:hover { color: #fff; }
 
-  /* RESPONSIVE */
-  @media (max-width: 800px) {
-    body { flex-direction: column; }
-    .sidebar { width: 100%; min-height: auto; position: static; }
-    .workspace { padding: 20px 16px; }
+  /* RESPONSIVE & MOBILE-FRIENDLY STYLING */
+  @media (max-width: 860px) {
+    body { flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+
+    /* Sticky Mobile Top Header & Navigation */
+    .sidebar {
+      width: 100%;
+      min-height: auto;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 10px 14px 8px 14px;
+      background: #0f172a;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    .brand {
+      padding: 0 0 8px 0;
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-title { font-size: 15px; }
+    .brand-sub { font-size: 10px; }
+
+    /* Horizontal Scrollable Nav Bar for Mobile */
+    .nav-list {
+      flex-direction: row;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      margin-top: 8px;
+      gap: 6px;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .nav-list::-webkit-scrollbar { display: none; }
+
+    .nav-item {
+      padding: 8px 13px;
+      border-radius: 20px;
+      font-size: 12px;
+      border-left: none;
+      background: #1e293b;
+      color: #94a3b8;
+      flex-shrink: 0;
+      border: 1px solid #334155;
+      gap: 6px;
+    }
+    .nav-item:hover { transform: none; }
+    .nav-item.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.45);
+    }
+    .nav-item svg { width: 15px; height: 15px; }
+
+    /* Hide desktop footer on top header */
+    .sidebar-footer { display: none; }
+
+    /* Mobile Workspace Content */
+    .workspace {
+      padding: 14px 12px 36px 12px;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    .page-header { margin-bottom: 14px; }
+    .page-header h2 { font-size: 18px; line-height: 1.25; }
+    .page-header p { font-size: 12px; margin-top: 3px; }
+
+    .card {
+      padding: 16px 12px;
+      border-radius: var(--radius-md);
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    /* Mobile Dropzone */
+    .dropzone {
+      padding: 22px 12px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+    }
+    .dropzone svg { width: 36px; height: 36px; margin-bottom: 6px; }
+    .dropzone strong { font-size: 13px; }
+    .dropzone p { font-size: 11px; }
+
+    /* Form Rows Full Width Stack on Mobile */
+    .form-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .form-group { width: 100%; }
+    .form-control {
+      width: 100% !important;
+      font-size: 16px; /* Prevents auto-zoom in iOS Safari */
+      padding: 10px 12px;
+    }
+
+    /* Primary Buttons Big Touch Target */
+    .btn-primary {
+      padding: 13px 16px;
+      font-size: 14px;
+      min-height: 48px;
+    }
+
+    /* File cards on Mobile */
+    .file-card {
+      padding: 8px 10px;
+      gap: 8px;
+    }
+    .file-card-info {
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+    .file-card-name {
+      max-width: 140px;
+      font-size: 12px;
+    }
+    .file-card-thumb { width: 34px; height: 34px; }
+    .icon-btn { padding: 6px; }
+    .icon-btn svg { width: 15px; height: 15px; }
+
+    /* Download button full width on mobile */
+    .download-btn {
+      width: 100%;
+      justify-content: center;
+      padding: 12px 16px;
+      font-size: 13px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    /* Pill buttons */
+    .pill-group { gap: 6px; }
+    .pill-btn {
+      padding: 8px 10px;
+      font-size: 12px;
+      flex: 1;
+      text-align: center;
+    }
+
+    /* Lightbox Modal */
+    .modal-box { width: 95%; max-height: 90vh; }
+    .modal-header { padding: 10px 14px; }
+    .modal-body { padding: 10px; min-height: 240px; }
   }
 </style>
 </head>
@@ -633,6 +785,11 @@ function switchNav(tabId, el) {
   el.classList.add('active');
   const targetPane = document.getElementById('tab-' + tabId);
   if (targetPane) targetPane.classList.add('active');
+  if (window.innerWidth <= 860 && el) {
+    try {
+      el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    } catch (e) {}
+  }
 }
 
 function selectPill(btn, hiddenId) {
