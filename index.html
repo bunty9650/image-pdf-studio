@@ -208,12 +208,33 @@
   .status-box.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; display: block; }
 
   .download-btn {
-    margin-top: 12px; background: var(--success); color: white; text-decoration: none; padding: 9px 18px;
+    margin-top: 10px; background: var(--primary); color: white; text-decoration: none; padding: 10px 18px;
     border-radius: 6px; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px;
-    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); transition: all 0.2s;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25); transition: all 0.2s; border: none; cursor: pointer;
+    font-family: inherit; -webkit-tap-highlight-color: transparent;
   }
-  .download-btn:hover { background: #059669; transform: translateY(-1px); }
-  .download-btn svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2; }
+  .download-btn:hover { background: var(--primary-hover); transform: translateY(-1px); }
+  .download-btn:active { transform: translateY(0); }
+  .download-btn svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2.2; flex-shrink: 0; }
+
+  .btn-share {
+    margin-top: 10px; background: #059669; color: white; text-decoration: none; padding: 10px 18px;
+    border-radius: 6px; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px;
+    box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25); transition: all 0.2s; border: none; cursor: pointer;
+    font-family: inherit; -webkit-tap-highlight-color: transparent;
+  }
+  .btn-share:hover { background: #047857; transform: translateY(-1px); }
+  .btn-share:active { transform: translateY(0); }
+  .btn-share svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2.2; flex-shrink: 0; }
+
+  .btn-preview {
+    margin-top: 10px; background: #f8fafc; color: #334155; text-decoration: none; padding: 10px 16px;
+    border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px;
+    border: 1px solid #cbd5e1; transition: all 0.2s; cursor: pointer;
+    font-family: inherit; -webkit-tap-highlight-color: transparent;
+  }
+  .btn-preview:hover { background: #e2e8f0; color: #0f172a; }
+  .btn-preview svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; flex-shrink: 0; }
 
   /* LIVE CANVAS LAYOUT PREVIEW */
   .layout-canvas {
@@ -373,11 +394,19 @@
     .icon-btn { padding: 6px; }
     .icon-btn svg { width: 15px; height: 15px; }
 
-    /* Download button full width on mobile */
-    .download-btn {
-      width: 100%;
+    /* Download & Share action buttons on mobile */
+    .download-btn, .btn-share {
+      flex: 1 1 calc(50% - 6px);
       justify-content: center;
-      padding: 12px 16px;
+      padding: 12px 14px;
+      font-size: 13px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .btn-preview {
+      flex: 1 1 100%;
+      justify-content: center;
+      padding: 11px 14px;
       font-size: 13px;
       box-sizing: border-box;
       text-align: center;
@@ -723,7 +752,9 @@
   <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-header">
       <span id="modal-title" style="font-weight:700;">File Preview</span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
     </div>
     <div class="modal-body">
       <img id="modal-img" src="" alt="Preview">
@@ -761,10 +792,137 @@ function getPdfJs() {
   return null;
 }
 
-// 1-Click Auto Download Trigger
+// ============================================================================
+// MOBILE-FIRST DOWNLOAD & SHARE ENGINE
+// ============================================================================
+window.generatedDownloads = {};
+
+function isMobileDevice() {
+  return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+}
+
+function registerDownloadItem(blob, filename, mimeType) {
+  const id = 'dl_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+  window.generatedDownloads[id] = {
+    blob: blob,
+    filename: filename,
+    mimeType: mimeType || blob.type || 'application/octet-stream',
+    createdAt: Date.now()
+  };
+  return id;
+}
+
+// 1. Direct Touch Save (solves mobile user gesture timeout & Android Chrome blob handoff)
+window.saveFileToDevice = function(downloadId) {
+  const item = window.generatedDownloads[downloadId];
+  if (!item) return alert("Download file not found. Please try converting again.");
+
+  const { blob, filename, mimeType } = item;
+  const mobile = isMobileDevice();
+
+  try {
+    // Android Chrome fails to display or download blob: URLs with type 'application/pdf'
+    // because it attempts to dispatch an Intent to external viewer apps that lack access to Chrome memory.
+    // Changing the MIME type to 'application/octet-stream' forces Chrome to save directly to Downloads!
+    let dlBlob = blob;
+    if (mobile && (mimeType === 'application/pdf' || blob.type === 'application/pdf' || filename.endsWith('.pdf'))) {
+      dlBlob = new Blob([blob], { type: 'application/octet-stream' });
+    }
+
+    const url = URL.createObjectURL(dlBlob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+
+    setTimeout(() => {
+      try { document.body.removeChild(a); } catch (e) {}
+      setTimeout(() => URL.revokeObjectURL(url), 120000);
+    }, 1000);
+  } catch (err) {
+    console.error("Direct download failed:", err);
+    // Safari fallback
+    const viewUrl = URL.createObjectURL(blob);
+    window.open(viewUrl, '_blank');
+  }
+};
+
+// 2. Mobile Native Web Share (opens iOS Save to Files / Android Quick Share / WhatsApp)
+window.shareFileFromDevice = async function(downloadId) {
+  const item = window.generatedDownloads[downloadId];
+  if (!item) return alert("File not found. Please try converting again.");
+
+  const { blob, filename, mimeType } = item;
+
+  if (navigator.share) {
+    try {
+      const file = new File([blob], filename, { type: mimeType || blob.type || 'application/octet-stream' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: filename,
+          text: filename
+        });
+        return;
+      }
+    } catch (shareErr) {
+      if (shareErr.name === 'AbortError') return; // User cancelled sheet
+      console.warn("Share API issue, falling back to download:", shareErr);
+    }
+  }
+
+  // Fallback to direct device save
+  window.saveFileToDevice(downloadId);
+};
+
+// 3. Status Box Action Card Generator
+function renderDownloadStatusCard(downloadId, successMessage, buttonLabel = 'Download PDF') {
+  const item = window.generatedDownloads[downloadId];
+  if (!item) return `<div class="status-box success">${successMessage}</div>`;
+
+  const { blob, filename } = item;
+  const viewUrl = URL.createObjectURL(blob);
+  const mobile = isMobileDevice();
+
+  return `
+    <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px; color: #065f46;">
+      ${successMessage}
+    </div>
+    <div style="font-size: 12px; color: #047857; margin-bottom: 12px;">
+      ${mobile ? 'Mobile Ready: Tap "Download" or "Save / Share" to save directly on your phone:' : 'Download started automatically. If it did not, use the buttons below:'}
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+      <button type="button" class="download-btn" onclick="saveFileToDevice('${downloadId}')" style="margin: 0;">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        ${buttonLabel} (${formatBytes(blob.size)})
+      </button>
+
+      <button type="button" class="btn-share" onclick="shareFileFromDevice('${downloadId}')" style="margin: 0;">
+        <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        Save / Share
+      </button>
+
+      <a class="btn-preview" href="${viewUrl}" target="_blank" rel="noopener" style="margin: 0;">
+        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        Preview
+      </a>
+    </div>
+  `;
+}
+
+// 4. Background Auto Download (works seamlessly on desktop; silent fallback on mobile)
 function triggerDownload(blobOrUrl, filename) {
   try {
-    const url = typeof blobOrUrl === 'string' ? blobOrUrl : URL.createObjectURL(blobOrUrl);
+    let blob = blobOrUrl;
+    const mobile = isMobileDevice();
+
+    if (blob instanceof Blob && mobile && (blob.type === 'application/pdf' || filename.endsWith('.pdf'))) {
+      blob = new Blob([blob], { type: 'application/octet-stream' });
+    }
+
+    const url = typeof blob === 'string' ? blob : URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.style.display = 'none';
     a.href = url;
@@ -773,9 +931,10 @@ function triggerDownload(blobOrUrl, filename) {
     a.click();
     setTimeout(() => {
       try { document.body.removeChild(a); } catch (e) {}
-    }, 400);
+      setTimeout(() => URL.revokeObjectURL(url), 120000);
+    }, 1000);
   } catch (err) {
-    console.error("Auto download failed:", err);
+    console.warn("Auto download blocked by browser security (interactive button ready):", err);
   }
 }
 
@@ -1013,47 +1172,69 @@ function updateStitchLayout() {
   }
 }
 
-// Universal Robust Image Embedder for PDF-Lib (Supports ALL formats: JPG, PNG, WEBP, BMP, GIF, etc.)
-async function embedImageInPdf(pdfDoc, file) {
-  const ext = (file.name || '').split('.').pop().toLowerCase();
-  const isPng = file.type === 'image/png' || ext === 'png';
-  const isJpg = file.type === 'image/jpeg' || file.type === 'image/jpg' || ext === 'jpg' || ext === 'jpeg';
-
-  if (isPng || isJpg) {
+// Safe Mobile-Optimized Image Rasterizer (Caps dimensions to 2400px, auto-orients EXIF, prevents Canvas OOM)
+async function rasterizeImageSafe(file, maxDim = 2400) {
+  if (typeof createImageBitmap === 'function') {
     try {
-      const buf = await file.arrayBuffer();
-      if (isPng) return await pdfDoc.embedPng(buf);
-      if (isJpg) return await pdfDoc.embedJpg(buf);
+      const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      let w = bmp.width;
+      let h = bmp.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+      const c = document.createElement('canvas');
+      c.width = w;
+      c.height = h;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(bmp, 0, 0, w, h);
+      try { bmp.close(); } catch (e) {}
+
+      const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
+      if (blob) {
+        return await blob.arrayBuffer();
+      }
     } catch (e) {
-      // Direct embed threw (progressive JPG or EXIF issue) -> fallback to canvas
+      // Fallback to Image element below
     }
   }
 
-  // Universal Canvas rasterization fallback
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
-    img.onload = async () => {
+    img.onload = () => {
       try {
+        let w = img.naturalWidth || img.width;
+        let h = img.naturalHeight || img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
         const c = document.createElement('canvas');
-        c.width = img.naturalWidth || img.width;
-        c.height = img.naturalHeight || img.height;
+        c.width = w;
+        c.height = h;
         const ctx = c.getContext('2d');
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, c.width, c.height);
-        ctx.drawImage(img, 0, 0);
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
 
-        c.toBlob(async (blob) => {
+        c.toBlob((blob) => {
           URL.revokeObjectURL(url);
-          if (!blob) return reject(new Error("Image processing failed on canvas"));
-          try {
-            const buf = await blob.arrayBuffer();
-            const embedded = await pdfDoc.embedJpg(buf);
-            resolve(embedded);
-          } catch (embedErr) {
-            reject(embedErr);
-          }
-        }, 'image/jpeg', 0.95);
+          if (!blob) return reject(new Error("Canvas rasterization returned empty"));
+          blob.arrayBuffer().then(resolve).catch(reject);
+        }, 'image/jpeg', 0.92);
       } catch (err) {
         URL.revokeObjectURL(url);
         reject(err);
@@ -1065,6 +1246,34 @@ async function embedImageInPdf(pdfDoc, file) {
     };
     img.src = url;
   });
+}
+
+// Universal Robust Image Embedder for PDF-Lib (Supports ALL formats: JPG, PNG, WEBP, BMP, GIF, etc.)
+async function embedImageInPdf(pdfDoc, file) {
+  const ext = (file.name || '').split('.').pop().toLowerCase();
+  const isPng = file.type === 'image/png' || ext === 'png';
+  const isJpg = file.type === 'image/jpeg' || file.type === 'image/jpg' || ext === 'jpg' || ext === 'jpeg';
+
+  // For small PNGs/JPGs (< 1.5MB) that are likely desktop screenshots, try direct embed
+  if (isPng && file.size < 1.5 * 1024 * 1024) {
+    try {
+      const buf = await file.arrayBuffer();
+      return await pdfDoc.embedPng(buf);
+    } catch (e) {}
+  }
+
+  // For phone camera photos, large images, WebP, BMP, HEIC, or progressive JPGs:
+  // Rasterize safely with EXIF correction, dimension capping to 2400px max, and 300 DPI quality
+  try {
+    const jpegBuf = await rasterizeImageSafe(file, 2400);
+    return await pdfDoc.embedJpg(jpegBuf);
+  } catch (err) {
+    if (isJpg) {
+      const buf = await file.arrayBuffer();
+      return await pdfDoc.embedJpg(buf);
+    }
+    throw err;
+  }
 }
 
 function loadImage(src) {
@@ -1120,18 +1329,15 @@ async function executeImg2Pdf() {
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const filename = "converted_images_" + Date.now().toString().slice(-4) + ".pdf";
 
+    // Register item for direct tap download / share
+    const downloadId = registerDownloadItem(blob, filename, 'application/pdf');
+
     // Auto trigger download
     triggerDownload(blob, filename);
 
-    const downloadUrl = URL.createObjectURL(blob);
     setProgress('img2pdf', false);
     status.className = 'status-box success';
-    status.innerHTML = `Successfully converted ${state.img2pdf.length} image(s) to PDF! (${formatBytes(blob.size)})<br>
-      <span style="font-size:12px; color:#047857;">Download started automatically. If it didn't, click below:</span><br>
-      <a class="download-btn" href="${downloadUrl}" download="${filename}">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Download PDF (${formatBytes(blob.size)})
-      </a>`;
+    status.innerHTML = renderDownloadStatusCard(downloadId, `Successfully converted ${state.img2pdf.length} image(s) to PDF!`, 'Download PDF');
   } catch (err) {
     console.error(err);
     setProgress('img2pdf', false);
@@ -1168,18 +1374,15 @@ async function executeMergePdfs() {
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const filename = "merged_documents_" + Date.now().toString().slice(-4) + ".pdf";
 
+    // Register item for direct tap download / share
+    const downloadId = registerDownloadItem(blob, filename, 'application/pdf');
+
     // Auto trigger download
     triggerDownload(blob, filename);
 
-    const downloadUrl = URL.createObjectURL(blob);
     setProgress('merge_pdf', false);
     status.className = 'status-box success';
-    status.innerHTML = `Successfully merged ${state.merge_pdf.length} PDFs into ${totalPages} pages (${formatBytes(blob.size)})!<br>
-      <span style="font-size:12px; color:#047857;">Download started automatically. If it didn't, click below:</span><br>
-      <a class="download-btn" href="${downloadUrl}" download="${filename}">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Download Merged PDF (${formatBytes(blob.size)})
-      </a>`;
+    status.innerHTML = renderDownloadStatusCard(downloadId, `Successfully merged ${state.merge_pdf.length} PDFs into ${totalPages} pages!`, 'Download Merged PDF');
   } catch (err) {
     console.error(err);
     setProgress('merge_pdf', false);
@@ -1245,26 +1448,40 @@ async function executePdf2Img() {
     if (extractedBlobs.length > 1 && zip) {
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const zipName = state.pdf2img.name.replace(/\.[^/.]+$/, "") + "_pages.zip";
+      const zipId = registerDownloadItem(zipBlob, zipName, 'application/zip');
       triggerDownload(zipBlob, zipName);
-      const zipUrl = URL.createObjectURL(zipBlob);
 
-      html += `<span style="font-size:12px; color:#047857;">ZIP download started automatically.</span><br>
-        <a class="download-btn" style="background:#2563eb; margin: 8px 0;" href="${zipUrl}" download="${zipName}">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Download All as ZIP (${formatBytes(zipBlob.size)})
-        </a><br><div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">`;
+      html += `
+        <span style="font-size:12px; color:#047857;">Ready for download. Tap to save ZIP:</span><br>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin: 8px 0 12px 0;">
+          <button type="button" class="download-btn" onclick="saveFileToDevice('${zipId}')" style="background:#2563eb; margin:0;">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download All as ZIP (${formatBytes(zipBlob.size)})
+          </button>
+          <button type="button" class="btn-share" onclick="shareFileFromDevice('${zipId}')" style="margin:0;">
+            <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+            Save / Share ZIP
+          </button>
+        </div>
+        <div style="font-size:12px; font-weight:700; color:#334155; margin-bottom:6px;">Individual Page Images:</div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+      `;
+      for (let item of extractedBlobs) {
+        const itemId = registerDownloadItem(item.blob, item.name, item.blob.type || 'image/png');
+        html += `
+          <button type="button" class="download-btn" onclick="saveFileToDevice('${itemId}')" style="margin:0; padding: 7px 12px; font-size: 12px;">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            ${item.name} (${formatBytes(item.blob.size)})
+          </button>
+        `;
+      }
+      html += '</div>';
     } else {
-      triggerDownload(extractedBlobs[0].blob, extractedBlobs[0].name);
-      html += `<span style="font-size:12px; color:#047857;">Download started automatically.</span><br><div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">`;
+      const single = extractedBlobs[0];
+      const singleId = registerDownloadItem(single.blob, single.name, single.blob.type || 'image/png');
+      triggerDownload(single.blob, single.name);
+      html = renderDownloadStatusCard(singleId, `Extracted page image successfully!`, 'Download Image');
     }
-
-    for (let item of extractedBlobs) {
-      html += `<a class="download-btn" href="${item.url}" download="${item.name}">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        ${item.name} (${formatBytes(item.blob.size)})
-      </a>`;
-    }
-    html += '</div>';
 
     setProgress('pdf2img', false);
     status.className = 'status-box success';
@@ -1555,10 +1772,12 @@ async function executeCompress() {
       }
     }
 
+    // Register item for direct tap download / share
+    const downloadId = registerDownloadItem(finalBlob, outFilename, finalBlob.type || 'application/octet-stream');
+
     // Auto trigger download!
     triggerDownload(finalBlob, outFilename);
 
-    const downloadUrl = URL.createObjectURL(finalBlob);
     setProgress('comp', false);
     status.className = 'status-box success';
 
@@ -1579,20 +1798,15 @@ async function executeCompress() {
       const saved = Math.max(0, file.size - finalBlob.size);
       const pct = ((saved / Math.max(1, file.size)) * 100).toFixed(1);
       statsHtml = `
-        <b>Compressed Successfully!</b><br>
-        - Original: ${formatBytes(file.size)} &rarr; Compressed: <b>${formatBytes(finalBlob.size)}</b><br>
-        - Space Saved: ${formatBytes(saved)} (${pct}% reduction)<br>
+        <div style="margin-bottom:8px;">
+          <b>Compressed Successfully!</b><br>
+          - Original: ${formatBytes(file.size)} &rarr; Compressed: <b>${formatBytes(finalBlob.size)}</b><br>
+          - Space Saved: ${formatBytes(saved)} (${pct}% reduction)<br>
+        </div>
       `;
     }
 
-    status.innerHTML = `
-      ${statsHtml}
-      <span style="font-size:12px; color:#047857;">Download started automatically. If it didn't, click below:</span><br>
-      <a class="download-btn" href="${downloadUrl}" download="${outFilename}">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Download Matched File (${formatBytes(finalBlob.size)})
-      </a>
-    `;
+    status.innerHTML = renderDownloadStatusCard(downloadId, statsHtml, 'Download Matched File');
   } catch (err) {
     console.error(err);
     setProgress('comp', false);
@@ -1643,29 +1857,59 @@ async function executeFormatConvert() {
     let html = `Converted ${converted.length} image(s) to ${targetFmt.toUpperCase()}!<br>`;
 
     if (converted.length === 1) {
-      triggerDownload(converted[0].blob, converted[0].name);
-      html += `<span style="font-size:12px; color:#047857;">Download started automatically.</span><br><div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">`;
+      const single = converted[0];
+      const singleId = registerDownloadItem(single.blob, single.name, single.blob.type || ('image/' + targetFmt));
+      triggerDownload(single.blob, single.name);
+      html = renderDownloadStatusCard(singleId, `Converted 1 image to ${targetFmt.toUpperCase()} successfully!`, 'Download Converted Image');
     } else if (zip) {
       const zipBlob = await zip.generateAsync({ type: 'blob' });
       const zipName = "converted_images_" + Date.now().toString().slice(-4) + ".zip";
+      const zipId = registerDownloadItem(zipBlob, zipName, 'application/zip');
       triggerDownload(zipBlob, zipName);
-      const zipUrl = URL.createObjectURL(zipBlob);
-      html += `<span style="font-size:12px; color:#047857;">ZIP download started automatically.</span><br>
-        <a class="download-btn" style="background:#2563eb; margin: 8px 0;" href="${zipUrl}" download="${zipName}">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Download All as ZIP (${formatBytes(zipBlob.size)})
-        </a><br><div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">`;
-    } else {
-      html += `<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">`;
-    }
 
-    for (let item of converted) {
-      html += `<a class="download-btn" href="${item.url}" download="${item.name}">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        ${item.name} (${formatBytes(item.blob.size)})
-      </a>`;
+      html = `
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px; color: #065f46;">
+          Converted ${converted.length} images to ${targetFmt.toUpperCase()}!
+        </div>
+        <div style="font-size: 12px; color: #047857; margin-bottom: 12px;">
+          Tap to download ZIP or individual images:
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px;">
+          <button type="button" class="download-btn" onclick="saveFileToDevice('${zipId}')" style="background:#2563eb; margin:0;">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download All as ZIP (${formatBytes(zipBlob.size)})
+          </button>
+          <button type="button" class="btn-share" onclick="shareFileFromDevice('${zipId}')" style="margin:0;">
+            <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+            Save / Share ZIP
+          </button>
+        </div>
+        <div style="font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">Individual Images:</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      `;
+      for (let item of converted) {
+        const itemId = registerDownloadItem(item.blob, item.name, item.blob.type || ('image/' + targetFmt));
+        html += `
+          <button type="button" class="download-btn" onclick="saveFileToDevice('${itemId}')" style="margin:0; padding: 7px 12px; font-size: 12px;">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            ${item.name} (${formatBytes(item.blob.size)})
+          </button>
+        `;
+      }
+      html += '</div>';
+    } else {
+      html = `<div style="display:flex; flex-wrap:wrap; gap:8px;">`;
+      for (let item of converted) {
+        const itemId = registerDownloadItem(item.blob, item.name, item.blob.type || ('image/' + targetFmt));
+        html += `
+          <button type="button" class="download-btn" onclick="saveFileToDevice('${itemId}')" style="margin:0; padding: 7px 12px; font-size: 12px;">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            ${item.name} (${formatBytes(item.blob.size)})
+          </button>
+        `;
+      }
+      html += '</div>';
     }
-    html += '</div>';
 
     setProgress('fmt', false);
     status.className = 'status-box success';
@@ -1743,18 +1987,15 @@ async function executeMerge() {
     const blob = await new Promise(r => canvas.toBlob(r, 'image/png', 1.0));
     const filename = "stitched_image_" + Date.now().toString().slice(-4) + ".png";
 
+    // Register item for direct tap download / share
+    const downloadId = registerDownloadItem(blob, filename, 'image/png');
+
     // Auto trigger download
     triggerDownload(blob, filename);
 
-    const downloadUrl = URL.createObjectURL(blob);
     setProgress('merge', false);
     status.className = 'status-box success';
-    status.innerHTML = `Stitched ${state.merge.length} images into <b>${canvas.width} x ${canvas.height} px</b> (${formatBytes(blob.size)})!<br>
-      <span style="font-size:12px; color:#047857;">Download started automatically. If it didn't, click below:</span><br>
-      <a class="download-btn" href="${downloadUrl}" download="${filename}">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Download Stitched Image (${formatBytes(blob.size)})
-      </a>`;
+    status.innerHTML = renderDownloadStatusCard(downloadId, `Stitched ${state.merge.length} images into <b>${canvas.width} x ${canvas.height} px</b>!`, 'Download Stitched Image');
   } catch (err) {
     console.error(err);
     setProgress('merge', false);
