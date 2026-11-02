@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Temporary files
+test_temp_dir/
+.temp*
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# OS X
+.DS_Store
