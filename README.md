@@ -96,7 +96,7 @@ python cli.py merge img1.png img2.png img3.png -o stitched.png --direction horiz
 | `run_gui.bat` | One-click Desktop GUI launcher |
 | `run_web.bat` | One-click Web Browser launcher |
 | `test_converter_core.py` | Automated unit tests |
-| `requirements.txt` | Dependencies list (`pillow`, `pymupdf`) |
+| `requirements-desktop.txt` | Local Python dependencies list (`pillow`, `pymupdf`) |
 
 ---
 
