@@ -5,11 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Pro - All-in-One Image & PDF Engine</title>
 <!-- PDF-Lib for Client-Side PDF Creation & Merging -->
-<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.9/dist/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+  if (!window.PDFLib) {
+    document.write('<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"><\/script>');
+  }
+</script>
 <!-- PDF.js for Client-Side PDF Rendering & Previews -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (!window.pdfjsLib) {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"><\/script>');
+  }
+</script>
 <!-- JSZip for 1-Click Multi-Page Image ZIP Downloads -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+  if (!window.JSZip) {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
+  }
+</script>
 
 <style>
   :root {
@@ -372,7 +387,7 @@
       <p>Extract all or specific pages into crisp, high-resolution PNG, JPG, or WEBP images.</p>
     </div>
     <div class="card">
-      <div class="dropzone" onclick="document.getElementById('pdf2img-input').click()">
+      <div class="dropzone" id="pdf2img-drop" onclick="document.getElementById('pdf2img-input').click()">
         <svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
         <strong id="pdf2img-file-label">Click to Select a PDF Document</strong>
         <p>Extract pages in high clarity</p>
@@ -418,7 +433,7 @@
       <p>Compress files with exact target size in KB / MB or manual quality percentage.</p>
     </div>
     <div class="card">
-      <div class="dropzone" onclick="document.getElementById('comp-input').click()">
+      <div class="dropzone" id="comp-drop" onclick="document.getElementById('comp-input').click()">
         <svg viewBox="0 0 24 24" fill="none"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
         <strong id="comp-file-label">Click to Select an Image or PDF to Compress</strong>
         <p>Supports JPG, PNG, WEBP, PDF</p>
@@ -459,7 +474,7 @@
       <p>Convert images between JPG, PNG, WEBP, and BMP seamlessly.</p>
     </div>
     <div class="card">
-      <div class="dropzone" onclick="document.getElementById('fmt-input').click()">
+      <div class="dropzone" id="fmt-drop" onclick="document.getElementById('fmt-input').click()">
         <svg viewBox="0 0 24 24" fill="none"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
         <strong>Click or Drag & Drop Images to Convert Format</strong>
         <p>Supports single or batch conversion</p>
@@ -495,7 +510,7 @@
       <p>Reorder sequence, preview layout, and merge with Lanczos clarity preservation.</p>
     </div>
     <div class="card">
-      <div class="dropzone" onclick="document.getElementById('merge-input').click()">
+      <div class="dropzone" id="merge-drop" onclick="document.getElementById('merge-input').click()">
         <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="18" rx="1"></rect><rect x="13" y="3" width="8" height="18" rx="1"></rect></svg>
         <strong id="merge-file-label">Click to Select 2 to 5 Images to Merge</strong>
         <p>Automatic alignment preserving pure sharpness</p>
@@ -563,48 +578,97 @@
 </div>
 
 <script>
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// Studio Pro Core Engine State
+let state = {
+  img2pdf: [],
+  merge_pdf: [],
+  pdf2img: null,
+  comp: null,
+  fmt: [],
+  merge: []
+};
 
-let state = { img2pdf: [], merge_pdf: [], pdf2img: null, comp: null, fmt: [], merge: [] };
+// Safe engine accessors with defensive lazy worker init
+function getPdfLib() {
+  return (window.PDFLib && window.PDFLib.PDFDocument) ? window.PDFLib : null;
+}
+
+function getPdfJs() {
+  if (window.pdfjsLib) {
+    try {
+      if (!window.pdfjsLib.GlobalWorkerOptions.workerSrc) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+    } catch (e) {
+      console.warn("Could not set PDF worker URL", e);
+    }
+    return window.pdfjsLib;
+  }
+  return null;
+}
+
+// 1-Click Auto Download Trigger
+function triggerDownload(blobOrUrl, filename) {
+  try {
+    const url = typeof blobOrUrl === 'string' ? blobOrUrl : URL.createObjectURL(blobOrUrl);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      try { document.body.removeChild(a); } catch (e) {}
+    }, 400);
+  } catch (err) {
+    console.error("Auto download failed:", err);
+  }
+}
 
 function switchNav(tabId, el) {
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('tab-' + tabId).classList.add('active');
+  const targetPane = document.getElementById('tab-' + tabId);
+  if (targetPane) targetPane.classList.add('active');
 }
 
 function selectPill(btn, hiddenId) {
   const parent = btn.parentElement;
   parent.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById(hiddenId).value = btn.getAttribute('data-val');
+  const hiddenInput = document.getElementById(hiddenId);
+  if (hiddenInput) hiddenInput.value = btn.getAttribute('data-val');
 }
 
 function formatBytes(bytes) {
+  if (!bytes || isNaN(bytes)) return '0 B';
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / 1048576).toFixed(2) + ' MB';
 }
 
 function handleSingleFile(input, key) {
-  if (input.files.length > 0) {
+  if (input.files && input.files.length > 0) {
     const f = input.files[0];
     state[key] = f;
     const label = document.getElementById(key + '-file-label');
     if (label) label.innerText = f.name + ' (' + formatBytes(f.size) + ')';
   }
+  input.value = '';
 }
 
 async function handleFilesSelect(input, key) {
-  for (let f of input.files) {
-    if (key === 'merge' && state[key].length >= 5) {
-      alert("Maximum 5 images allowed for stitching.");
-      break;
+  if (input.files) {
+    for (let f of input.files) {
+      if (key === 'merge' && state[key].length >= 5) {
+        alert("Maximum 5 images allowed for stitching.");
+        break;
+      }
+      state[key].push(f);
     }
-    state[key].push(f);
   }
+  input.value = '';
   await renderFileList(key);
 }
 
@@ -625,7 +689,7 @@ async function renderFileList(key) {
 
   for (let idx = 0; idx < state[key].length; idx++) {
     const f = state[key][idx];
-    const ext = f.name.split('.').pop().toUpperCase();
+    const ext = (f.name.split('.').pop() || '').toUpperCase();
     const isPdf = f.type === 'application/pdf' || ext === 'PDF';
     let thumbSrc = '';
 
@@ -640,9 +704,9 @@ async function renderFileList(key) {
     div.innerHTML = `
       <div class="file-card-info">
         <span class="seq-badge">${idx + 1}</span>
-        <img class="file-card-thumb" src="${thumbSrc}" onclick="openPreview('${thumbSrc}', '${f.name}')" title="Click to Preview">
+        <img class="file-card-thumb" src="${thumbSrc}" onclick="openPreview('${thumbSrc}', '${escapeHtml(f.name)}')" title="Click to Preview">
         <div>
-          <div class="file-card-name">${f.name}</div>
+          <div class="file-card-name">${escapeHtml(f.name)}</div>
           <div style="display:flex; gap:6px; margin-top:2px;">
             <span class="badge ${isPdf ? 'badge-pdf' : 'badge-fmt'}">${ext}</span>
             <span class="badge badge-size">${formatBytes(f.size)}</span>
@@ -650,7 +714,7 @@ async function renderFileList(key) {
         </div>
       </div>
       <div class="file-card-actions">
-        <button class="icon-btn primary" onclick="openPreview('${thumbSrc}', '${f.name}')" title="Preview">
+        <button class="icon-btn primary" onclick="openPreview('${thumbSrc}', '${escapeHtml(f.name)}')" title="Preview">
           <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         </button>
         ${idx > 0 ? `<button class="icon-btn" onclick="moveFile('${key}', ${idx}, -1)" title="Move Up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg></button>` : ''}
@@ -664,10 +728,22 @@ async function renderFileList(key) {
   if (key === 'merge') updateStitchLayout();
 }
 
+function escapeHtml(str) {
+  return (str || '').replace(/[&<>'"]/g, tag => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+  }[tag] || tag));
+}
+
 async function generatePdfCover(file) {
   try {
+    const pdfjs = getPdfJs();
+    if (!pdfjs) throw new Error("No PDF renderer");
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
     const page = await pdf.getPage(1);
     const viewport = page.getViewport({ scale: 0.25 });
     const canvas = document.createElement('canvas');
@@ -778,35 +854,87 @@ function updateStitchLayout() {
   }
 }
 
+// Universal Robust Image Embedder for PDF-Lib (Supports ALL formats: JPG, PNG, WEBP, BMP, GIF, etc.)
+async function embedImageInPdf(pdfDoc, file) {
+  const ext = (file.name || '').split('.').pop().toLowerCase();
+  const isPng = file.type === 'image/png' || ext === 'png';
+  const isJpg = file.type === 'image/jpeg' || file.type === 'image/jpg' || ext === 'jpg' || ext === 'jpeg';
+
+  if (isPng || isJpg) {
+    try {
+      const buf = await file.arrayBuffer();
+      if (isPng) return await pdfDoc.embedPng(buf);
+      if (isJpg) return await pdfDoc.embedJpg(buf);
+    } catch (e) {
+      // Direct embed threw (progressive JPG or EXIF issue) -> fallback to canvas
+    }
+  }
+
+  // Universal Canvas rasterization fallback
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = async () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = img.naturalWidth || img.width;
+        c.height = img.naturalHeight || img.height;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0);
+
+        c.toBlob(async (blob) => {
+          URL.revokeObjectURL(url);
+          if (!blob) return reject(new Error("Image processing failed on canvas"));
+          try {
+            const buf = await blob.arrayBuffer();
+            const embedded = await pdfDoc.embedJpg(buf);
+            resolve(embedded);
+          } catch (embedErr) {
+            reject(embedErr);
+          }
+        }, 'image/jpeg', 0.95);
+      } catch (err) {
+        URL.revokeObjectURL(url);
+        reject(err);
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Could not load image: " + file.name));
+    };
+    img.src = url;
+  });
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Image load failed"));
+    img.src = src;
+  });
+}
+
 // ============================================================================
-// 1. CLIENT-SIDE IMAGES TO PDF (Using PDF-Lib)
+// 1. CLIENT-SIDE IMAGES TO PDF (PDF-Lib)
 // ============================================================================
 async function executeImg2Pdf() {
-  if (state.img2pdf.length === 0) return alert("Please add at least one image.");
+  if (state.img2pdf.length === 0) return alert("Please select at least one image.");
   const status = document.getElementById('img2pdf-status');
+  const pdflib = getPdfLib();
+  if (!pdflib) return alert("PDF Engine is still loading. Please wait 2 seconds and try again.");
+
   setProgress('img2pdf', true);
   status.style.display = 'none';
 
   try {
-    const pdfDoc = await PDFLib.PDFDocument.create();
+    const pdfDoc = await pdflib.PDFDocument.create();
     const pageSize = document.getElementById('img2pdf-pagesize').value;
 
     for (let file of state.img2pdf) {
-      const arrayBuffer = await file.arrayBuffer();
-      const isPng = file.type.includes('png');
-      let image;
-      try {
-        image = isPng ? await pdfDoc.embedPng(arrayBuffer) : await pdfDoc.embedJpg(arrayBuffer);
-      } catch (err) {
-        // Fallback convert to canvas PNG
-        const blobUrl = URL.createObjectURL(file);
-        const img = await loadImage(blobUrl);
-        const c = document.createElement('canvas');
-        c.width = img.width; c.height = img.height;
-        c.getContext('2d').drawImage(img, 0, 0);
-        const pngBuf = await (await fetch(c.toDataURL('image/png'))).arrayBuffer();
-        image = await pdfDoc.embedPng(pngBuf);
-      }
+      const image = await embedImageInPdf(pdfDoc, file);
 
       let pw = image.width, ph = image.height;
       if (pageSize === 'A4') {
@@ -831,16 +959,22 @@ async function executeImg2Pdf() {
 
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const downloadUrl = URL.createObjectURL(blob);
+    const filename = "converted_images_" + Date.now().toString().slice(-4) + ".pdf";
 
+    // Auto trigger download
+    triggerDownload(blob, filename);
+
+    const downloadUrl = URL.createObjectURL(blob);
     setProgress('img2pdf', false);
     status.className = 'status-box success';
-    status.innerHTML = `Successfully created PDF! (${state.img2pdf.length} pages, ${formatBytes(blob.size)})<br>
-      <a class="download-btn" href="${downloadUrl}" download="converted_images.pdf">
+    status.innerHTML = `Successfully converted ${state.img2pdf.length} image(s) to PDF! (${formatBytes(blob.size)})<br>
+      <span style="font-size:12px; color:#047857;">Download started automatically. If it didn't, click below:</span><br>
+      <a class="download-btn" href="${downloadUrl}" download="${filename}">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Download PDF
+        Download PDF (${formatBytes(blob.size)})
       </a>`;
   } catch (err) {
+    console.error(err);
     setProgress('img2pdf', false);
     status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
@@ -848,21 +982,24 @@ async function executeImg2Pdf() {
 }
 
 // ============================================================================
-// 2. CLIENT-SIDE MERGE PDFS (Using PDF-Lib)
+// 2. CLIENT-SIDE MERGE PDFS (PDF-Lib)
 // ============================================================================
 async function executeMergePdfs() {
   if (state.merge_pdf.length < 2) return alert("Please select at least 2 PDF documents to merge.");
   const status = document.getElementById('merge_pdf-status');
+  const pdflib = getPdfLib();
+  if (!pdflib) return alert("PDF Engine is still loading. Please wait 2 seconds and try again.");
+
   setProgress('merge_pdf', true);
   status.style.display = 'none';
 
   try {
-    const mergedDoc = await PDFLib.PDFDocument.create();
+    const mergedDoc = await pdflib.PDFDocument.create();
     let totalPages = 0;
 
     for (let file of state.merge_pdf) {
       const buf = await file.arrayBuffer();
-      const subDoc = await PDFLib.PDFDocument.load(buf);
+      const subDoc = await pdflib.PDFDocument.load(buf, { ignoreEncryption: true });
       const copiedPages = await mergedDoc.copyPages(subDoc, subDoc.getPageIndices());
       copiedPages.forEach(p => mergedDoc.addPage(p));
       totalPages += copiedPages.length;
@@ -870,16 +1007,22 @@ async function executeMergePdfs() {
 
     const pdfBytes = await mergedDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const downloadUrl = URL.createObjectURL(blob);
+    const filename = "merged_documents_" + Date.now().toString().slice(-4) + ".pdf";
 
+    // Auto trigger download
+    triggerDownload(blob, filename);
+
+    const downloadUrl = URL.createObjectURL(blob);
     setProgress('merge_pdf', false);
     status.className = 'status-box success';
-    status.innerHTML = `Merged ${state.merge_pdf.length} PDFs into ${totalPages} pages (${formatBytes(blob.size)})!<br>
-      <a class="download-btn" href="${downloadUrl}" download="combined_document.pdf">
+    status.innerHTML = `Successfully merged ${state.merge_pdf.length} PDFs into ${totalPages} pages (${formatBytes(blob.size)})!<br>
+      <span style="font-size:12px; color:#047857;">Download started automatically. If it didn't, click below:</span><br>
+      <a class="download-btn" href="${downloadUrl}" download="${filename}">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Download Merged PDF
+        Download Merged PDF (${formatBytes(blob.size)})
       </a>`;
   } catch (err) {
+    console.error(err);
     setProgress('merge_pdf', false);
     status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
@@ -887,61 +1030,88 @@ async function executeMergePdfs() {
 }
 
 // ============================================================================
-// 3. CLIENT-SIDE PDF TO IMAGES (Using PDF.js)
+// 3. CLIENT-SIDE PDF TO IMAGES (PDF.js + JSZip)
 // ============================================================================
 async function executePdf2Img() {
-  if (!state.pdf2img) return alert("Please select a PDF document.");
+  if (!state.pdf2img) return alert("Please select a PDF document first.");
   const status = document.getElementById('pdf2img-status');
+  const pdfjs = getPdfJs();
+  if (!pdfjs) return alert("PDF Renderer is still loading. Please wait a few seconds and try again.");
+
   setProgress('pdf2img', true);
   status.style.display = 'none';
 
   try {
     const buf = await state.pdf2img.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    const pdf = await pdfjs.getDocument({ data: buf }).promise;
     const format = document.getElementById('pdf2img-format').value;
-    const scale = parseFloat(document.getElementById('pdf2img-scale').value);
+    const scale = parseFloat(document.getElementById('pdf2img-scale').value) || 2.0;
     const rangeStr = document.getElementById('pdf2img-pages').value.trim();
 
     const pageIndices = parsePageRange(rangeStr, pdf.numPages);
-    const zip = new JSZip();
-    let html = `Extracted ${pageIndices.length} page image(s)!<br><div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">`;
+    if (!pageIndices.length) throw new Error("No valid page numbers selected.");
+
+    const zip = window.JSZip ? new JSZip() : null;
+    const extractedBlobs = [];
+    const mime = format === 'jpeg' ? 'image/jpeg' : (format === 'webp' ? 'image/webp' : 'image/png');
+    const ext = format === 'jpeg' ? 'jpg' : format;
 
     for (let pNum of pageIndices) {
       const page = await pdf.getPage(pNum);
       const viewport = page.getViewport({ scale: scale });
       const canvas = document.createElement('canvas');
-      canvas.width = viewport.width; canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
       const ctx = canvas.getContext('2d');
+
+      if (format === 'jpeg') {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
       await page.render({ canvasContext: ctx, viewport: viewport }).promise;
 
-      const mime = 'image/' + format;
-      const dataUrl = canvas.toDataURL(mime, 0.95);
-      const fileName = `page_${pNum}.${format === 'jpeg' ? 'jpg' : format}`;
+      const blob = await new Promise(r => canvas.toBlob(r, mime, 0.95));
+      const fileName = `page_${pNum}.${ext}`;
+      extractedBlobs.push({ name: fileName, blob: blob, url: URL.createObjectURL(blob) });
 
-      // Add to zip
-      const base64Data = dataUrl.split(',')[1];
-      zip.file(fileName, base64Data, { base64: true });
+      if (zip) {
+        zip.file(fileName, blob);
+      }
+    }
 
-      html += `<a class="download-btn" href="${dataUrl}" download="${fileName}">
+    let html = `Extracted ${extractedBlobs.length} page image(s)!<br>`;
+
+    // If multiple pages and zip available, auto download ZIP
+    if (extractedBlobs.length > 1 && zip) {
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const zipName = state.pdf2img.name.replace(/\.[^/.]+$/, "") + "_pages.zip";
+      triggerDownload(zipBlob, zipName);
+      const zipUrl = URL.createObjectURL(zipBlob);
+
+      html += `<span style="font-size:12px; color:#047857;">ZIP download started automatically.</span><br>
+        <a class="download-btn" style="background:#2563eb; margin: 8px 0;" href="${zipUrl}" download="${zipName}">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download All as ZIP (${formatBytes(zipBlob.size)})
+        </a><br><div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">`;
+    } else {
+      triggerDownload(extractedBlobs[0].blob, extractedBlobs[0].name);
+      html += `<span style="font-size:12px; color:#047857;">Download started automatically.</span><br><div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">`;
+    }
+
+    for (let item of extractedBlobs) {
+      html += `<a class="download-btn" href="${item.url}" download="${item.name}">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        ${fileName}
+        ${item.name} (${formatBytes(item.blob.size)})
       </a>`;
     }
-
-    if (pageIndices.length > 1) {
-      const zipBlob = await zip.generateAsync({ type: 'blob' });
-      const zipUrl = URL.createObjectURL(zipBlob);
-      html = `<a class="download-btn" style="background:#2563eb; margin-bottom:8px;" href="${zipUrl}" download="extracted_pages.zip">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Download All as ZIP (${formatBytes(zipBlob.size)})
-      </a><br>` + html;
-    }
-
     html += '</div>';
+
     setProgress('pdf2img', false);
     status.className = 'status-box success';
     status.innerHTML = html;
   } catch (err) {
+    console.error(err);
     setProgress('pdf2img', false);
     status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
@@ -975,31 +1145,41 @@ async function executeCompress() {
 
   try {
     const file = state.comp;
-    const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
     const targetVal = parseFloat(document.getElementById('comp-target-val').value);
     const targetUnit = document.getElementById('comp-target-unit').value;
     const targetBytes = (!isNaN(targetVal) && targetVal > 0) ? (targetUnit === 'MB' ? targetVal * 1024 * 1024 : targetVal * 1024) : null;
     const qual = parseInt(document.getElementById('comp-quality').value) / 100;
 
     let compressedBlob;
+    let outFilename = "compressed_" + file.name;
 
     if (isPdf) {
-      // PDF Compression: recompress pages at adjusted resolution
-      const buf = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-      const pdfDoc = await PDFLib.PDFDocument.create();
+      const pdflib = getPdfLib();
+      const pdfjs = getPdfJs();
+      if (!pdflib || !pdfjs) throw new Error("PDF processing engine is still initializing. Please wait.");
 
-      const targetDpiScale = targetBytes ? Math.min(1.5, Math.max(0.6, Math.sqrt(targetBytes / file.size))) : 1.2;
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjs.getDocument({ data: buf }).promise;
+      const pdfDoc = await pdflib.PDFDocument.create();
+
+      let targetDpiScale = 1.2;
+      if (targetBytes) {
+        targetDpiScale = Math.min(1.5, Math.max(0.5, Math.sqrt(targetBytes / file.size) * 1.1));
+      }
 
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const viewport = page.getViewport({ scale: targetDpiScale });
         const canvas = document.createElement('canvas');
-        canvas.width = viewport.width; canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
         const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         await page.render({ canvasContext: ctx, viewport: viewport }).promise;
 
-        const jpegBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', targetBytes ? 0.6 : qual));
+        const jpegBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', targetBytes ? 0.65 : qual));
         const jpegBuf = await jpegBlob.arrayBuffer();
         const img = await pdfDoc.embedJpg(jpegBuf);
         const p = pdfDoc.addPage([viewport.width / targetDpiScale, viewport.height / targetDpiScale]);
@@ -1008,11 +1188,19 @@ async function executeCompress() {
       const bytes = await pdfDoc.save();
       compressedBlob = new Blob([bytes], { type: 'application/pdf' });
     } else {
-      // Image Compression: Smart binary search on target size
       const img = await loadImage(URL.createObjectURL(file));
       let canvas = document.createElement('canvas');
-      canvas.width = img.width; canvas.height = img.height;
-      canvas.getContext('2d').drawImage(img, 0, 0);
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+
+      const mime = 'image/jpeg';
+      if (!outFilename.toLowerCase().endsWith('.jpg') && !outFilename.toLowerCase().endsWith('.jpeg')) {
+        outFilename = outFilename.replace(/\.[^/.]+$/, "") + '.jpg';
+      }
 
       if (targetBytes) {
         let bestBlob = null;
@@ -1021,8 +1209,8 @@ async function executeCompress() {
           let low = 0.1, high = 0.95;
           while (high - low > 0.05) {
             const mid = (low + high) / 2;
-            const b = await new Promise(r => canvas.toBlob(r, 'image/jpeg', mid));
-            if (b.size <= targetBytes) {
+            const b = await new Promise(r => canvas.toBlob(r, mime, mid));
+            if (b && b.size <= targetBytes) {
               bestBlob = b;
               low = mid;
             } else {
@@ -1031,15 +1219,20 @@ async function executeCompress() {
           }
           if (bestBlob) break;
           scale *= 0.8;
-          canvas.width = Math.max(20, img.width * scale);
-          canvas.height = Math.max(20, img.height * scale);
-          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.width = Math.max(20, Math.round(img.width * scale));
+          canvas.height = Math.max(20, Math.round(img.height * scale));
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         }
-        compressedBlob = bestBlob || await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.2));
+        compressedBlob = bestBlob || await new Promise(r => canvas.toBlob(r, mime, 0.2));
       } else {
-        compressedBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', qual));
+        compressedBlob = await new Promise(r => canvas.toBlob(r, mime, qual));
       }
     }
+
+    // Auto trigger download
+    triggerDownload(compressedBlob, outFilename);
 
     const saved = Math.max(0, file.size - compressedBlob.size);
     const pct = ((saved / Math.max(1, file.size)) * 100).toFixed(1);
@@ -1048,13 +1241,15 @@ async function executeCompress() {
     setProgress('comp', false);
     status.className = 'status-box success';
     status.innerHTML = `Compressed Successfully!<br>
-      - Original: ${formatBytes(file.size)} -> Compressed: <b>${formatBytes(compressedBlob.size)}</b><br>
+      - Original: ${formatBytes(file.size)} &rarr; Compressed: <b>${formatBytes(compressedBlob.size)}</b><br>
       - Space Saved: ${formatBytes(saved)} (${pct}% reduction)<br>
-      <a class="download-btn" href="${downloadUrl}" download="compressed_${file.name}">
+      <span style="font-size:12px; color:#047857;">Download started automatically. If it didn't, click below:</span><br>
+      <a class="download-btn" href="${downloadUrl}" download="${outFilename}">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Download Compressed File
+        Download Compressed File (${formatBytes(compressedBlob.size)})
       </a>`;
   } catch (err) {
+    console.error(err);
     setProgress('comp', false);
     status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
@@ -1072,35 +1267,66 @@ async function executeFormatConvert() {
 
   try {
     const targetFmt = document.getElementById('fmt-target').value;
-    let html = `Converted ${state.fmt.length} image(s)!<br><div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">`;
+    const mime = 'image/' + targetFmt;
+    const ext = targetFmt === 'jpeg' ? 'jpg' : targetFmt;
+    const zip = (state.fmt.length > 1 && window.JSZip) ? new JSZip() : null;
+    const converted = [];
 
     for (let f of state.fmt) {
       const img = await loadImage(URL.createObjectURL(f));
       const canvas = document.createElement('canvas');
-      canvas.width = img.width; canvas.height = img.height;
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
       const ctx = canvas.getContext('2d');
+
       if (targetFmt === 'jpeg') {
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
       ctx.drawImage(img, 0, 0);
 
-      const mime = 'image/' + targetFmt;
       const blob = await new Promise(r => canvas.toBlob(r, mime, 0.95));
+      const outName = f.name.replace(/\.[^/.]+$/, "") + '.' + ext;
       const downloadUrl = URL.createObjectURL(blob);
-      const outName = f.name.replace(/\.[^/.]+$/, "") + '.' + (targetFmt === 'jpeg' ? 'jpg' : targetFmt);
+      converted.push({ name: outName, blob: blob, url: downloadUrl });
 
-      html += `<a class="download-btn" href="${downloadUrl}" download="${outName}">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        ${outName} (${formatBytes(blob.size)})
-      </a>`;
+      if (zip) {
+        zip.file(outName, blob);
+      }
     }
 
+    let html = `Converted ${converted.length} image(s) to ${targetFmt.toUpperCase()}!<br>`;
+
+    if (converted.length === 1) {
+      triggerDownload(converted[0].blob, converted[0].name);
+      html += `<span style="font-size:12px; color:#047857;">Download started automatically.</span><br><div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">`;
+    } else if (zip) {
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const zipName = "converted_images_" + Date.now().toString().slice(-4) + ".zip";
+      triggerDownload(zipBlob, zipName);
+      const zipUrl = URL.createObjectURL(zipBlob);
+      html += `<span style="font-size:12px; color:#047857;">ZIP download started automatically.</span><br>
+        <a class="download-btn" style="background:#2563eb; margin: 8px 0;" href="${zipUrl}" download="${zipName}">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download All as ZIP (${formatBytes(zipBlob.size)})
+        </a><br><div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">`;
+    } else {
+      html += `<div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;">`;
+    }
+
+    for (let item of converted) {
+      html += `<a class="download-btn" href="${item.url}" download="${item.name}">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        ${item.name} (${formatBytes(item.blob.size)})
+      </a>`;
+    }
     html += '</div>';
+
     setProgress('fmt', false);
     status.className = 'status-box success';
     status.innerHTML = html;
   } catch (err) {
+    console.error(err);
     setProgress('fmt', false);
     status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
@@ -1130,8 +1356,12 @@ async function executeMerge() {
     const ctx = canvas.getContext('2d');
 
     if (dir === 'horizontal') {
-      const maxH = Math.max(...loadedImages.map(i => i.height));
-      const scaledWidths = loadedImages.map(i => Math.round(i.width * (maxH / i.height)));
+      const maxH = Math.max(...loadedImages.map(i => i.naturalHeight || i.height));
+      const scaledWidths = loadedImages.map(i => {
+        const ih = i.naturalHeight || i.height;
+        const iw = i.naturalWidth || i.width;
+        return Math.round(iw * (maxH / ih));
+      });
       canvas.width = scaledWidths.reduce((a, b) => a + b, 0) + gap * (loadedImages.length - 1);
       canvas.height = maxH;
 
@@ -1145,8 +1375,12 @@ async function executeMerge() {
         offsetX += sw + gap;
       });
     } else {
-      const maxW = Math.max(...loadedImages.map(i => i.width));
-      const scaledHeights = loadedImages.map(i => Math.round(i.height * (maxW / i.width)));
+      const maxW = Math.max(...loadedImages.map(i => i.naturalWidth || i.width));
+      const scaledHeights = loadedImages.map(i => {
+        const ih = i.naturalHeight || i.height;
+        const iw = i.naturalWidth || i.width;
+        return Math.round(ih * (maxW / iw));
+      });
       canvas.width = maxW;
       canvas.height = scaledHeights.reduce((a, b) => a + b, 0) + gap * (loadedImages.length - 1);
 
@@ -1162,30 +1396,87 @@ async function executeMerge() {
     }
 
     const blob = await new Promise(r => canvas.toBlob(r, 'image/png', 1.0));
-    const downloadUrl = URL.createObjectURL(blob);
+    const filename = "stitched_image_" + Date.now().toString().slice(-4) + ".png";
 
+    // Auto trigger download
+    triggerDownload(blob, filename);
+
+    const downloadUrl = URL.createObjectURL(blob);
     setProgress('merge', false);
     status.className = 'status-box success';
     status.innerHTML = `Stitched ${state.merge.length} images into <b>${canvas.width} x ${canvas.height} px</b> (${formatBytes(blob.size)})!<br>
-      <a class="download-btn" href="${downloadUrl}" download="stitched_image.png">
+      <span style="font-size:12px; color:#047857;">Download started automatically. If it didn't, click below:</span><br>
+      <a class="download-btn" href="${downloadUrl}" download="${filename}">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Download Stitched Image
+        Download Stitched Image (${formatBytes(blob.size)})
       </a>`;
   } catch (err) {
+    console.error(err);
     setProgress('merge', false);
     status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
   }
 }
 
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
+// Universal Drag & Drop Setup
+function setupDropzones() {
+  const mapping = [
+    { id: 'img2pdf-drop', inputId: 'img2pdf-input', key: 'img2pdf', multi: true },
+    { id: 'merge_pdf-drop', inputId: 'merge_pdf-input', key: 'merge_pdf', multi: true },
+    { id: 'pdf2img-drop', inputId: 'pdf2img-input', key: 'pdf2img', multi: false },
+    { id: 'comp-drop', inputId: 'comp-input', key: 'comp', multi: false },
+    { id: 'fmt-drop', inputId: 'fmt-input', key: 'fmt', multi: true },
+    { id: 'merge-drop', inputId: 'merge-input', key: 'merge', multi: true, max: 5 }
+  ];
+
+  mapping.forEach(item => {
+    const el = document.getElementById(item.id);
+    if (!el) return;
+
+    ['dragenter', 'dragover'].forEach(ev => {
+      el.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        el.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(ev => {
+      el.addEventListener(ev, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        el.classList.remove('dragover');
+      });
+    });
+
+    el.addEventListener('drop', async (e) => {
+      const files = Array.from(e.dataTransfer.files || []);
+      if (!files.length) return;
+
+      if (!item.multi) {
+        state[item.key] = files[0];
+        const label = document.getElementById(item.key + '-file-label');
+        if (label) label.innerText = files[0].name + ' (' + formatBytes(files[0].size) + ')';
+      } else {
+        for (let f of files) {
+          if (item.max && state[item.key].length >= item.max) {
+            alert("Maximum " + item.max + " images allowed for stitching.");
+            break;
+          }
+          state[item.key].push(f);
+        }
+        await renderFileList(item.key);
+      }
+    });
   });
 }
+
+// Window load initializer
+window.addEventListener('DOMContentLoaded', () => {
+  setupDropzones();
+  getPdfJs();
+  updateStitchLayout();
+});
 </script>
 
 </body>

@@ -15,22 +15,16 @@ CANDIDATE_PATHS = [
     os.path.abspath("index.html")
 ]
 
-HTML_BYTES = None
-for p in CANDIDATE_PATHS:
-    if os.path.exists(p):
-        try:
-            with open(p, "rb") as f:
-                HTML_BYTES = f.read()
-            break
-        except Exception:
-            pass
-
-if HTML_BYTES is None:
-    HTML_BYTES = b"<!DOCTYPE html><html><head><title>Studio Pro</title></head><body><h1>Studio Pro</h1></body></html>"
-
 
 def get_html_data():
-    return HTML_BYTES
+    for p in CANDIDATE_PATHS:
+        if os.path.exists(p):
+            try:
+                with open(p, "rb") as f:
+                    return f.read()
+            except Exception:
+                pass
+    return b"<!DOCTYPE html><html><head><title>Studio Pro</title></head><body><h1>Studio Pro</h1></body></html>"
 
 
 # 1. WSGI Interface (Vercel standard)
@@ -40,7 +34,7 @@ def app(environ, start_response):
     response_headers = [
         ("Content-Type", "text/html; charset=utf-8"),
         ("Content-Length", str(len(data))),
-        ("Cache-Control", "public, max-age=3600")
+        ("Cache-Control", "no-cache, no-store, must-revalidate")
     ]
     start_response(status, response_headers)
     return [data]
@@ -53,7 +47,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
-        self.send_header("Cache-Control", "public, max-age=3600")
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         self.end_headers()
         self.wfile.write(data)
 
@@ -62,6 +56,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         self.end_headers()
 
 
