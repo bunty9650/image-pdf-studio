@@ -1021,8 +1021,11 @@
 
       <div class="form-group" style="margin-bottom:14px;">
         <label>Current PDF Password</label>
-        <input type="password" id="unlock_pdf-pass" class="form-control" placeholder="Enter password (or leave blank if testing permission unlock)">
-        <span style="font-size:11px; color:var(--text-muted);">Decryption removes the password permanently so you can open it without prompts.</span>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="password" id="unlock_pdf-pass" class="form-control" style="flex:1;" placeholder="Enter password (or leave blank if testing permission unlock)" onkeydown="if(event.key==='Enter') executeUnlockPdf();">
+          <button type="button" class="btn-secondary" style="padding:10px 14px; font-size:12px; white-space:nowrap; border-radius:6px;" onclick="togglePasswordVisibility('unlock_pdf-pass', this)">Show</button>
+        </div>
+        <span style="font-size:11px; color:var(--text-muted); margin-top:4px; display:block;">Decryption permanently strips password locks and restrictions, producing a 100% unlocked PDF.</span>
       </div>
 
       <button id="unlock_pdf-btn" class="btn-primary" onclick="executeUnlockPdf()">
@@ -1052,32 +1055,52 @@
       <div class="form-group" style="margin-bottom:10px;">
         <label>Signature Method</label>
         <div class="pill-group" id="sign_pdf-mode-pills">
-          <button class="pill-btn active" data-val="draw" onclick="selectPill(this, 'sign_pdf-mode'); toggleSignMode();">Draw Signature</button>
-          <button class="pill-btn" data-val="type" onclick="selectPill(this, 'sign_pdf-mode'); toggleSignMode();">Type Name</button>
+          <button type="button" class="pill-btn active" data-val="draw" onclick="selectPill(this, 'sign_pdf-mode'); toggleSignMode();">Draw Signature</button>
+          <button type="button" class="pill-btn" data-val="type" onclick="selectPill(this, 'sign_pdf-mode'); toggleSignMode();">Type Name</button>
+          <button type="button" class="pill-btn" data-val="upload" onclick="selectPill(this, 'sign_pdf-mode'); toggleSignMode();">Upload Image</button>
         </div>
         <input type="hidden" id="sign_pdf-mode" value="draw">
       </div>
 
-      <!-- DRAW PAD -->
+      <!-- 1. DRAW PAD -->
       <div id="sign_pdf-draw-box" style="margin-bottom:12px;">
         <div class="sig-canvas-box">
           <canvas id="sig-pad"></canvas>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:8px;">
           <div style="display:flex; gap:6px; align-items:center;">
-            <span style="font-size:11px; font-weight:700; color:#475569;">Ink Color:</span>
-            <button type="button" class="pill-btn active" style="padding:3px 8px; font-size:11px;" onclick="setSigColor('#000000', this)">Black</button>
-            <button type="button" class="pill-btn" style="padding:3px 8px; font-size:11px;" onclick="setSigColor('#1d4ed8', this)">Blue</button>
+            <span style="font-size:12px; font-weight:700; color:#475569;">Ink Color:</span>
+            <button type="button" class="pill-btn active" style="padding:4px 10px; font-size:12px;" onclick="setSigColor('#000000', this)">Black</button>
+            <button type="button" class="pill-btn" style="padding:4px 10px; font-size:12px;" onclick="setSigColor('#1d4ed8', this)">Blue</button>
+            <button type="button" class="pill-btn" style="padding:4px 10px; font-size:12px;" onclick="setSigColor('#dc2626', this)">Red</button>
           </div>
-          <button type="button" class="btn-secondary" onclick="clearSignaturePad()">Clear Pad</button>
+          <button type="button" class="btn-secondary" style="padding:6px 12px; font-size:12px;" onclick="clearSignaturePad()">Clear Pad</button>
         </div>
       </div>
 
-      <!-- TYPE PAD -->
+      <!-- 2. TYPE PAD -->
       <div id="sign_pdf-type-box" style="display:none; margin-bottom:12px;">
         <input type="text" id="sign_pdf-name-input" class="form-control" placeholder="Type your full name..." oninput="updateTypedSignature()">
-        <div id="sign_pdf-typed-preview" style="font-family:'Brush Script MT', cursive, sans-serif; font-size:32px; color:#1d4ed8; padding:14px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; margin-top:8px; text-align:center;">
+        <div id="sign_pdf-typed-preview" style="font-family:'Brush Script MT', 'Segoe Script', cursive, sans-serif; font-size:34px; color:#000000; padding:16px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; margin-top:8px; text-align:center;">
           Your Signature
+        </div>
+      </div>
+
+      <!-- 3. UPLOAD IMAGE -->
+      <div id="sign_pdf-upload-box" style="display:none; margin-bottom:12px;">
+        <div style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 16px; text-align: center; background: #f8fafc; cursor: pointer;" onclick="document.getElementById('sign_pdf-img-input').click()">
+          <svg viewBox="0 0 24 24" style="width:28px;height:28px;stroke:#64748b;fill:none;stroke-width:2;margin:0 auto 6px;display:block;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          <strong style="font-size:13px; color:#1e293b;">Click to upload signature image (PNG, JPG)</strong>
+          <p id="sign_pdf-img-label" style="font-size:12px; color:#64748b; margin:4px 0 0 0;">Upload a photo or scan of your signature</p>
+        </div>
+        <input type="file" id="sign_pdf-img-input" style="display:none;" accept="image/*" onchange="handleSigImageUpload(this)">
+        <div id="sign_pdf-img-preview-box" style="display:none; margin-top:10px; text-align:center;">
+          <img id="sign_pdf-img-preview" alt="Signature preview" style="max-height:85px; max-width:100%; border:1px solid #e2e8f0; border-radius:6px; background:#ffffff; padding:4px;">
+          <div style="margin-top:6px;">
+            <label style="font-size:12px; color:#475569; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="sign_pdf-remove-bg" checked> Make white background transparent
+            </label>
+          </div>
         </div>
       </div>
 
@@ -1085,18 +1108,19 @@
         <div class="form-group" style="flex:1;">
           <label>Target Page</label>
           <div class="pill-group" id="sign_pdf-page-pills">
-            <button class="pill-btn active" data-val="last" onclick="selectPill(this, 'sign_pdf-page')">Last Page</button>
-            <button class="pill-btn" data-val="first" onclick="selectPill(this, 'sign_pdf-page')">First Page</button>
-            <button class="pill-btn" data-val="all" onclick="selectPill(this, 'sign_pdf-page')">All Pages</button>
+            <button type="button" class="pill-btn active" data-val="last" onclick="selectPill(this, 'sign_pdf-page')">Last Page</button>
+            <button type="button" class="pill-btn" data-val="first" onclick="selectPill(this, 'sign_pdf-page')">First Page</button>
+            <button type="button" class="pill-btn" data-val="all" onclick="selectPill(this, 'sign_pdf-page')">All Pages</button>
           </div>
           <input type="hidden" id="sign_pdf-page" value="last">
         </div>
         <div class="form-group" style="flex:1;">
           <label>Placement Position</label>
           <div class="pill-group" id="sign_pdf-pos-pills">
-            <button class="pill-btn active" data-val="br" onclick="selectPill(this, 'sign_pdf-pos')">Bottom Right</button>
-            <button class="pill-btn" data-val="bl" onclick="selectPill(this, 'sign_pdf-pos')">Bottom Left</button>
-            <button class="pill-btn" data-val="center" onclick="selectPill(this, 'sign_pdf-pos')">Center</button>
+            <button type="button" class="pill-btn active" data-val="br" onclick="selectPill(this, 'sign_pdf-pos')">Bottom Right</button>
+            <button type="button" class="pill-btn" data-val="bl" onclick="selectPill(this, 'sign_pdf-pos')">Bottom Left</button>
+            <button type="button" class="pill-btn" data-val="center" onclick="selectPill(this, 'sign_pdf-pos')">Center</button>
+            <button type="button" class="pill-btn" data-val="tr" onclick="selectPill(this, 'sign_pdf-pos')">Top Right</button>
           </div>
           <input type="hidden" id="sign_pdf-pos" value="br">
         </div>
@@ -1239,7 +1263,7 @@ let state = {
   comp: null,
   protect_pdf: null,
   unlock_pdf: null,
-  sign_pdf: { file: null, mode: 'draw', color: '#000000', hasSignature: false },
+  sign_pdf: { file: null, mode: 'draw', color: '#000000', hasSignature: false, uploadedImg: null },
   redact_pdf: { file: null, pdfDoc: null, currentPage: 1, totalPages: 1, pageRedactions: {} },
   compare_pdf: { fileA: null, fileB: null, docA: null, docB: null, currentPage: 1 }
 };
@@ -1336,14 +1360,27 @@ function toggleSignMode() {
   state.sign_pdf.mode = mode;
   const drawBox = document.getElementById('sign_pdf-draw-box');
   const typeBox = document.getElementById('sign_pdf-type-box');
+  const uploadBox = document.getElementById('sign_pdf-upload-box');
+  if (drawBox) drawBox.style.display = (mode === 'draw') ? 'block' : 'none';
+  if (typeBox) typeBox.style.display = (mode === 'type') ? 'block' : 'none';
+  if (uploadBox) uploadBox.style.display = (mode === 'upload') ? 'block' : 'none';
+
   if (mode === 'draw') {
-    if (drawBox) drawBox.style.display = 'block';
-    if (typeBox) typeBox.style.display = 'none';
-    setTimeout(initSignaturePad, 50);
-  } else {
-    if (drawBox) drawBox.style.display = 'none';
-    if (typeBox) typeBox.style.display = 'block';
+    setTimeout(initSignaturePad, 60);
+  } else if (mode === 'type') {
     updateTypedSignature();
+  }
+}
+
+function togglePasswordVisibility(id, btn) {
+  const inp = document.getElementById(id);
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    btn.innerText = 'Hide';
+  } else {
+    inp.type = 'password';
+    btn.innerText = 'Show';
   }
 }
 
@@ -1504,7 +1541,11 @@ function triggerDownload(blobOrUrl, filename) {
 function handleSingleFile(input, key) {
   if (input.files && input.files.length > 0) {
     const f = input.files[0];
-    state[key] = f;
+    if (typeof state[key] === 'object' && state[key] !== null && 'file' in state[key]) {
+      state[key].file = f;
+    } else {
+      state[key] = f;
+    }
     const label = document.getElementById(key + '-file-label');
     if (label) label.innerText = f.name + ' (' + formatBytes(f.size) + ')';
   }
@@ -2940,9 +2981,9 @@ async function executeProtectPdf() {
 // TOOL 13: UNLOCK PDF
 // ============================================================================
 async function executeUnlockPdf() {
-  const file = state.unlock_pdf;
-  if (!file) return alert("Please select a protected PDF.");
-  const pass = document.getElementById('unlock_pdf-pass').value;
+  const file = (state.unlock_pdf && state.unlock_pdf.file) ? state.unlock_pdf.file : state.unlock_pdf;
+  if (!file) return alert("Please select a protected PDF file to unlock.");
+  const pass = (document.getElementById('unlock_pdf-pass').value || '').trim();
 
   const status = document.getElementById('unlock_pdf-status');
   const pdflib = getPdfLib();
@@ -2955,23 +2996,61 @@ async function executeUnlockPdf() {
   try {
     const buf = await file.arrayBuffer();
     let unlockedDoc = null;
+    let isPlain = false;
 
+    // 1. First test if document is completely unencrypted or already decrypted
     try {
-      unlockedDoc = await pdflib.PDFDocument.load(buf, { ignoreEncryption: true });
-    } catch (e) {}
-
-    if (!unlockedDoc && pdfjs) {
-      const loadingTask = pdfjs.getDocument({ data: buf, password: pass });
-      const pdf = await loadingTask.promise;
-      const numPages = pdf.numPages;
-
+      const testDoc = await pdflib.PDFDocument.load(buf);
       unlockedDoc = await pdflib.PDFDocument.create();
+      const pageIndices = testDoc.getPageIndices();
+      const copiedPages = await unlockedDoc.copyPages(testDoc, pageIndices);
+      copiedPages.forEach(p => unlockedDoc.addPage(p));
+      isPlain = true;
+    } catch (loadErr) {
+      unlockedDoc = null;
+      isPlain = false;
+    }
+
+    // 2. If encrypted or protected, use PDF.js with password to authenticate & decrypt
+    if (!isPlain) {
+      const uint8 = new Uint8Array(buf);
+      const loadingTask = pdfjs.getDocument({
+        data: uint8,
+        password: pass
+      });
+
+      let pdf;
+      try {
+        pdf = await loadingTask.promise;
+      } catch (authErr) {
+        console.error("PDF.js unlock error:", authErr);
+        const errMsg = (authErr && authErr.message) ? authErr.message.toLowerCase() : '';
+        const errName = authErr ? authErr.name : '';
+        if (errName === 'PasswordException' || errMsg.includes('password') || errMsg.includes('need password') || errMsg.includes('incorrect password')) {
+          if (!pass) {
+            throw new Error("This PDF is password-protected. Please enter the password above and click Unlock.");
+          } else {
+            throw new Error("Incorrect password provided. Please verify the password and try again.");
+          }
+        }
+        throw new Error("Could not decrypt PDF: " + (authErr.message || "Invalid or unsupported encryption format."));
+      }
+
+      const numPages = pdf.numPages;
+      unlockedDoc = await pdflib.PDFDocument.create();
+
       for (let i = 1; i <= numPages; i++) {
+        status.style.display = 'block';
+        status.className = 'status-box info';
+        status.innerText = `Decrypting and unlocking page ${i} of ${numPages}...`;
+
         const page = await pdf.getPage(i);
         const viewport = page.getViewport({ scale: 2.0 });
         const canvas = document.createElement('canvas');
-        canvas.width = viewport.width; canvas.height = viewport.height;
+        canvas.width = Math.round(viewport.width);
+        canvas.height = Math.round(viewport.height);
         const ctx = canvas.getContext('2d');
+
         await page.render({ canvasContext: ctx, viewport }).promise;
 
         const imgBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.95));
@@ -2979,7 +3058,12 @@ async function executeUnlockPdf() {
         const embeddedImg = await unlockedDoc.embedJpg(imgBuf);
 
         const pdfPage = unlockedDoc.addPage([viewport.width / 2.0, viewport.height / 2.0]);
-        pdfPage.drawImage(embeddedImg, { x: 0, y: 0, width: viewport.width / 2.0, height: viewport.height / 2.0 });
+        pdfPage.drawImage(embeddedImg, {
+          x: 0,
+          y: 0,
+          width: viewport.width / 2.0,
+          height: viewport.height / 2.0
+        });
       }
     }
 
@@ -2994,12 +3078,12 @@ async function executeUnlockPdf() {
 
     setProgress('unlock_pdf', false);
     status.className = 'status-box success';
-    status.innerHTML = renderDownloadStatusCard(dlId, `Document unlocked successfully! All password restrictions removed.`, 'Download Unlocked PDF');
+    status.innerHTML = renderDownloadStatusCard(dlId, `Document unlocked successfully! All password restrictions permanently removed.`, 'Download Unlocked PDF');
   } catch (err) {
-    console.error(err);
+    console.error("executeUnlockPdf error:", err);
     setProgress('unlock_pdf', false);
     status.className = 'status-box error';
-    status.innerText = "Error unlocking PDF: " + (err.message.includes("Password") ? "Incorrect password provided." : err.message);
+    status.innerText = "Error unlocking PDF: " + err.message;
   }
 }
 
@@ -3011,24 +3095,48 @@ let sigCanvas, sigCtx, isSigning = false;
 function initSignaturePad() {
   sigCanvas = document.getElementById('sig-pad');
   if (!sigCanvas) return;
+
   const rect = sigCanvas.getBoundingClientRect();
-  sigCanvas.width = rect.width || 500;
-  sigCanvas.height = rect.height || 170;
+  const parentWidth = sigCanvas.parentElement ? sigCanvas.parentElement.clientWidth : 0;
+  const w = Math.round(rect.width) || parentWidth || 450;
+  const h = 180;
+
+  // Preserve existing drawing if any
+  let tempCanvas = null;
+  if (sigCanvas.width > 0 && sigCanvas.height > 0 && state.sign_pdf.hasSignature) {
+    tempCanvas = document.createElement('canvas');
+    tempCanvas.width = sigCanvas.width;
+    tempCanvas.height = sigCanvas.height;
+    tempCanvas.getContext('2d').drawImage(sigCanvas, 0, 0);
+  }
+
+  sigCanvas.width = w;
+  sigCanvas.height = h;
   sigCtx = sigCanvas.getContext('2d');
-  sigCtx.lineWidth = 2.5;
+  sigCtx.lineWidth = 2.8;
   sigCtx.lineCap = 'round';
   sigCtx.lineJoin = 'round';
   sigCtx.strokeStyle = state.sign_pdf.color || '#000000';
 
+  if (tempCanvas && state.sign_pdf.hasSignature) {
+    sigCtx.drawImage(tempCanvas, 0, 0, w, h);
+  }
+
   const getPos = (e) => {
     const r = sigCanvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return { x: clientX - r.left, y: clientY - r.top };
+    const touch = (e.touches && e.touches.length > 0) 
+      ? e.touches[0] 
+      : ((e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0] : e);
+    const scaleX = sigCanvas.width / (r.width || 1);
+    const scaleY = sigCanvas.height / (r.height || 1);
+    return {
+      x: (touch.clientX - r.left) * scaleX,
+      y: (touch.clientY - r.top) * scaleY
+    };
   };
 
   const start = (e) => {
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     isSigning = true;
     const pos = getPos(e);
     sigCtx.beginPath();
@@ -3037,22 +3145,38 @@ function initSignaturePad() {
 
   const draw = (e) => {
     if (!isSigning) return;
-    e.preventDefault();
+    if (e.cancelable) e.preventDefault();
     const pos = getPos(e);
     sigCtx.lineTo(pos.x, pos.y);
     sigCtx.stroke();
     state.sign_pdf.hasSignature = true;
   };
 
-  const stop = () => { isSigning = false; };
+  const stop = (e) => {
+    if (isSigning) {
+      isSigning = false;
+    }
+  };
 
   sigCanvas.onmousedown = start;
   sigCanvas.onmousemove = draw;
-  window.addEventListener('mouseup', stop);
+  window.onmouseup = stop;
 
-  sigCanvas.ontouchstart = start;
-  sigCanvas.ontouchmove = draw;
-  sigCanvas.ontouchend = stop;
+  // Remove previous touch listeners if any to avoid duplicates
+  if (sigCanvas._touchStart) sigCanvas.removeEventListener('touchstart', sigCanvas._touchStart);
+  if (sigCanvas._touchMove) sigCanvas.removeEventListener('touchmove', sigCanvas._touchMove);
+  if (sigCanvas._touchEnd) sigCanvas.removeEventListener('touchend', sigCanvas._touchEnd);
+  if (sigCanvas._touchCancel) sigCanvas.removeEventListener('touchcancel', sigCanvas._touchCancel);
+
+  sigCanvas._touchStart = start;
+  sigCanvas._touchMove = draw;
+  sigCanvas._touchEnd = stop;
+  sigCanvas._touchCancel = stop;
+
+  sigCanvas.addEventListener('touchstart', start, { passive: false });
+  sigCanvas.addEventListener('touchmove', draw, { passive: false });
+  sigCanvas.addEventListener('touchend', stop, { passive: false });
+  sigCanvas.addEventListener('touchcancel', stop, { passive: false });
 }
 
 function clearSignaturePad() {
@@ -3064,6 +3188,8 @@ function clearSignaturePad() {
 function setSigColor(color, btn) {
   state.sign_pdf.color = color;
   if (sigCtx) sigCtx.strokeStyle = color;
+  const preview = document.getElementById('sign_pdf-typed-preview');
+  if (preview) preview.style.color = color;
   btn.parentElement.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 }
@@ -3071,42 +3197,107 @@ function setSigColor(color, btn) {
 function updateTypedSignature() {
   const name = document.getElementById('sign_pdf-name-input').value.trim() || 'Your Signature';
   const preview = document.getElementById('sign_pdf-typed-preview');
-  if (preview) preview.innerText = name;
+  if (preview) {
+    preview.innerText = name;
+    preview.style.color = state.sign_pdf.color || '#000000';
+  }
+}
+
+function handleSigImageUpload(input) {
+  if (!input.files || input.files.length === 0) return;
+  const file = input.files[0];
+  const label = document.getElementById('sign_pdf-img-label');
+  if (label) label.innerText = `${file.name} (${formatBytes(file.size)})`;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      state.sign_pdf.uploadedImg = img;
+      const preview = document.getElementById('sign_pdf-img-preview');
+      const previewBox = document.getElementById('sign_pdf-img-preview-box');
+      if (preview && previewBox) {
+        preview.src = e.target.result;
+        previewBox.style.display = 'block';
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function getUploadedSignatureBlob() {
+  if (!state.sign_pdf.uploadedImg) return null;
+  const img = state.sign_pdf.uploadedImg;
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth || img.width;
+  canvas.height = img.naturalHeight || img.height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+
+  const removeBg = document.getElementById('sign_pdf-remove-bg')?.checked;
+  if (removeBg) {
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i] > 200 && d[i+1] > 200 && d[i+2] > 200) {
+        d[i+3] = 0;
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+  }
+  return new Promise(r => canvas.toBlob(r, 'image/png'));
 }
 
 async function executeSignPdf() {
-  const file = state.sign_pdf.file;
+  const file = (state.sign_pdf && state.sign_pdf.file) ? state.sign_pdf.file : state.sign_pdf;
   if (!file) return alert("Please select a PDF document to sign.");
   const status = document.getElementById('sign_pdf-status');
   const pdflib = getPdfLib();
   if (!pdflib) return alert("PDF Engine loading. Please wait 2 seconds.");
 
-  const mode = state.sign_pdf.mode;
+  const mode = state.sign_pdf.mode || 'draw';
   let sigBlob = null;
 
   if (mode === 'draw') {
     if (!state.sign_pdf.hasSignature) return alert("Please draw your signature on the pad first.");
     sigBlob = await new Promise(r => sigCanvas.toBlob(r, 'image/png'));
-  } else {
+  } else if (mode === 'type') {
     const name = document.getElementById('sign_pdf-name-input').value.trim();
     if (!name) return alert("Please type your name for the signature.");
     const c = document.createElement('canvas');
-    c.width = 400; c.height = 100;
+    c.width = 600; c.height = 160;
     const ctx = c.getContext('2d');
-    ctx.font = '36px "Brush Script MT", cursive, sans-serif';
-    ctx.fillStyle = state.sign_pdf.color || '#1d4ed8';
+    ctx.clearRect(0, 0, 600, 160);
+    ctx.font = 'italic 52px "Brush Script MT", "Segoe Script", cursive, sans-serif';
+    ctx.fillStyle = state.sign_pdf.color || '#000000';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(name, 200, 50);
+    ctx.fillText(name, 300, 80);
     sigBlob = await new Promise(r => c.toBlob(r, 'image/png'));
+  } else if (mode === 'upload') {
+    if (!state.sign_pdf.uploadedImg) return alert("Please upload a signature image first.");
+    sigBlob = await getUploadedSignatureBlob();
   }
+
+  if (!sigBlob) return alert("No signature available to stamp.");
 
   setProgress('sign_pdf', true);
   status.style.display = 'none';
 
   try {
     const buf = await file.arrayBuffer();
-    const pdfDoc = await pdflib.PDFDocument.load(buf, { ignoreEncryption: true });
+    let pdfDoc;
+    try {
+      pdfDoc = await pdflib.PDFDocument.load(buf);
+    } catch (e1) {
+      try {
+        pdfDoc = await pdflib.PDFDocument.load(buf, { ignoreEncryption: true });
+      } catch (e2) {
+        throw new Error("This PDF is password-protected. Please unlock it using the Unlock PDF tool first.");
+      }
+    }
+
     const sigBuf = await sigBlob.arrayBuffer();
     const sigImg = await pdfDoc.embedPng(sigBuf);
 
@@ -3122,13 +3313,25 @@ async function executeSignPdf() {
     for (let pIdx of pagesToSign) {
       const page = pdfDoc.getPage(pIdx);
       const { width, height } = page.getSize();
-      const sw = 140;
-      const sh = (sigImg.height / sigImg.width) * sw;
+      let sw = 140;
+      let sh = (sigImg.height / sigImg.width) * sw;
+      if (sh > 75) {
+        sh = 75;
+        sw = (sigImg.width / sigImg.height) * sh;
+      }
 
       let x = width - sw - 40;
       let y = 40;
-      if (posOption === 'bl') { x = 40; y = 40; }
-      else if (posOption === 'center') { x = (width - sw) / 2; y = (height - sh) / 2; }
+      if (posOption === 'bl') {
+        x = 40;
+        y = 40;
+      } else if (posOption === 'center') {
+        x = (width - sw) / 2;
+        y = (height - sh) / 2;
+      } else if (posOption === 'tr') {
+        x = width - sw - 40;
+        y = height - sh - 40;
+      }
 
       page.drawImage(sigImg, { x, y, width: sw, height: sh });
     }
@@ -3144,7 +3347,7 @@ async function executeSignPdf() {
     status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `Signature stamped on ${pagesToSign.length} page(s)!`, 'Download Signed PDF');
   } catch (err) {
-    console.error(err);
+    console.error("executeSignPdf error:", err);
     setProgress('sign_pdf', false);
     status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
@@ -3467,7 +3670,11 @@ function setupDropzones() {
           loadRedactPdf(inp);
         }
       } else if (!item.multi) {
-        state[item.key] = files[0];
+        if (typeof state[item.key] === 'object' && state[item.key] !== null && 'file' in state[item.key]) {
+          state[item.key].file = files[0];
+        } else {
+          state[item.key] = files[0];
+        }
         const label = document.getElementById(item.key + '-file-label');
         if (label) label.innerText = files[0].name + ' (' + formatBytes(files[0].size) + ')';
       } else {
