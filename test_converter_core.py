@@ -156,6 +156,43 @@ class TestConverterCore(unittest.TestCase):
         self.assertGreaterEqual(diff_pdf_kb, 1.0)
         self.assertLessEqual(diff_pdf_kb, 5.0)
 
+    def test_11_organize_and_security(self):
+        # 1. Create a 3-page PDF
+        multi_pdf = os.path.join(self.test_dir, "three_pages.pdf")
+        cc.images_to_pdf([self.img1_path, self.img2_path, self.img3_path], multi_pdf)
+
+        # 2. Test Split PDF
+        split_dir = os.path.join(self.test_dir, "split_out")
+        split_files = cc.split_pdf(multi_pdf, split_dir)
+        self.assertEqual(len(split_files), 3)
+
+        # 3. Test Remove Pages (remove page 2)
+        cleaned_pdf = os.path.join(self.test_dir, "cleaned.pdf")
+        cc.remove_pdf_pages(multi_pdf, cleaned_pdf, [2])
+        info = cc.get_pdf_info(cleaned_pdf)
+        self.assertEqual(info["page_count"], 2)
+
+        # 4. Test Extract Pages (extract page 1 & 3)
+        extracted_pdf = os.path.join(self.test_dir, "extracted.pdf")
+        cc.extract_pdf_pages(multi_pdf, extracted_pdf, [1, 3])
+        info_ext = cc.get_pdf_info(extracted_pdf)
+        self.assertEqual(info_ext["page_count"], 2)
+
+        # 5. Test Rotate Pages (rotate page 1 by 90)
+        rotated_pdf = os.path.join(self.test_dir, "rotated.pdf")
+        cc.rotate_pdf_pages(multi_pdf, rotated_pdf, {1: 90})
+        self.assertTrue(os.path.exists(rotated_pdf))
+
+        # 6. Test Protect & Unlock PDF
+        locked_pdf = os.path.join(self.test_dir, "locked.pdf")
+        cc.protect_pdf(multi_pdf, locked_pdf, "secret123")
+        self.assertTrue(os.path.exists(locked_pdf))
+
+        unlocked_pdf = os.path.join(self.test_dir, "unlocked.pdf")
+        cc.unlock_pdf(locked_pdf, unlocked_pdf, "secret123")
+        info_unlocked = cc.get_pdf_info(unlocked_pdf)
+        self.assertEqual(info_unlocked["page_count"], 3)
+
 
 if __name__ == "__main__":
     unittest.main()

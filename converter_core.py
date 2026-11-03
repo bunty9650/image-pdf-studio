@@ -15,6 +15,7 @@ import zlib
 from typing import List, Optional, Tuple, Union
 from PIL import Image, ImageOps
 import pymupdf
+fitz = pymupdf
 
 
 def format_file_size(size_bytes: int) -> str:
@@ -743,3 +744,140 @@ def merge_images(
         canvas.save(output_path, "PNG", optimize=True)
 
     return output_path, (total_width, total_height)
+
+
+# ============================================================================
+# NEW PDF ORGANIZER & SECURITY CORE FUNCTIONS
+# ============================================================================
+
+def split_pdf(input_pdf: str, output_dir: str, ranges: list = None) -> list:
+    """
+    Splits a PDF into individual page files or specific page range subsets.
+    """
+    if not os.path.exists(input_pdf):
+        raise FileNotFoundError(f"Input PDF not found: {input_pdf}")
+
+    doc = fitz.open(input_pdf)
+    os.makedirs(output_dir, exist_ok=True)
+    out_files = []
+    base = os.path.splitext(os.path.basename(input_pdf))[0]
+
+    if not ranges:
+        for i in range(len(doc)):
+            sub = fitz.open()
+            sub.insert_pdf(doc, from_page=i, to_page=i)
+            p = os.path.join(output_dir, f"{base}_page_{i+1}.pdf")
+            sub.save(p)
+            sub.close()
+            out_files.append(p)
+    else:
+        for idx, (s, e) in enumerate(ranges, 1):
+            sub = fitz.open()
+            sub.insert_pdf(doc, from_page=s - 1, to_page=e - 1)
+            p = os.path.join(output_dir, f"{base}_part_{idx}.pdf")
+            sub.save(p)
+            sub.close()
+            out_files.append(p)
+    doc.close()
+    return out_files
+
+
+def remove_pdf_pages(input_pdf: str, output_pdf: str, pages_to_remove: list) -> str:
+    """
+    Removes specified 1-based page numbers from a PDF document.
+    """
+    if not os.path.exists(input_pdf):
+        raise FileNotFoundError(f"Input PDF not found: {input_pdf}")
+
+    doc = fitz.open(input_pdf)
+    remove_set = {p - 1 for p in pages_to_remove if 1 <= p <= len(doc)}
+    keep_pages = [i for i in range(len(doc)) if i not in remove_set]
+
+    if not keep_pages:
+        doc.close()
+        raise ValueError("Cannot remove all pages from PDF")
+
+    doc.select(keep_pages)
+    os.makedirs(os.path.dirname(os.path.abspath(output_pdf)), exist_ok=True)
+    doc.save(output_pdf)
+    doc.close()
+    return output_pdf
+
+
+def extract_pdf_pages(input_pdf: str, output_pdf: str, pages_to_extract: list) -> str:
+    """
+    Extracts specified 1-based page numbers in requested order into a new PDF.
+    """
+    if not os.path.exists(input_pdf):
+        raise FileNotFoundError(f"Input PDF not found: {input_pdf}")
+
+    doc = fitz.open(input_pdf)
+    extract_indices = [p - 1 for p in pages_to_extract if 1 <= p <= len(doc)]
+
+    if not extract_indices:
+        doc.close()
+        raise ValueError("No valid pages to extract")
+
+    doc.select(extract_indices)
+    os.makedirs(os.path.dirname(os.path.abspath(output_pdf)), exist_ok=True)
+    doc.save(output_pdf)
+    doc.close()
+    return output_pdf
+
+
+def rotate_pdf_pages(input_pdf: str, output_pdf: str, rotations: dict) -> str:
+    """
+    Rotates specified 1-based pages by given degrees (e.g. {1: 90, 2: 180}).
+    """
+    if not os.path.exists(input_pdf):
+        raise FileNotFoundError(f"Input PDF not found: {input_pdf}")
+
+    doc = fitz.open(input_pdf)
+    for p_num, angle in rotations.items():
+        if 1 <= p_num <= len(doc):
+            doc[p_num - 1].set_rotation((doc[p_num - 1].rotation + angle) % 360)
+
+    os.makedirs(os.path.dirname(os.path.abspath(output_pdf)), exist_ok=True)
+    doc.save(output_pdf)
+    doc.close()
+    return output_pdf
+
+
+def protect_pdf(input_pdf: str, output_pdf: str, password: str) -> str:
+    """
+    Encrypts a PDF with standard AES-256 user and owner password protection.
+    """
+    if not os.path.exists(input_pdf):
+        raise FileNotFoundError(f"Input PDF not found: {input_pdf}")
+
+    doc = fitz.open(input_pdf)
+    os.makedirs(os.path.dirname(os.path.abspath(output_pdf)), exist_ok=True)
+    doc.save(
+        output_pdf,
+        encryption=fitz.PDF_ENCRYPT_AES_256,
+        user_pw=password,
+        owner_pw=password
+    )
+    doc.close()
+    return output_pdf
+
+
+def unlock_pdf(input_pdf: str, output_pdf: str, password: str = "") -> str:
+    """
+    Removes password encryption and permissions restrictions from a PDF.
+    """
+    if not os.path.exists(input_pdf):
+        raise FileNotFoundError(f"Input PDF not found: {input_pdf}")
+
+    doc = fitz.open(input_pdf)
+    if doc.is_encrypted:
+        auth = doc.authenticate(password)
+        if not auth:
+            doc.close()
+            raise ValueError("Incorrect password for locked PDF")
+
+    os.makedirs(os.path.dirname(os.path.abspath(output_pdf)), exist_ok=True)
+    doc.save(output_pdf, encryption=fitz.PDF_ENCRYPT_NONE)
+    doc.close()
+    return output_pdf
+
