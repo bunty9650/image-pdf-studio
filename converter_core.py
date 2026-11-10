@@ -881,3 +881,170 @@ def unlock_pdf(input_pdf: str, output_pdf: str, password: str = "") -> str:
     doc.close()
     return output_pdf
 
+
+
+def word_to_pdf(input_path: str, output_path: str) -> str:
+    """
+    Converts Microsoft Word (.docx) document to a PDF file.
+    """
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"Input file not found: {input_path}")
+    import docx
+    from reportlab.lib.pagesizes import A4
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib import colors
+
+    os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+    d = docx.Document(input_path)
+    pdf = SimpleDocTemplate(
+        output_path,
+        pagesize=A4,
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=36,
+        bottomMargin=36
+    )
+    styles = getSampleStyleSheet()
+    story = []
+
+    for p in d.paragraphs:
+        txt = p.text.strip()
+        if txt:
+            p_style = styles['Normal']
+            if p.style and p.style.name and 'Heading 1' in p.style.name:
+                p_style = styles['Heading1']
+            elif p.style and p.style.name and 'Heading 2' in p.style.name:
+                p_style = styles['Heading2']
+            story.append(Paragraph(txt, p_style))
+            story.append(Spacer(1, 8))
+
+    for t in d.tables:
+        t_data = []
+        for row in t.rows:
+            r_vals = [c.text.strip() for c in row.cells]
+            t_data.append(r_vals)
+        if t_data:
+            t_obj = Table(t_data)
+            t_obj.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2563eb')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+                ('PADDING', (0, 0), (-1, -1), 6),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')])
+            ]))
+            story.append(t_obj)
+            story.append(Spacer(1, 12))
+
+    if not story:
+        story.append(Paragraph("Empty Word Document", styles['Normal']))
+
+    pdf.build(story)
+    return output_path
+
+
+def excel_to_pdf(input_path: str, output_path: str) -> str:
+    """
+    Converts Excel spreadsheet (.xlsx, .xls) to a landscape PDF document.
+    """
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"Input file not found: {input_path}")
+    import openpyxl
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib import colors
+
+    os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+    wb = openpyxl.load_workbook(input_path, data_only=True)
+    pdf = SimpleDocTemplate(
+        output_path,
+        pagesize=landscape(A4),
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=36,
+        bottomMargin=36
+    )
+    styles = getSampleStyleSheet()
+    story = []
+
+    for sheet_idx, sheet in enumerate(wb.worksheets):
+        if sheet_idx > 0:
+            story.append(PageBreak())
+        story.append(Paragraph(f"<b>Sheet: {sheet.title}</b>", styles['Heading2']))
+        story.append(Spacer(1, 8))
+
+        rows = list(sheet.iter_rows(values_only=True))
+        cleaned_rows = []
+        for r in rows:
+            if any(cell is not None for cell in r):
+                cleaned_rows.append([str(c) if c is not None else "" for c in r])
+
+        if cleaned_rows:
+            t = Table(cleaned_rows)
+            t.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#16a34a')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+                ('PADDING', (0, 0), (-1, -1), 6),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')])
+            ]))
+            story.append(t)
+            story.append(Spacer(1, 14))
+
+    if not story:
+        story.append(Paragraph("Empty Spreadsheet", styles['Normal']))
+
+    pdf.build(story)
+    return output_path
+
+
+def powerpoint_to_pdf(input_path: str, output_path: str) -> str:
+    """
+    Converts PowerPoint presentation (.pptx) to a landscape PDF presentation.
+    """
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"Input file not found: {input_path}")
+    import pptx
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib import colors
+
+    os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+    prs = pptx.Presentation(input_path)
+    pdf = SimpleDocTemplate(
+        output_path,
+        pagesize=landscape(A4),
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=36,
+        bottomMargin=36
+    )
+    styles = getSampleStyleSheet()
+    story = []
+
+    for s_idx, slide in enumerate(prs.slides):
+        if s_idx > 0:
+            story.append(PageBreak())
+
+        title_text = ""
+        if slide.shapes.title and slide.shapes.title.text.strip():
+            title_text = slide.shapes.title.text.strip()
+        slide_title = title_text if title_text else f"Slide {s_idx + 1}"
+        story.append(Paragraph(f"<b>{slide_title}</b>", styles['Heading1']))
+        story.append(Spacer(1, 12))
+
+        for shape in slide.shapes:
+            if shape != slide.shapes.title and shape.has_text_frame:
+                for paragraph in shape.text_frame.paragraphs:
+                    txt = paragraph.text.strip()
+                    if txt:
+                        story.append(Paragraph(f"• {txt}", styles['Normal']))
+                        story.append(Spacer(1, 6))
+
+    if not story:
+        story.append(Paragraph("Empty Presentation", styles['Normal']))
+
+    pdf.build(story)
+    return output_path

@@ -193,6 +193,66 @@ class TestConverterCore(unittest.TestCase):
         info_unlocked = cc.get_pdf_info(unlocked_pdf)
         self.assertEqual(info_unlocked["page_count"], 3)
 
+    def test_12_office_to_pdf_conversions(self):
+        import docx
+        import openpyxl
+        import pptx
+
+        # 1. Test Word to PDF
+        docx_path = os.path.join(self.test_dir, "test_doc.docx")
+        d = docx.Document()
+        d.add_heading("Studio Pro Word Document", level=0)
+        d.add_paragraph("Testing Word document to PDF conversion.")
+        table = d.add_table(rows=2, cols=2)
+        table.cell(0, 0).text = "Column 1"
+        table.cell(0, 1).text = "Column 2"
+        table.cell(1, 0).text = "Value A"
+        table.cell(1, 1).text = "Value B"
+        d.save(docx_path)
+
+        word_pdf = os.path.join(self.test_dir, "word_out.pdf")
+        res_word = cc.word_to_pdf(docx_path, word_pdf)
+        self.assertTrue(os.path.exists(res_word))
+        info_word = cc.get_pdf_info(res_word)
+        self.assertGreaterEqual(info_word["page_count"], 1)
+
+        # 2. Test Excel to PDF
+        xlsx_path = os.path.join(self.test_dir, "test_sheet.xlsx")
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Financial Summary"
+        ws.append(["Category", "Budget", "Actual", "Variance"])
+        ws.append(["Marketing", 5000, 4800, 200])
+        ws.append(["Operations", 12000, 11500, 500])
+        wb.save(xlsx_path)
+
+        excel_pdf = os.path.join(self.test_dir, "excel_out.pdf")
+        res_excel = cc.excel_to_pdf(xlsx_path, excel_pdf)
+        self.assertTrue(os.path.exists(res_excel))
+        info_excel = cc.get_pdf_info(res_excel)
+        self.assertGreaterEqual(info_excel["page_count"], 1)
+
+        # 3. Test PowerPoint to PDF
+        pptx_path = os.path.join(self.test_dir, "test_pres.pptx")
+        prs = pptx.Presentation()
+        s1 = prs.slides.add_slide(prs.slide_layouts[0])
+        s1.shapes.title.text = "Studio Pro Presentation"
+        s1.placeholders[1].text = "Automated Office Conversion Suite"
+
+        s2 = prs.slides.add_slide(prs.slide_layouts[1])
+        s2.shapes.title.text = "Features Overview"
+        tf = s2.shapes.placeholders[1].text_frame
+        tf.text = "Feature 1: Direct client-side processing"
+        p2 = tf.add_paragraph()
+        p2.text = "Feature 2: High quality vector output"
+        prs.save(pptx_path)
+
+        ppt_pdf = os.path.join(self.test_dir, "ppt_out.pdf")
+        res_ppt = cc.powerpoint_to_pdf(pptx_path, ppt_pdf)
+        self.assertTrue(os.path.exists(res_ppt))
+        info_ppt = cc.get_pdf_info(res_ppt)
+        self.assertEqual(info_ppt["page_count"], 2)
+
 
 if __name__ == "__main__":
     unittest.main()

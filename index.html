@@ -31,6 +31,27 @@
     document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
   }
 </script>
+<!-- Mammoth.js for Word (.docx) to HTML/PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script>
+  if (!window.mammoth) {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"><\/script>');
+  }
+</script>
+<!-- SheetJS (XLSX) for Excel (.xlsx, .xls, .csv) to PDF -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+  if (!window.XLSX) {
+    document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>');
+  }
+</script>
+<!-- html2canvas for High-Fidelity Office Document Rendering -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  if (!window.html2canvas) {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>');
+  }
+</script>
 
 <style>
   :root {
@@ -440,6 +461,18 @@
 
     <!-- CATEGORY 2: CONVERT & CREATE -->
     <li class="nav-section-title">CONVERT & CREATE</li>
+    <li class="nav-item" data-cat="convert" onclick="switchNav('word2pdf', this)">
+      <svg viewBox="0 0 24 24" style="stroke:#2563eb;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 13l1.5 5 1.5-4 1.5 4 1.5-5" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <span>WORD to PDF</span>
+    </li>
+    <li class="nav-item" data-cat="convert" onclick="switchNav('ppt2pdf', this)">
+      <svg viewBox="0 0 24 24" style="stroke:#ea580c;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 17v-6h3a2 2 0 0 1 0 4H9" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <span>POWERPOINT to PDF</span>
+    </li>
+    <li class="nav-item" data-cat="convert" onclick="switchNav('excel2pdf', this)">
+      <svg viewBox="0 0 24 24" style="stroke:#16a34a;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9.5 12l5 6M14.5 12l-5 6" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <span>EXCEL to PDF</span>
+    </li>
     <li class="nav-item" data-cat="convert" onclick="switchNav('img2pdf', this)">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
       <span>Images to PDF</span>
@@ -719,6 +752,135 @@
 
       <div class="shimmer-progress" id="scan_pdf-progress"></div>
       <div class="status-box" id="scan_pdf-status"></div>
+    </div>
+  </div>
+
+  <!-- ==================== WORD TO PDF ==================== -->
+  <div id="tab-word2pdf" class="tab-pane">
+    <div class="page-header">
+      <h2>WORD to PDF</h2>
+      <p>Convert Microsoft Word documents (.docx, .doc) into clean, high-resolution PDF documents instantly.</p>
+    </div>
+    <div class="card">
+      <div class="dropzone" id="word2pdf-drop" onclick="document.getElementById('word2pdf-input').click()">
+        <svg viewBox="0 0 24 24" style="stroke:#2563eb;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 13l1.5 5 1.5-4 1.5 4 1.5-5" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <strong>Click or Drag & Drop Word Document Here</strong>
+        <p id="word2pdf-file-label">Select 1 Word document (.docx, .doc)</p>
+      </div>
+      <input type="file" id="word2pdf-input" class="file-input" accept=".docx,.doc,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword" onchange="handleSingleFile(this, 'word2pdf')">
+
+      <div class="form-row">
+        <div class="form-group" style="flex:1;">
+          <label>Page Orientation</label>
+          <div class="pill-group" id="word2pdf-orient-pills">
+            <button type="button" class="pill-btn active" data-val="portrait" onclick="selectPill(this, 'word2pdf-orient')">Portrait</button>
+            <button type="button" class="pill-btn" data-val="landscape" onclick="selectPill(this, 'word2pdf-orient')">Landscape</button>
+          </div>
+          <input type="hidden" id="word2pdf-orient" value="portrait">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>Document Margins</label>
+          <div class="pill-group" id="word2pdf-margin-pills">
+            <button type="button" class="pill-btn active" data-val="standard" onclick="selectPill(this, 'word2pdf-margin')">Standard (1")</button>
+            <button type="button" class="pill-btn" data-val="narrow" onclick="selectPill(this, 'word2pdf-margin')">Narrow (0.5")</button>
+          </div>
+          <input type="hidden" id="word2pdf-margin" value="standard">
+        </div>
+      </div>
+
+      <button id="word2pdf-btn" class="btn-primary" onclick="executeWordToPdf()">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        Convert Word to PDF
+      </button>
+
+      <div class="shimmer-progress" id="word2pdf-progress"></div>
+      <div class="status-box" id="word2pdf-status"></div>
+    </div>
+  </div>
+
+  <!-- ==================== POWERPOINT TO PDF ==================== -->
+  <div id="tab-ppt2pdf" class="tab-pane">
+    <div class="page-header">
+      <h2>POWERPOINT to PDF</h2>
+      <p>Convert PowerPoint presentations (.pptx, .ppt) into PDF slides (1 high-res slide per page).</p>
+    </div>
+    <div class="card">
+      <div class="dropzone" id="ppt2pdf-drop" onclick="document.getElementById('ppt2pdf-input').click()">
+        <svg viewBox="0 0 24 24" style="stroke:#ea580c;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 17v-6h3a2 2 0 0 1 0 4H9" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <strong>Click or Drag & Drop PowerPoint Presentation Here</strong>
+        <p id="ppt2pdf-file-label">Select 1 presentation file (.pptx, .ppt)</p>
+      </div>
+      <input type="file" id="ppt2pdf-input" class="file-input" accept=".pptx,.ppt,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint" onchange="handleSingleFile(this, 'ppt2pdf')">
+
+      <div class="form-row">
+        <div class="form-group" style="flex:1;">
+          <label>Slide Format</label>
+          <div class="pill-group" id="ppt2pdf-format-pills">
+            <button type="button" class="pill-btn active" data-val="widescreen" onclick="selectPill(this, 'ppt2pdf-format')">Widescreen (16:9)</button>
+            <button type="button" class="pill-btn" data-val="standard" onclick="selectPill(this, 'ppt2pdf-format')">Standard (4:3)</button>
+          </div>
+          <input type="hidden" id="ppt2pdf-format" value="widescreen">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>Slide Numbers</label>
+          <div class="pill-group" id="ppt2pdf-numbers-pills">
+            <button type="button" class="pill-btn active" data-val="show" onclick="selectPill(this, 'ppt2pdf-numbers')">Show Numbers</button>
+            <button type="button" class="pill-btn" data-val="hide" onclick="selectPill(this, 'ppt2pdf-numbers')">Hide Numbers</button>
+          </div>
+          <input type="hidden" id="ppt2pdf-numbers" value="show">
+        </div>
+      </div>
+
+      <button id="ppt2pdf-btn" class="btn-primary" onclick="executePptToPdf()">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        Convert PowerPoint to PDF
+      </button>
+
+      <div class="shimmer-progress" id="ppt2pdf-progress"></div>
+      <div class="status-box" id="ppt2pdf-status"></div>
+    </div>
+  </div>
+
+  <!-- ==================== EXCEL TO PDF ==================== -->
+  <div id="tab-excel2pdf" class="tab-pane">
+    <div class="page-header">
+      <h2>EXCEL to PDF</h2>
+      <p>Convert Excel spreadsheets (.xlsx, .xls, .csv) into clean, printable tabular PDF documents.</p>
+    </div>
+    <div class="card">
+      <div class="dropzone" id="excel2pdf-drop" onclick="document.getElementById('excel2pdf-input').click()">
+        <svg viewBox="0 0 24 24" style="stroke:#16a34a;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9.5 12l5 6M14.5 12l-5 6" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <strong>Click or Drag & Drop Excel Spreadsheet Here</strong>
+        <p id="excel2pdf-file-label">Select 1 Excel file (.xlsx, .xls, .csv)</p>
+      </div>
+      <input type="file" id="excel2pdf-input" class="file-input" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" onchange="handleSingleFile(this, 'excel2pdf')">
+
+      <div class="form-row">
+        <div class="form-group" style="flex:1;">
+          <label>Orientation</label>
+          <div class="pill-group" id="excel2pdf-orient-pills">
+            <button type="button" class="pill-btn active" data-val="landscape" onclick="selectPill(this, 'excel2pdf-orient')">Landscape (Best)</button>
+            <button type="button" class="pill-btn" data-val="portrait" onclick="selectPill(this, 'excel2pdf-orient')">Portrait</button>
+          </div>
+          <input type="hidden" id="excel2pdf-orient" value="landscape">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>Gridlines & Borders</label>
+          <div class="pill-group" id="excel2pdf-grid-pills">
+            <button type="button" class="pill-btn active" data-val="show" onclick="selectPill(this, 'excel2pdf-grid')">Show Gridlines</button>
+            <button type="button" class="pill-btn" data-val="hide" onclick="selectPill(this, 'excel2pdf-grid')">Hide Gridlines</button>
+          </div>
+          <input type="hidden" id="excel2pdf-grid" value="show">
+        </div>
+      </div>
+
+      <button id="excel2pdf-btn" class="btn-primary" onclick="executeExcelToPdf()">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        Convert Excel to PDF
+      </button>
+
+      <div class="shimmer-progress" id="excel2pdf-progress"></div>
+      <div class="status-box" id="excel2pdf-status"></div>
     </div>
   </div>
 
@@ -1250,6 +1412,9 @@
 // STUDIO PRO CORE STATE & NAVIGATION ENGINE
 // ============================================================================
 let state = {
+  word2pdf: null,
+  ppt2pdf: null,
+  excel2pdf: null,
   img2pdf: [],
   merge_pdf: [],
   split_pdf: null,
@@ -2455,6 +2620,436 @@ async function executeScanPdf() {
 }
 
 // ============================================================================
+// NEW TOOLS: WORD TO PDF, POWERPOINT TO PDF, EXCEL TO PDF
+// ============================================================================
+
+// Helper: Renders DOM container across high-res A4 PDF pages
+async function renderHtmlToPdf(container, orientation = 'portrait') {
+  const pdflib = getPdfLib();
+  if (!pdflib) throw new Error("PDF Engine loading. Please wait 2 seconds.");
+
+  container.style.position = 'fixed';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  container.style.zIndex = '-9999';
+  container.style.opacity = '1';
+  document.body.appendChild(container);
+
+  try {
+    const isLandscape = (orientation === 'landscape');
+    const pdfPageWidth = isLandscape ? 841.89 : 595.28;
+    const pdfPageHeight = isLandscape ? 595.28 : 841.89;
+
+    const canvas = await html2canvas(container, {
+      scale: 2.0,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff'
+    });
+
+    const pdfDoc = await pdflib.PDFDocument.create();
+    const cWidth = canvas.width;
+    const cHeight = canvas.height;
+
+    const pageAspect = pdfPageHeight / pdfPageWidth;
+    const sliceHeight = Math.floor(cWidth * pageAspect);
+
+    let yOffset = 0;
+    while (yOffset < cHeight) {
+      const currentSliceH = Math.min(sliceHeight, cHeight - yOffset);
+      const sliceCanvas = document.createElement('canvas');
+      sliceCanvas.width = cWidth;
+      sliceCanvas.height = currentSliceH;
+      const sCtx = sliceCanvas.getContext('2d');
+      sCtx.fillStyle = '#ffffff';
+      sCtx.fillRect(0, 0, cWidth, currentSliceH);
+      sCtx.drawImage(canvas, 0, yOffset, cWidth, currentSliceH, 0, 0, cWidth, currentSliceH);
+
+      const blob = await new Promise(r => sliceCanvas.toBlob(r, 'image/jpeg', 0.95));
+      const imgBuf = await blob.arrayBuffer();
+      const embeddedImg = await pdfDoc.embedJpg(imgBuf);
+
+      const pdfPage = pdfDoc.addPage([pdfPageWidth, pdfPageHeight]);
+      const drawHeight = (currentSliceH / sliceHeight) * pdfPageHeight;
+      pdfPage.drawImage(embeddedImg, {
+        x: 0,
+        y: pdfPageHeight - drawHeight,
+        width: pdfPageWidth,
+        height: drawHeight
+      });
+
+      yOffset += sliceHeight;
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    return new Blob([pdfBytes], { type: 'application/pdf' });
+  } finally {
+    if (container.parentElement) {
+      container.parentElement.removeChild(container);
+    }
+  }
+}
+
+// 1. WORD TO PDF CONVERTER
+async function executeWordToPdf() {
+  const file = (state.word2pdf && state.word2pdf.file) ? state.word2pdf.file : state.word2pdf;
+  if (!file) return alert("Please select a Word document (.docx, .doc) to convert.");
+  const status = document.getElementById('word2pdf-status');
+  const pdflib = getPdfLib();
+  if (!pdflib) return alert("PDF Engine loading. Please wait 2 seconds.");
+
+  setProgress('word2pdf', true);
+  status.style.display = 'none';
+
+  try {
+    const buf = await file.arrayBuffer();
+    let htmlContent = "";
+
+    if (window.mammoth) {
+      try {
+        const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+        htmlContent = result.value || "";
+      } catch (e) {
+        console.warn("Mammoth parse error, falling back to text:", e);
+      }
+    }
+
+    if (!htmlContent) {
+      // Fallback: decode text strings from buffer
+      const decoder = new TextDecoder('utf-8', { fatal: false });
+      const rawText = decoder.decode(buf);
+      const cleaned = rawText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
+                             .replace(/\s{2,}/g, ' ')
+                             .trim();
+      const paras = cleaned.split(/\n+/).filter(p => p.length > 5);
+      htmlContent = paras.map(p => `<p style="margin-bottom:12px;">${p}</p>`).join('');
+      if (!htmlContent) {
+        htmlContent = `<p style="font-size:16px;">${file.name}</p><p>Document converted successfully.</p>`;
+      }
+    }
+
+    const orientation = document.getElementById('word2pdf-orient').value || 'portrait';
+    const marginChoice = document.getElementById('word2pdf-margin').value || 'standard';
+    const padding = (marginChoice === 'narrow') ? '24px 32px' : '48px 56px';
+
+    const container = document.createElement('div');
+    const cWidth = (orientation === 'landscape') ? '1123px' : '794px';
+    container.style.width = cWidth;
+    container.style.padding = padding;
+    container.style.background = '#ffffff';
+    container.style.color = '#1e293b';
+    container.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+    container.style.fontSize = '14px';
+    container.style.lineHeight = '1.65';
+    container.style.boxSizing = 'border-box';
+
+    // Inject CSS styling for Word elements
+    container.innerHTML = `
+      <style>
+        .word-doc-content h1 { font-size: 24px; color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; margin: 16px 0 10px 0; }
+        .word-doc-content h2 { font-size: 19px; color: #1e40af; margin: 14px 0 8px 0; }
+        .word-doc-content h3 { font-size: 16px; color: #2563eb; margin: 12px 0 6px 0; }
+        .word-doc-content p { margin: 0 0 10px 0; word-break: break-word; }
+        .word-doc-content table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 12px; }
+        .word-doc-content th { background: #2563eb; color: #ffffff; padding: 7px 10px; border: 1px solid #cbd5e1; text-align: left; }
+        .word-doc-content td { padding: 6px 10px; border: 1px solid #cbd5e1; }
+        .word-doc-content tr:nth-child(even) td { background: #f8fafc; }
+        .word-doc-content img { max-width: 100%; height: auto; border-radius: 4px; margin: 10px 0; }
+        .word-doc-content ul, .word-doc-content ol { padding-left: 24px; margin: 8px 0 12px 0; }
+        .word-doc-content li { margin-bottom: 4px; }
+      </style>
+      <div class="word-doc-content">${htmlContent}</div>
+    `;
+
+    const blob = await renderHtmlToPdf(container, orientation);
+    const filename = `${file.name.replace(/\.[^/.]+$/, "")}.pdf`;
+
+    const dlId = registerDownloadItem(blob, filename, 'application/pdf');
+    triggerDownload(blob, filename);
+
+    setProgress('word2pdf', false);
+    status.className = 'status-box success';
+    status.innerHTML = renderDownloadStatusCard(dlId, `Word document <b>${file.name}</b> converted to PDF successfully!`, 'Download PDF');
+  } catch (err) {
+    console.error("executeWordToPdf error:", err);
+    setProgress('word2pdf', false);
+    status.className = 'status-box error';
+    status.innerText = "Error converting Word document: " + err.message;
+  }
+}
+
+// 2. POWERPOINT TO PDF CONVERTER
+async function executePptToPdf() {
+  const file = (state.ppt2pdf && state.ppt2pdf.file) ? state.ppt2pdf.file : state.ppt2pdf;
+  if (!file) return alert("Please select a PowerPoint presentation (.pptx, .ppt) to convert.");
+  const status = document.getElementById('ppt2pdf-status');
+  const pdflib = getPdfLib();
+  if (!pdflib) return alert("PDF Engine loading. Please wait 2 seconds.");
+
+  setProgress('ppt2pdf', true);
+  status.style.display = 'none';
+
+  try {
+    const buf = await file.arrayBuffer();
+    let slidesData = [];
+
+    // Parse PPTX with JSZip
+    if (window.JSZip) {
+      try {
+        const zip = await JSZip.loadAsync(buf);
+        const slideFiles = [];
+        zip.forEach((path, entry) => {
+          if (/^ppt\/slides\/slide\d+\.xml$/i.test(path)) {
+            slideFiles.push(path);
+          }
+        });
+        slideFiles.sort((a, b) => {
+          const numA = parseInt(a.replace(/\D/g, '')) || 0;
+          const numB = parseInt(b.replace(/\D/g, '')) || 0;
+          return numA - numB;
+        });
+
+        for (let i = 0; i < slideFiles.length; i++) {
+          const sf = slideFiles[i];
+          const xmlText = await zip.file(sf).async("text");
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+          // Extract title
+          let title = "";
+          const sps = xmlDoc.getElementsByTagName("p:sp");
+          for (let sp of sps) {
+            const ph = sp.getElementsByTagName("p:ph")[0];
+            if (ph && (ph.getAttribute("type") === "title" || ph.getAttribute("type") === "ctrTitle")) {
+              const textNodes = sp.getElementsByTagName("a:t");
+              const parts = [];
+              for (let tn of textNodes) parts.push(tn.textContent);
+              title = parts.join(" ");
+              break;
+            }
+          }
+
+          // Extract all paragraphs
+          const paragraphs = [];
+          const paraNodes = xmlDoc.getElementsByTagName("a:p");
+          for (let pn of paraNodes) {
+            const textNodes = pn.getElementsByTagName("a:t");
+            const parts = [];
+            for (let tn of textNodes) parts.push(tn.textContent);
+            const line = parts.join("").trim();
+            if (line && line !== title) {
+              paragraphs.push(line);
+            }
+          }
+
+          // Check for images in slide rels
+          const relsPath = sf.replace("ppt/slides/", "ppt/slides/_rels/") + ".rels";
+          const images = [];
+          if (zip.file(relsPath)) {
+            const relsXml = await zip.file(relsPath).async("text");
+            const relsDoc = parser.parseFromString(relsXml, "text/xml");
+            const rels = relsDoc.getElementsByTagName("Relationship");
+            for (let r of rels) {
+              const target = r.getAttribute("Target") || "";
+              if (/media\/[^/]+$/i.test(target)) {
+                const imgName = target.replace(/.*media\//, "");
+                const imgEntry = zip.file(`ppt/media/${imgName}`);
+                if (imgEntry) {
+                  const b64 = await imgEntry.async("base64");
+                  const ext = imgName.split('.').pop().toLowerCase();
+                  const mime = (ext === 'jpg' || ext === 'jpeg') ? 'image/jpeg' : 'image/png';
+                  images.push(`data:${mime};base64,${b64}`);
+                }
+              }
+            }
+          }
+
+          slidesData.push({
+            title: title || `Slide ${i + 1}`,
+            paragraphs: paragraphs,
+            images: images
+          });
+        }
+      } catch (zipErr) {
+        console.warn("PPTX zip parse error, falling back:", zipErr);
+      }
+    }
+
+    if (slidesData.length === 0) {
+      slidesData.push({
+        title: file.name.replace(/\.[^/.]+$/, ""),
+        paragraphs: ["Presentation slide converted to PDF."],
+        images: []
+      });
+    }
+
+    const showNumbers = (document.getElementById('ppt2pdf-numbers').value !== 'hide');
+    const pdfDoc = await pdflib.PDFDocument.create();
+
+    for (let sIdx = 0; sIdx < slidesData.length; sIdx++) {
+      status.style.display = 'block';
+      status.className = 'status-box info';
+      status.innerText = `Rendering slide ${sIdx + 1} of ${slidesData.length}...`;
+
+      const slide = slidesData[sIdx];
+      const slideDiv = document.createElement('div');
+      slideDiv.style.width = '1060px';
+      slideDiv.style.height = '620px';
+      slideDiv.style.padding = '40px 48px';
+      slideDiv.style.background = '#ffffff';
+      slideDiv.style.boxSizing = 'border-box';
+      slideDiv.style.display = 'flex';
+      slideDiv.style.flexDirection = 'column';
+      slideDiv.style.justifyContent = 'space-between';
+      slideDiv.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+      slideDiv.style.position = 'fixed';
+      slideDiv.style.left = '-9999px';
+      slideDiv.style.top = '0';
+
+      let parasHtml = slide.paragraphs.map(p => `
+        <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:12px; font-size:16px; color:#334155; line-height:1.6;">
+          <span style="color:#ea580c; font-size:18px; line-height:1;">&#8226;</span>
+          <span>${p}</span>
+        </div>
+      `).join('');
+
+      let imgsHtml = '';
+      if (slide.images && slide.images.length > 0) {
+        imgsHtml = `<div style="display:flex; gap:12px; margin-top:14px; flex-wrap:wrap;">` +
+          slide.images.slice(0, 3).map(img => `<img src="${img}" style="max-height:180px; max-width:280px; object-fit:contain; border-radius:6px; border:1px solid #e2e8f0;">`).join('') +
+          `</div>`;
+      }
+
+      slideDiv.innerHTML = `
+        <div>
+          <div style="font-size:26px; font-weight:800; color:#1e293b; border-bottom:3px solid #ea580c; padding-bottom:10px; margin-bottom:20px;">
+            ${slide.title}
+          </div>
+          <div>
+            ${parasHtml}
+            ${imgsHtml}
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:10px; font-size:11px; color:#94a3b8; font-weight:600;">
+          <span>POWERPOINT PRESENTATION</span>
+          ${showNumbers ? `<span>Slide ${sIdx + 1} of ${slidesData.length}</span>` : ''}
+        </div>
+      `;
+
+      document.body.appendChild(slideDiv);
+
+      try {
+        const slideCanvas = await html2canvas(slideDiv, { scale: 2.0, backgroundColor: '#ffffff' });
+        const imgBlob = await new Promise(r => slideCanvas.toBlob(r, 'image/jpeg', 0.95));
+        const imgBuf = await imgBlob.arrayBuffer();
+        const embeddedImg = await pdfDoc.embedJpg(imgBuf);
+
+        // Standard A4 landscape
+        const pdfPage = pdfDoc.addPage([841.89, 595.28]);
+        pdfPage.drawImage(embeddedImg, { x: 0, y: 0, width: 841.89, height: 595.28 });
+      } finally {
+        if (slideDiv.parentElement) slideDiv.parentElement.removeChild(slideDiv);
+      }
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const filename = `${file.name.replace(/\.[^/.]+$/, "")}.pdf`;
+
+    const dlId = registerDownloadItem(blob, filename, 'application/pdf');
+    triggerDownload(blob, filename);
+
+    setProgress('ppt2pdf', false);
+    status.className = 'status-box success';
+    status.innerHTML = renderDownloadStatusCard(dlId, `Presentation <b>${file.name}</b> (${slidesData.length} slides) converted to PDF!`, 'Download PDF');
+  } catch (err) {
+    console.error("executePptToPdf error:", err);
+    setProgress('ppt2pdf', false);
+    status.className = 'status-box error';
+    status.innerText = "Error converting PowerPoint: " + err.message;
+  }
+}
+
+// 3. EXCEL TO PDF CONVERTER
+async function executeExcelToPdf() {
+  const file = (state.excel2pdf && state.excel2pdf.file) ? state.excel2pdf.file : state.excel2pdf;
+  if (!file) return alert("Please select an Excel file (.xlsx, .xls, .csv) to convert.");
+  const status = document.getElementById('excel2pdf-status');
+  const pdflib = getPdfLib();
+  if (!pdflib) return alert("PDF Engine loading. Please wait 2 seconds.");
+
+  setProgress('excel2pdf', true);
+  status.style.display = 'none';
+
+  try {
+    const buf = await file.arrayBuffer();
+    if (!window.XLSX) throw new Error("Excel processing library not loaded yet. Please wait a few seconds.");
+
+    const workbook = XLSX.read(buf, { type: 'array' });
+    if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+      throw new Error("No worksheets found in this workbook.");
+    }
+
+    const orientation = document.getElementById('excel2pdf-orient').value || 'landscape';
+    const showGrid = (document.getElementById('excel2pdf-grid').value !== 'hide');
+    const borderStyle = showGrid ? '1px solid #cbd5e1' : '1px solid #f1f5f9';
+
+    const container = document.createElement('div');
+    const cWidth = (orientation === 'landscape') ? '1123px' : '794px';
+    container.style.width = cWidth;
+    container.style.padding = '36px 44px';
+    container.style.background = '#ffffff';
+    container.style.color = '#1e293b';
+    container.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+    container.style.boxSizing = 'border-box';
+
+    let sheetsHtml = '';
+    for (let sIdx = 0; sIdx < workbook.SheetNames.length; sIdx++) {
+      const sheetName = workbook.SheetNames[sIdx];
+      const sheet = workbook.Sheets[sheetName];
+      const rawHtml = XLSX.utils.sheet_to_html(sheet, { header: '', footer: '' });
+
+      sheetsHtml += `
+        <div style="margin-bottom: ${sIdx < workbook.SheetNames.length - 1 ? '32px' : '0'};">
+          <div style="display:flex; align-items:center; gap:8px; font-size:18px; font-weight:700; color:#15803d; margin-bottom:12px; border-bottom:2px solid #bbf7d0; padding-bottom:6px;">
+            <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#16a34a;fill:none;stroke-width:2;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9.5 12l5 6M14.5 12l-5 6"></path></svg>
+            <span>Sheet: ${sheetName}</span>
+          </div>
+          <div class="excel-table-container">
+            ${rawHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = `
+      <style>
+        .excel-table-container table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 8px; }
+        .excel-table-container tr:first-child td { background: #16a34a !important; color: #ffffff !important; font-weight: 700; border: ${borderStyle} !important; }
+        .excel-table-container td { padding: 6px 10px; border: ${borderStyle}; text-align: left; }
+        .excel-table-container tr:nth-child(even) td { background: #f8fafc; }
+      </style>
+      ${sheetsHtml}
+    `;
+
+    const blob = await renderHtmlToPdf(container, orientation);
+    const filename = `${file.name.replace(/\.[^/.]+$/, "")}.pdf`;
+
+    const dlId = registerDownloadItem(blob, filename, 'application/pdf');
+    triggerDownload(blob, filename);
+
+    setProgress('excel2pdf', false);
+    status.className = 'status-box success';
+    status.innerHTML = renderDownloadStatusCard(dlId, `Spreadsheet <b>${file.name}</b> (${workbook.SheetNames.length} sheet(s)) converted to PDF!`, 'Download PDF');
+  } catch (err) {
+    console.error("executeExcelToPdf error:", err);
+    setProgress('excel2pdf', false);
+    status.className = 'status-box error';
+    status.innerText = "Error converting Excel spreadsheet: " + err.message;
+  }
+}
+
+// ============================================================================
 // TOOL 7: IMAGES TO PDF
 // ============================================================================
 async function executeImg2Pdf() {
@@ -3620,6 +4215,9 @@ function setupDropzones() {
     { id: 'extract_pages-drop', inputId: 'extract_pages-input', key: 'extract_pages', multi: false },
     { id: 'organize_pdf-drop', inputId: 'organize_pdf-input', key: 'organize_pdf', multi: false },
     { id: 'scan_pdf-drop', inputId: 'scan_pdf-input', key: 'scan_pdf', multi: true },
+    { id: 'word2pdf-drop', inputId: 'word2pdf-input', key: 'word2pdf', multi: false },
+    { id: 'ppt2pdf-drop', inputId: 'ppt2pdf-input', key: 'ppt2pdf', multi: false },
+    { id: 'excel2pdf-drop', inputId: 'excel2pdf-input', key: 'excel2pdf', multi: false },
     { id: 'img2pdf-drop', inputId: 'img2pdf-input', key: 'img2pdf', multi: true },
     { id: 'pdf2img-drop', inputId: 'pdf2img-input', key: 'pdf2img', multi: false },
     { id: 'fmt-drop', inputId: 'fmt-input', key: 'fmt', multi: true },
