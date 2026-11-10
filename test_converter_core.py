@@ -253,6 +253,39 @@ class TestConverterCore(unittest.TestCase):
         info_ppt = cc.get_pdf_info(res_ppt)
         self.assertEqual(info_ppt["page_count"], 2)
 
+    def test_13_pdf_to_office_conversions(self):
+        import docx
+        import openpyxl
+        import pptx
+
+        # Source PDF created from previous images
+        src_pdf = os.path.join(self.test_dir, "three_pages.pdf")
+        self.assertTrue(os.path.exists(src_pdf))
+
+        # 1. Test PDF to Word
+        docx_out = os.path.join(self.test_dir, "out_from_pdf.docx")
+        cc.pdf_to_word(src_pdf, docx_out)
+        self.assertTrue(os.path.exists(docx_out))
+        self.assertGreater(os.path.getsize(docx_out), 1000)
+        d = docx.Document(docx_out)
+        self.assertGreaterEqual(len(d.paragraphs), 1)
+
+        # 2. Test PDF to Excel
+        xlsx_out = os.path.join(self.test_dir, "out_from_pdf.xlsx")
+        cc.pdf_to_excel(src_pdf, xlsx_out)
+        self.assertTrue(os.path.exists(xlsx_out))
+        self.assertGreater(os.path.getsize(xlsx_out), 1000)
+        wb = openpyxl.load_workbook(xlsx_out)
+        self.assertGreaterEqual(len(wb.sheetnames), 1)
+
+        # 3. Test PDF to PowerPoint
+        pptx_out = os.path.join(self.test_dir, "out_from_pdf.pptx")
+        cc.pdf_to_powerpoint(src_pdf, pptx_out)
+        self.assertTrue(os.path.exists(pptx_out))
+        self.assertGreater(os.path.getsize(pptx_out), 1000)
+        prs = pptx.Presentation(pptx_out)
+        self.assertEqual(len(prs.slides), 3)
+
 
 if __name__ == "__main__":
     unittest.main()

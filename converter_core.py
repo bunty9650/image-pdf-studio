@@ -1048,3 +1048,182 @@ def powerpoint_to_pdf(input_path: str, output_path: str) -> str:
 
     pdf.build(story)
     return output_path
+
+
+def pdf_to_word(input_pdf: str, output_docx: str) -> str:
+    """
+    Converts a PDF document into a Microsoft Word (.docx) file.
+    """
+    if not os.path.exists(input_pdf):
+        raise FileNotFoundError(f"Input PDF not found: {input_pdf}")
+    import fitz
+    import docx
+
+    doc = fitz.open(input_pdf)
+    d = docx.Document()
+    os.makedirs(os.path.dirname(os.path.abspath(output_docx)), exist_ok=True)
+
+    for page_idx, page in enumerate(doc):
+        if page_idx > 0:
+            d.add_page_break()
+
+        # Check for tables
+        tables = []
+        try:
+            tabs = page.find_tables()
+            if tabs and tabs.tables:
+                tables = [t.extract() for t in tabs.tables]
+        except Exception:
+            tables = []
+
+        if tables:
+            for t_data in tables:
+                if t_data and len(t_data) > 0:
+                    rows = len(t_data)
+                    cols = len(t_data[0]) if rows > 0 else 0
+                    if cols > 0:
+                        tbl = d.add_table(rows=rows, cols=cols)
+                        tbl.style = 'Table Grid'
+                        for r_idx, row in enumerate(t_data):
+                            for c_idx, val in enumerate(row):
+                                if c_idx < cols:
+                                    tbl.cell(r_idx, c_idx).text = str(val or "")
+                        d.add_paragraph()
+
+        # Extract text blocks
+        blocks = page.get_text("blocks")
+        for b in blocks:
+            if len(b) >= 7 and b[6] == 0:  # Text block
+                txt = b[4].strip()
+                if txt:
+                    lines = txt.split("\n")
+                    for line in lines:
+                        l = line.strip()
+                        if l:
+                            if len(l) < 60 and (l.isupper() or len(lines) == 1 and len(l) < 40):
+                                d.add_heading(l, level=2)
+                            else:
+                                d.add_paragraph(l)
+
+    doc.close()
+    d.save(output_docx)
+    return output_docx
+
+
+def pdf_to_excel(input_pdf: str, output_xlsx: str) -> str:
+    """
+    Extracts tabular data and text from a PDF document into an Excel (.xlsx) spreadsheet.
+    """
+    if not os.path.exists(input_pdf):
+        raise FileNotFoundError(f"Input PDF not found: {input_pdf}")
+    import fitz
+    import openpyxl
+
+    doc = fitz.open(input_pdf)
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)
+    os.makedirs(os.path.dirname(os.path.abspath(output_xlsx)), exist_ok=True)
+
+    for page_idx, page in enumerate(doc):
+        ws = wb.create_sheet(title=f"Page {page_idx + 1}")
+        table_found = False
+
+        # Try formal table extraction
+        try:
+            tabs = page.find_tables()
+            if tabs and tabs.tables:
+                for t in tabs.tables:
+                    extracted = t.extract()
+                    for r in extracted:
+                        ws.append([str(c) if c is not None else "" for c in r])
+                    ws.append([])
+                    table_found = True
+        except Exception:
+            pass
+
+        if not table_found:
+            words = page.get_text("words")
+            lines_dict = {}
+            for w in words:
+                y_center = round(w[1] / 6) * 6
+                if y_center not in lines_dict:
+                    lines_dict[y_center] = []
+                lines_dict[y_center].append(w)
+
+            sorted_y = sorted(lines_dict.keys())
+            for y in sorted_y:
+                line_words = sorted(lines_dict[y], key=lambda x: x[0])
+                row_cells = []
+                last_x = None
+                current_cell = []
+                for w in line_words:
+                    if last_x is not None and (w[0] - last_x) > 25:
+                        row_cells.append(" ".join(current_cell))
+                        current_cell = [w[4]]
+                    else:
+                        current_cell.append(w[4])
+                    last_x = w[2]
+                if current_cell:
+                    row_cells.append(" ".join(current_cell))
+                if row_cells:
+                    ws.append(row_cells)
+
+    if not wb.sheetnames:
+        ws = wb.create_sheet(title="Sheet 1")
+        ws.append(["Empty Document"])
+
+    doc.close()
+    wb.save(output_xlsx)
+    return output_xlsx
+
+
+def pdf_to_powerpoint(input_pdf: str, output_pptx: str) -> str:
+    """
+    Converts PDF pages into a PowerPoint presentation (.pptx) with 1 slide per page.
+    """
+    if not os.path.exists(input_pdf):
+        raise FileNotFoundError(f"Input PDF not found: {input_pdf}")
+    import fitz
+    import pptx
+    import shutil
+
+    doc = fitz.open(input_pdf)
+    prs = pptx.Presentation()
+    prs.slide_width = pptx.util.Inches(10)
+    prs.slide_height = pptx.util.Inches(5.625)
+    blank_layout = prs.slide_layouts[6]
+    os.makedirs(os.path.dirname(os.path.abspath(output_pptx)), exist_ok=True)
+
+    temp_img_dir = os.path.join(os.path.dirname(os.path.abspath(output_pptx)), "_temp_pptx_slides")
+    os.makedirs(temp_img_dir, exist_ok=True)
+
+    try:
+        for page_idx, page in enumerate(doc):
+            slide = prs.slides.add_slide(blank_layout)
+            pix = page.get_pixmap(dpi=150)
+            img_path = os.path.join(temp_img_dir, f"slide_{page_idx}.png")
+            pix.save(img_path)
+
+            img_w, img_h = pix.width, pix.height
+            aspect = img_w / img_h
+            slide_aspect = prs.slide_width / prs.slide_height
+
+            if aspect > slide_aspect:
+                w = prs.slide_width
+                h = prs.slide_width / aspect
+                left = 0
+                top = (prs.slide_height - h) / 2
+            else:
+                h = prs.slide_height
+                w = prs.slide_height * aspect
+                top = 0
+                left = (prs.slide_width - w) / 2
+
+            slide.shapes.add_picture(img_path, left, top, width=w, height=h)
+
+        prs.save(output_pptx)
+    finally:
+        if os.path.exists(temp_img_dir):
+            shutil.rmtree(temp_img_dir, ignore_errors=True)
+    doc.close()
+    return output_pptx
