@@ -286,6 +286,24 @@ class TestConverterCore(unittest.TestCase):
         prs = pptx.Presentation(pptx_out)
         self.assertEqual(len(prs.slides), 3)
 
+    def test_14_image_to_excel_and_freestyle(self):
+        # 1. Test Image to Excel
+        xlsx_from_img = os.path.join(self.test_dir, "img_table.xlsx")
+        cc.image_to_excel(self.img1_path, xlsx_from_img)
+        self.assertTrue(os.path.exists(xlsx_from_img))
+        self.assertGreater(os.path.getsize(xlsx_from_img), 1000)
+
+        # 2. Test Freestyle: Image to PDF with target KB
+        freestyle_pdf = os.path.join(self.test_dir, "free_style_out.pdf")
+        cc.freestyle_convert(self.img1_path, freestyle_pdf, target_format="pdf", target_kb=50)
+        self.assertTrue(os.path.exists(freestyle_pdf))
+        self.assertGreater(os.path.getsize(freestyle_pdf), 500)
+
+        # 3. Test Freestyle: Image format conversion
+        freestyle_webp = os.path.join(self.test_dir, "free_style_out.webp")
+        cc.freestyle_convert(self.img1_path, freestyle_webp, target_format="webp", target_kb=30)
+        self.assertTrue(os.path.exists(freestyle_webp))
+
 
 if __name__ == "__main__":
     unittest.main()

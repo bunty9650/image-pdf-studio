@@ -45,6 +45,8 @@
     document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>');
   }
 </script>
+<!-- Tesseract.js for Image to Excel OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- html2canvas for High-Fidelity Office Document Rendering -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
@@ -335,6 +337,13 @@
 
   /* RESPONSIVE & MOBILE STYLING */
   @media (max-width: 860px) {
+    #app-view {
+      flex-direction: column;
+      height: 100vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
     body { flex-direction: column; min-height: 100vh; overflow-x: hidden; }
 
     .sidebar {
@@ -404,10 +413,539 @@
     .compare-container { grid-template-columns: 1fr; }
     .organize-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
   }
+
+  /* ==========================================================================
+     HOME DASHBOARD & FREESTYLE STUDIO STYLES
+     ========================================================================== */
+
+  #app-view {
+    width: 100%;
+    height: 100vh;
+    display: none;
+    flex-direction: row;
+  }
+  #home-view {
+    width: 100%; height: 100vh; overflow-y: auto; background: #0f172a;
+    color: #f8fafc; padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
+  }
+  .home-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 36px; border-bottom: 1px solid #1e293b; background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50;
+  }
+  .home-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .home-hero {
+    text-align: center; max-width: 860px; margin: 44px auto 32px auto; padding: 0 20px;
+  }
+  .home-badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(37, 99, 235, 0.18);
+    border: 1px solid rgba(59, 130, 246, 0.4); color: #60a5fa; padding: 6px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 16px;
+  }
+  .home-hero h1 {
+    font-size: 38px; font-weight: 800; color: #ffffff; line-height: 1.25; margin-bottom: 14px;
+    letter-spacing: -0.5px;
+  }
+  .home-hero p {
+    font-size: 16px; color: #94a3b8; line-height: 1.6; max-width: 680px; margin: 0 auto 28px auto;
+  }
+  .home-search-wrap {
+    max-width: 620px; margin: 0 auto 24px auto; position: relative;
+  }
+  .home-search-wrap svg {
+    position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+    width: 20px; height: 20px; stroke: #64748b; fill: none; stroke-width: 2; pointer-events: none;
+  }
+  .home-search-input {
+    width: 100%; padding: 14px 20px 14px 48px; background: #1e293b;
+    border: 1px solid #334155; border-radius: 50px; color: #ffffff; font-size: 15px;
+    outline: none; transition: all 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  .home-search-input:focus {
+    border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); background: #0f172a;
+  }
+  .home-cat-pills {
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 36px;
+  }
+  .home-cat-btn {
+    padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 600;
+    cursor: pointer; background: #1e293b; color: #94a3b8; border: 1px solid #334155;
+    transition: all 0.18s ease; user-select: none;
+  }
+  .home-cat-btn:hover { color: #ffffff; background: #334155; }
+  .home-cat-btn.active { background: #2563eb; color: #ffffff; border-color: #3b82f6; }
+
+  .home-grid-container {
+    max-width: 1240px; margin: 0 auto; padding: 0 24px;
+  }
+  .home-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #1e293b;
+  }
+  .home-section-header h2 { font-size: 18px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.8px; }
+  .home-tools-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 18px; margin-bottom: 24px;
+  }
+  .home-tool-card {
+    background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 22px;
+    cursor: pointer; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column; justify-content: space-between; position: relative;
+    overflow: hidden; text-align: left;
+  }
+  .home-tool-card:hover {
+    transform: translateY(-3px); border-color: #60a5fa; box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+    background: #24324d;
+  }
+  .home-tool-card-icon {
+    width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; margin-bottom: 14px; background: rgba(37, 99, 235, 0.15);
+  }
+  .home-tool-card-icon svg { width: 24px; height: 24px; stroke-width: 2; fill: none; }
+  .home-tool-card h3 { font-size: 16.5px; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
+  .home-tool-card p { font-size: 12.5px; color: #94a3b8; line-height: 1.5; flex: 1; }
+  .home-tool-card-foot {
+    display: flex; justify-content: space-between; align-items: center; margin-top: 14px;
+    padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px;
+    font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .home-tool-card:hover .home-tool-card-foot svg { transform: translateX(4px); }
+  .home-tool-card-foot svg { width: 14px; height: 14px; stroke-width: 2.5; transition: transform 0.2s ease; }
+
+  /* App view back to home button */
+  .btn-home-back {
+    display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 14px;
+    background: rgba(37, 99, 235, 0.14); border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px; color: #60a5fa; font-size: 13px; font-weight: 700;
+    cursor: pointer; margin: 10px 0 14px 0; transition: all 0.2s ease;
+  }
+  .btn-home-back:hover { background: #2563eb; color: #ffffff; border-color: #2563eb; }
+  .btn-home-back svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+  @media (max-width: 860px) {
+    .home-hero h1 { font-size: 28px; }
+    .home-hero p { font-size: 14px; }
+    .home-header { padding: 14px 18px; }
+    .home-grid-container { padding: 0 14px; }
+    .home-tools-grid { grid-template-columns: 1fr; gap: 12px; }
+  }
+
 </style>
 </head>
 <body>
 
+<!-- ==========================================================================
+     HOME DASHBOARD VIEW (INITIAL LANDING PORTAL)
+     ========================================================================== -->
+<div id="home-view">
+  <header class="home-header">
+    <div class="home-brand" onclick="showHomeView()">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:18px; font-weight:800; color:#ffffff; line-height:1.2;">Studio Pro</div>
+        <div style="font-size:11px; color:#94a3b8;">All-in-One Image & PDF Engine</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span class="home-badge" style="margin-bottom:0;">100% Free & Private in Browser</span>
+    </div>
+  </header>
+
+  <div class="home-hero">
+    <div class="home-badge">Studio Pro Document Suite</div>
+    <h1>Every tool you need to convert, compress, and edit files.</h1>
+    <p>Fast, reliable, and completely private. All file processing happens in your browser memory — nothing is ever uploaded to external servers.</p>
+
+    <div class="home-search-wrap">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" id="home-search" class="home-search-input" placeholder="Search any tool (e.g. merge, word, excel, freestyle, compress, sign, unlock)..." oninput="filterHomeCards(this.value)">
+    </div>
+
+    <div class="home-cat-pills">
+      <button type="button" class="home-cat-btn active" onclick="filterHomeCategory('all', this)">All Tools (24)</button>
+      <button type="button" class="home-cat-btn" onclick="filterHomeCategory('freestyle', this)">Universal Studio</button>
+      <button type="button" class="home-cat-btn" onclick="filterHomeCategory('convert', this)">Convert & Create (11)</button>
+      <button type="button" class="home-cat-btn" onclick="filterHomeCategory('organize', this)">Organize PDF (6)</button>
+      <button type="button" class="home-cat-btn" onclick="filterHomeCategory('optimize', this)">Optimize & Resize (1)</button>
+      <button type="button" class="home-cat-btn" onclick="filterHomeCategory('security', this)">PDF Security (5)</button>
+    </div>
+  </div>
+
+  <div class="home-grid-container" id="home-grid-container">
+    <!-- TOOLS GRID RENDERED DYNAMICALLY OR STATIC CARDS -->
+    <div class="home-tools-grid" id="home-tools-grid">
+      <!-- 1. FREE STYLE CONVERTER -->
+      <div class="home-tool-card" data-cat="freestyle" data-keywords="freestyle universal any to any compress target kb word excel powerpoint pdf image" onclick="openToolFromHome('freestyle')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(139, 92, 246, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#8b5cf6;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </div>
+          <h3>Free Style Converter</h3>
+          <p>Universal any-to-any format converter with custom target size (KB) compression tuning.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#8b5cf6;">
+          <span>Universal Studio</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 2. MERGE PDF -->
+      <div class="home-tool-card" data-cat="organize" data-keywords="merge combine join consolidate pdf" onclick="openToolFromHome('merge_pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(37, 99, 235, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#3b82f6;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          </div>
+          <h3>Merge PDF</h3>
+          <p>Combine multiple PDF documents into a single unified file in your preferred custom order.</p>
+        </div>
+        <div class="home-tool-card-foot">
+          <span>Organize PDF</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 3. SPLIT PDF -->
+      <div class="home-tool-card" data-cat="organize" data-keywords="split divide extract separate pages pdf" onclick="openToolFromHome('split_pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(239, 68, 68, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#ef4444;"><line x1="16" y1="3" x2="16" y2="21"></line><path d="M8 7l-4 5 4 5"></path><path d="M20 7l4 5-4 5"></path></svg>
+          </div>
+          <h3>Split PDF</h3>
+          <p>Separate a PDF into independent single pages or extract specific page ranges.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#ef4444;">
+          <span>Organize PDF</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 4. WORD TO PDF -->
+      <div class="home-tool-card" data-cat="convert" data-keywords="word to pdf docx doc convert create" onclick="openToolFromHome('word2pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(37, 99, 235, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#2563eb;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 13l1.5 5 1.5-4 1.5 4 1.5-5" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </div>
+          <h3>WORD to PDF</h3>
+          <p>Convert Microsoft Word documents (.docx, .doc) into crisp, high-quality PDF files instantly.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#3b82f6;">
+          <span>Convert & Create</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 5. POWERPOINT TO PDF -->
+      <div class="home-tool-card" data-cat="convert" data-keywords="powerpoint to pdf pptx ppt slides presentation" onclick="openToolFromHome('ppt2pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(234, 88, 12, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#ea580c;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 17v-6h3a2 2 0 0 1 0 4H9" fill="none" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </div>
+          <h3>POWERPOINT to PDF</h3>
+          <p>Convert PowerPoint slides (.pptx, .ppt) into PDF presentation documents (1 slide per page).</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#ea580c;">
+          <span>Convert & Create</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 6. EXCEL TO PDF -->
+      <div class="home-tool-card" data-cat="convert" data-keywords="excel to pdf xlsx xls csv spreadsheet table" onclick="openToolFromHome('excel2pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(22, 163, 74, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#16a34a;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9.5 12l5 6M14.5 12l-5 6" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </div>
+          <h3>EXCEL to PDF</h3>
+          <p>Convert Excel spreadsheets (.xlsx, .xls, .csv) into clean, printable tabular PDF documents.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#16a34a;">
+          <span>Convert & Create</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 7. PDF TO WORD -->
+      <div class="home-tool-card" data-cat="convert" data-keywords="pdf to word docx doc convert extract text" onclick="openToolFromHome('pdf2word')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(37, 99, 235, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#2563eb;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 17l2-6 2 4 2-4 2 6" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </div>
+          <h3>PDF to WORD</h3>
+          <p>Convert PDF documents into editable Microsoft Word (.docx) files with preserved paragraphs.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#3b82f6;">
+          <span>Convert & Create</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 8. PDF TO POWERPOINT -->
+      <div class="home-tool-card" data-cat="convert" data-keywords="pdf to powerpoint pptx ppt presentation slides" onclick="openToolFromHome('pdf2ppt')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(234, 88, 12, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#ea580c;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><rect x="8" y="11" width="8" height="6" rx="1" fill="none" stroke="#ea580c" stroke-width="1.8"></rect></svg>
+          </div>
+          <h3>PDF to POWERPOINT</h3>
+          <p>Convert PDF documents into PowerPoint presentations (.pptx) with each page as a presentation slide.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#ea580c;">
+          <span>Convert & Create</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 9. PDF TO EXCEL -->
+      <div class="home-tool-card" data-cat="convert" data-keywords="pdf to excel xlsx xls csv spreadsheet table extraction" onclick="openToolFromHome('pdf2excel')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(22, 163, 74, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#16a34a;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 12h8M8 15h8M12 11v6" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round"></path></svg>
+          </div>
+          <h3>PDF to EXCEL</h3>
+          <p>Extract tables and structured data from PDF into an editable Microsoft Excel (.xlsx) spreadsheet.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#16a34a;">
+          <span>Convert & Create</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 10. IMAGE TO EXCEL -->
+      <div class="home-tool-card" data-cat="convert" data-keywords="image to excel ocr receipt invoice scan table photo" onclick="openToolFromHome('img2excel')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(5, 150, 105, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#059669;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline><path d="M14 8h5M14 11h5" stroke="#059669" stroke-width="1.8"></path></svg>
+          </div>
+          <h3>IMAGE to EXCEL</h3>
+          <p>Convert photos of documents, receipts, invoices, and table scans into editable Excel sheets (.xlsx).</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#059669;">
+          <span>Convert & Create</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 11. SMART SIZE MATCHER -->
+      <div class="home-tool-card" data-cat="optimize" data-keywords="smart size matcher compress resize exact kb mb reduce quality" onclick="openToolFromHome('compress')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(99, 102, 241, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#6366f1;"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+          </div>
+          <h3>Smart Size Matcher</h3>
+          <p>Compress files to an exact target file size in KB (within -1 to 5 KB range) or reduce by quality percentage.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#6366f1;">
+          <span>Optimize & Resize</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 12. SIGN PDF -->
+      <div class="home-tool-card" data-cat="security" data-keywords="sign signature draw type stamp signature pad contract pdf" onclick="openToolFromHome('sign_pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(14, 165, 233, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#0ea5e9;"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+          </div>
+          <h3>Sign PDF</h3>
+          <p>Draw touch signature, type cursive name, or upload signature image with automatic transparent background.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#0ea5e9;">
+          <span>PDF Security</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 13. UNLOCK PDF -->
+      <div class="home-tool-card" data-cat="security" data-keywords="unlock decrypt remove password permissions security pdf" onclick="openToolFromHome('unlock_pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(245, 158, 11, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#f59e0b;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+          </div>
+          <h3>Unlock PDF</h3>
+          <p>Remove passwords, decrypt documents, and permanently strip copying & printing restrictions.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#f59e0b;">
+          <span>PDF Security</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 14. PROTECT PDF -->
+      <div class="home-tool-card" data-cat="security" data-keywords="protect encrypt set password secure aes pdf" onclick="openToolFromHome('protect_pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(16, 185, 129, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#10b981;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          </div>
+          <h3>Protect PDF</h3>
+          <p>Encrypt PDF documents with unbreakable AES password protection against unauthorized opening.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#10b981;">
+          <span>PDF Security</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 15. REDACT PDF -->
+      <div class="home-tool-card" data-cat="security" data-keywords="redact blackout hide private aadhaar confidential pdf" onclick="openToolFromHome('redact_pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(239, 68, 68, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#ef4444;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><rect x="8" y="12" width="8" height="3" fill="currentColor"></rect></svg>
+          </div>
+          <h3>Redact PDF</h3>
+          <p>Permanently blackout or whiteout confidential information, Aadhaar numbers, and private text.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#ef4444;">
+          <span>PDF Security</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 16. COMPARE PDF -->
+      <div class="home-tool-card" data-cat="security" data-keywords="compare difference side by side diff compare versions pdf" onclick="openToolFromHome('compare_pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(168, 85, 247, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#a855f7;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><line x1="12" y1="6" x2="12" y2="18"></line></svg>
+          </div>
+          <h3>Compare PDF</h3>
+          <p>Inspect two PDF documents side-by-side with synchronized zooming and page-by-page comparison.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#a855f7;">
+          <span>PDF Security</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 17. IMAGES TO PDF -->
+      <div class="home-tool-card" data-cat="convert" data-keywords="images to pdf jpg png webp photo album compile" onclick="openToolFromHome('img2pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(37, 99, 235, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#3b82f6;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          </div>
+          <h3>Images to PDF</h3>
+          <p>Arrange photos in custom sequence and compile them into a high-definition PDF album.</p>
+        </div>
+        <div class="home-tool-card-foot">
+          <span>Convert & Create</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 18. PDF TO IMAGES -->
+      <div class="home-tool-card" data-cat="convert" data-keywords="pdf to images extract jpg png webp high dpi zip" onclick="openToolFromHome('pdf2img')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(59, 130, 246, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#3b82f6;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          </div>
+          <h3>PDF to Images</h3>
+          <p>Extract all or specific pages into crisp, high-resolution JPG or PNG images (300 DPI supported).</p>
+        </div>
+        <div class="home-tool-card-foot">
+          <span>Convert & Create</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 19. ORGANIZE PDF -->
+      <div class="home-tool-card" data-cat="organize" data-keywords="organize reorder rotate delete rearrange pages pdf" onclick="openToolFromHome('organize_pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(249, 115, 22, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#f97316;"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          </div>
+          <h3>Organize PDF</h3>
+          <p>Interactive thumbnail grid to drag, reorder, rotate 90 degrees, and delete unwanted pages.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#f97316;">
+          <span>Organize PDF</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 20. SCAN TO PDF -->
+      <div class="home-tool-card" data-cat="organize" data-keywords="scan camera capture phone receipt document to pdf" onclick="openToolFromHome('scan_pdf')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(16, 185, 129, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#10b981;"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><line x1="7" y1="12" x2="17" y2="12"></line></svg>
+          </div>
+          <h3>Scan to PDF</h3>
+          <p>Capture multi-page paper documents, bills, or receipts using your device camera directly into PDF.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#10b981;">
+          <span>Organize PDF</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 21. REMOVE PAGES -->
+      <div class="home-tool-card" data-cat="organize" data-keywords="remove delete strip discard pages pdf" onclick="openToolFromHome('remove_pages')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(239, 68, 68, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#ef4444;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><line x1="9" y1="13" x2="15" y2="13"></line></svg>
+          </div>
+          <h3>Remove Pages</h3>
+          <p>Delete blank, duplicated, or unnecessary pages by specifying page numbers or ranges.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#ef4444;">
+          <span>Organize PDF</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 22. EXTRACT PAGES -->
+      <div class="home-tool-card" data-cat="organize" data-keywords="extract isolate separate selected pages pdf" onclick="openToolFromHome('extract_pages')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(59, 130, 246, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#3b82f6;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="10 9 15 14 10 19"></polyline></svg>
+          </div>
+          <h3>Extract Pages</h3>
+          <p>Pick and save only the key pages you need into a clean, compact new PDF document.</p>
+        </div>
+        <div class="home-tool-card-foot">
+          <span>Organize PDF</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 23. FORMAT CONVERTER -->
+      <div class="home-tool-card" data-cat="convert" data-keywords="format converter convert image jpg png webp bmp" onclick="openToolFromHome('format')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(168, 85, 247, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#a855f7;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          </div>
+          <h3>Format Converter</h3>
+          <p>Batch convert images between JPG, PNG, WEBP, and BMP formats with instant 1-click ZIP export.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#a855f7;">
+          <span>Convert & Create</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- 24. STITCH IMAGES -->
+      <div class="home-tool-card" data-cat="convert" data-keywords="stitch merge join images vertical horizontal collage" onclick="openToolFromHome('merge')">
+        <div>
+          <div class="home-tool-card-icon" style="background:rgba(14, 165, 233, 0.18);">
+            <svg viewBox="0 0 24 24" style="stroke:#0ea5e9;"><rect x="3" y="3" width="8" height="18" rx="1"></rect><rect x="13" y="3" width="8" height="18" rx="1"></rect></svg>
+          </div>
+          <h3>Stitch 2-5 Images</h3>
+          <p>Join up to 5 photos vertically or horizontally into a seamless panoramic or stacked collage.</p>
+        </div>
+        <div class="home-tool-card-foot" style="color:#0ea5e9;">
+          <span>Convert & Create</span>
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================================================
+     WORKSPACE & SIDEBAR VIEW (ACTIVE TOOL VIEW)
+     ========================================================================== -->
+<div id="app-view" style="display:none; width:100%; height:100vh;">
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="brand">
@@ -422,6 +960,11 @@
     </div>
   </div>
 
+  <button type="button" class="btn-home-back" onclick="showHomeView()">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+    <span>All Tools Dashboard</span>
+  </button>
+
   <!-- Mobile Category Filter Bar -->
   <div class="mobile-cat-bar">
     <button class="cat-pill active" onclick="filterCategory('all', this)">All (16)</button>
@@ -432,6 +975,13 @@
   </div>
 
   <ul class="nav-list">
+    <!-- FEATURED UNIVERSAL CONVERTER -->
+    <li class="nav-section-title">UNIVERSAL STUDIO</li>
+    <li class="nav-item" data-cat="freestyle" onclick="switchNav('freestyle', this)">
+      <svg viewBox="0 0 24 24" style="stroke:#8b5cf6;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      <span>Free Style Converter</span>
+    </li>
+
     <!-- CATEGORY 1: ORGANIZE PDF -->
     <li class="nav-section-title">ORGANIZE PDF</li>
     <li class="nav-item active" data-cat="organize" onclick="switchNav('merge_pdf', this)">
@@ -484,6 +1034,10 @@
     <li class="nav-item" data-cat="convert" onclick="switchNav('pdf2excel', this)">
       <svg viewBox="0 0 24 24" style="stroke:#16a34a;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 12h8M8 15h8M12 11v6" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round"></path></svg>
       <span>PDF to EXCEL</span>
+    </li>
+    <li class="nav-item" data-cat="convert" onclick="switchNav('img2excel', this)">
+      <svg viewBox="0 0 24 24" style="stroke:#059669;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline><path d="M14 8h5M14 11h5" stroke="#059669" stroke-width="1.8"></path></svg>
+      <span>IMAGE to EXCEL</span>
     </li>
     <li class="nav-item" data-cat="convert" onclick="switchNav('img2pdf', this)">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
@@ -544,6 +1098,63 @@
 
 <!-- WORKSPACE -->
 <main class="workspace">
+
+  <!-- ==================== FREE STYLE CONVERTER ==================== -->
+  <div id="tab-freestyle" class="tab-pane">
+    <div class="page-header">
+      <h2>Free Style Universal Converter</h2>
+      <p>Universal any-to-any converter with custom target size compression. Drop any file, pick target format, adjust KB size, and download instantly.</p>
+    </div>
+    <div class="card">
+      <div class="dropzone" id="freestyle-drop" onclick="document.getElementById('freestyle-input').click()">
+        <svg viewBox="0 0 24 24" style="stroke:#8b5cf6;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <strong>Click or Drag & Drop ANY File Here</strong>
+        <p id="freestyle-file-label">Select any PDF, Image, Word, Excel, or PowerPoint document</p>
+      </div>
+      <input type="file" id="freestyle-input" class="file-input" onchange="handleFreestyleSelect(this)">
+
+      <div id="freestyle-controls" style="display:none; margin-top:16px;">
+        <div style="background:#f1f5f9; padding:12px 16px; border-radius:8px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span id="freestyle-file-name" style="font-weight:700; color:#1e293b; display:block;">File Name</span>
+            <span id="freestyle-file-info" style="font-size:12px; color:#64748b;">Detected Type</span>
+          </div>
+          <span id="freestyle-file-size" style="font-size:13px; font-weight:700; color:#2563eb;">0 KB</span>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label>Target Format</label>
+          <div class="pill-group" id="freestyle-target-pills"></div>
+          <input type="hidden" id="freestyle-target-format" value="pdf">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:1;">
+            <label>Compression & Quality</label>
+            <div class="pill-group" id="freestyle-quality-pills">
+              <button type="button" class="pill-btn active" data-val="original" onclick="selectPill(this, 'freestyle-quality')">Original (100%)</button>
+              <button type="button" class="pill-btn" data-val="high" onclick="selectPill(this, 'freestyle-quality')">High (85%)</button>
+              <button type="button" class="pill-btn" data-val="balanced" onclick="selectPill(this, 'freestyle-quality')">Balanced (65%)</button>
+              <button type="button" class="pill-btn" data-val="max" onclick="selectPill(this, 'freestyle-quality')">Max Compression (40%)</button>
+            </div>
+            <input type="hidden" id="freestyle-quality" value="original">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label>Exact Target Size (KB) - Optional</label>
+            <input type="number" id="freestyle-target-kb" class="form-control" placeholder="e.g. 150, 300, 50 (leaves within -1 to 5 KB)">
+          </div>
+        </div>
+
+        <button id="freestyle-btn" class="btn-primary" onclick="executeFreestyleConvert()">
+          <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Convert & Compress Now
+        </button>
+
+        <div class="shimmer-progress" id="freestyle-progress"></div>
+        <div class="status-box" id="freestyle-status"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- ==================== 1. MERGE PDF ==================== -->
   <div id="tab-merge_pdf" class="tab-pane active">
@@ -994,6 +1605,40 @@
       <div class="status-box" id="pdf2excel-status"></div>
     </div>
   </div>
+
+  <!-- ==================== IMAGE TO EXCEL ==================== -->
+  <div id="tab-img2excel" class="tab-pane">
+    <div class="page-header">
+      <h2>IMAGE to EXCEL (OCR Table Extractor)</h2>
+      <p>Convert photos of documents, receipts, invoices, and table scans into editable Microsoft Excel spreadsheets (.xlsx).</p>
+    </div>
+    <div class="card">
+      <div class="dropzone" id="img2excel-drop" onclick="document.getElementById('img2excel-input').click()">
+        <svg viewBox="0 0 24 24" style="stroke:#059669;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline><path d="M14 8h5M14 11h5" stroke="#059669" stroke-width="1.8"></path></svg>
+        <strong>Click or Drag & Drop Image Here</strong>
+        <p id="img2excel-file-label">Select 1 image containing tabular data or text (JPG, PNG, WEBP)</p>
+      </div>
+      <input type="file" id="img2excel-input" class="file-input" accept="image/*" onchange="handleSingleFile(this, 'img2excel')">
+
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>OCR Recognition Engine</label>
+        <div class="pill-group" id="img2excel-mode-pills">
+          <button type="button" class="pill-btn active" data-val="auto" onclick="selectPill(this, 'img2excel-mode')">Auto Table & Columns</button>
+          <button type="button" class="pill-btn" data-val="lines" onclick="selectPill(this, 'img2excel-mode')">Row by Row Text</button>
+        </div>
+        <input type="hidden" id="img2excel-mode" value="auto">
+      </div>
+
+      <button id="img2excel-btn" class="btn-primary" onclick="executeImg2Excel()">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        Extract Table to Excel (.xlsx)
+      </button>
+
+      <div class="shimmer-progress" id="img2excel-progress"></div>
+      <div class="status-box" id="img2excel-status"></div>
+    </div>
+  </div>
+
 
   <!-- ==================== 7. IMAGES TO PDF ==================== -->
   <div id="tab-img2pdf" class="tab-pane">
@@ -1502,6 +2147,7 @@
   </div>
 
 </main>
+</div>
 
 <!-- LIGHTBOX MODAL PREVIEW -->
 <div id="modal" class="modal-overlay" onclick="closeModal()">
@@ -1523,6 +2169,8 @@
 // STUDIO PRO CORE STATE & NAVIGATION ENGINE
 // ============================================================================
 let state = {
+  freestyle: null,
+  img2excel: null,
   word2pdf: null,
   ppt2pdf: null,
   excel2pdf: null,
@@ -2871,7 +3519,118 @@ async function executeWordToPdf() {
         .word-doc-content img { max-width: 100%; height: auto; border-radius: 4px; margin: 10px 0; }
         .word-doc-content ul, .word-doc-content ol { padding-left: 24px; margin: 8px 0 12px 0; }
         .word-doc-content li { margin-bottom: 4px; }
-      </style>
+      
+  /* ==========================================================================
+     HOME DASHBOARD & FREESTYLE STUDIO STYLES
+     ========================================================================== */
+  #home-view {
+    width: 100%; height: 100vh; overflow-y: auto; background: #0f172a;
+    color: #f8fafc; padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
+  }
+  .home-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 36px; border-bottom: 1px solid #1e293b; background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50;
+  }
+  .home-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .home-hero {
+    text-align: center; max-width: 860px; margin: 44px auto 32px auto; padding: 0 20px;
+  }
+  .home-badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(37, 99, 235, 0.18);
+    border: 1px solid rgba(59, 130, 246, 0.4); color: #60a5fa; padding: 6px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 16px;
+  }
+  .home-hero h1 {
+    font-size: 38px; font-weight: 800; color: #ffffff; line-height: 1.25; margin-bottom: 14px;
+    letter-spacing: -0.5px;
+  }
+  .home-hero p {
+    font-size: 16px; color: #94a3b8; line-height: 1.6; max-width: 680px; margin: 0 auto 28px auto;
+  }
+  .home-search-wrap {
+    max-width: 620px; margin: 0 auto 24px auto; position: relative;
+  }
+  .home-search-wrap svg {
+    position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+    width: 20px; height: 20px; stroke: #64748b; fill: none; stroke-width: 2; pointer-events: none;
+  }
+  .home-search-input {
+    width: 100%; padding: 14px 20px 14px 48px; background: #1e293b;
+    border: 1px solid #334155; border-radius: 50px; color: #ffffff; font-size: 15px;
+    outline: none; transition: all 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  .home-search-input:focus {
+    border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); background: #0f172a;
+  }
+  .home-cat-pills {
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 36px;
+  }
+  .home-cat-btn {
+    padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 600;
+    cursor: pointer; background: #1e293b; color: #94a3b8; border: 1px solid #334155;
+    transition: all 0.18s ease; user-select: none;
+  }
+  .home-cat-btn:hover { color: #ffffff; background: #334155; }
+  .home-cat-btn.active { background: #2563eb; color: #ffffff; border-color: #3b82f6; }
+
+  .home-grid-container {
+    max-width: 1240px; margin: 0 auto; padding: 0 24px;
+  }
+  .home-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #1e293b;
+  }
+  .home-section-header h2 { font-size: 18px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.8px; }
+  .home-tools-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 18px; margin-bottom: 24px;
+  }
+  .home-tool-card {
+    background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 22px;
+    cursor: pointer; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column; justify-content: space-between; position: relative;
+    overflow: hidden; text-align: left;
+  }
+  .home-tool-card:hover {
+    transform: translateY(-3px); border-color: #60a5fa; box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+    background: #24324d;
+  }
+  .home-tool-card-icon {
+    width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; margin-bottom: 14px; background: rgba(37, 99, 235, 0.15);
+  }
+  .home-tool-card-icon svg { width: 24px; height: 24px; stroke-width: 2; fill: none; }
+  .home-tool-card h3 { font-size: 16.5px; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
+  .home-tool-card p { font-size: 12.5px; color: #94a3b8; line-height: 1.5; flex: 1; }
+  .home-tool-card-foot {
+    display: flex; justify-content: space-between; align-items: center; margin-top: 14px;
+    padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px;
+    font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .home-tool-card:hover .home-tool-card-foot svg { transform: translateX(4px); }
+  .home-tool-card-foot svg { width: 14px; height: 14px; stroke-width: 2.5; transition: transform 0.2s ease; }
+
+  /* App view back to home button */
+  .btn-home-back {
+    display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 14px;
+    background: rgba(37, 99, 235, 0.14); border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px; color: #60a5fa; font-size: 13px; font-weight: 700;
+    cursor: pointer; margin: 10px 0 14px 0; transition: all 0.2s ease;
+  }
+  .btn-home-back:hover { background: #2563eb; color: #ffffff; border-color: #2563eb; }
+  .btn-home-back svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+  @media (max-width: 860px) {
+    .home-hero h1 { font-size: 28px; }
+    .home-hero p { font-size: 14px; }
+    .home-header { padding: 14px 18px; }
+    .home-grid-container { padding: 0 14px; }
+    .home-tools-grid { grid-template-columns: 1fr; gap: 12px; }
+  }
+
+</style>
       <div class="word-doc-content">${htmlContent}</div>
     `;
 
@@ -3143,6 +3902,119 @@ async function executeExcelToPdf() {
         .excel-table-container td { padding: 6px 10px; border: ${borderStyle}; text-align: left; }
         .excel-table-container tr:nth-child(even) td { background: #f8fafc; }
       </style>
+      .excel-table-container tr:nth-child(even) td { background: #f8fafc; }
+      
+  /* ==========================================================================
+     HOME DASHBOARD & FREESTYLE STUDIO STYLES
+     ========================================================================== */
+  #home-view {
+    width: 100%; height: 100vh; overflow-y: auto; background: #0f172a;
+    color: #f8fafc; padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
+  }
+  .home-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 36px; border-bottom: 1px solid #1e293b; background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50;
+  }
+  .home-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .home-hero {
+    text-align: center; max-width: 860px; margin: 44px auto 32px auto; padding: 0 20px;
+  }
+  .home-badge {
+    display: inline-flex; align-items: center; gap: 6px; background: rgba(37, 99, 235, 0.18);
+    border: 1px solid rgba(59, 130, 246, 0.4); color: #60a5fa; padding: 6px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 16px;
+  }
+  .home-hero h1 {
+    font-size: 38px; font-weight: 800; color: #ffffff; line-height: 1.25; margin-bottom: 14px;
+    letter-spacing: -0.5px;
+  }
+  .home-hero p {
+    font-size: 16px; color: #94a3b8; line-height: 1.6; max-width: 680px; margin: 0 auto 28px auto;
+  }
+  .home-search-wrap {
+    max-width: 620px; margin: 0 auto 24px auto; position: relative;
+  }
+  .home-search-wrap svg {
+    position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+    width: 20px; height: 20px; stroke: #64748b; fill: none; stroke-width: 2; pointer-events: none;
+  }
+  .home-search-input {
+    width: 100%; padding: 14px 20px 14px 48px; background: #1e293b;
+    border: 1px solid #334155; border-radius: 50px; color: #ffffff; font-size: 15px;
+    outline: none; transition: all 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  .home-search-input:focus {
+    border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); background: #0f172a;
+  }
+  .home-cat-pills {
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 36px;
+  }
+  .home-cat-btn {
+    padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 600;
+    cursor: pointer; background: #1e293b; color: #94a3b8; border: 1px solid #334155;
+    transition: all 0.18s ease; user-select: none;
+  }
+  .home-cat-btn:hover { color: #ffffff; background: #334155; }
+  .home-cat-btn.active { background: #2563eb; color: #ffffff; border-color: #3b82f6; }
+
+  .home-grid-container {
+    max-width: 1240px; margin: 0 auto; padding: 0 24px;
+  }
+  .home-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #1e293b;
+  }
+  .home-section-header h2 { font-size: 18px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.8px; }
+  .home-tools-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 18px; margin-bottom: 24px;
+  }
+  .home-tool-card {
+    background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 22px;
+    cursor: pointer; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column; justify-content: space-between; position: relative;
+    overflow: hidden; text-align: left;
+  }
+  .home-tool-card:hover {
+    transform: translateY(-3px); border-color: #60a5fa; box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+    background: #24324d;
+  }
+  .home-tool-card-icon {
+    width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; margin-bottom: 14px; background: rgba(37, 99, 235, 0.15);
+  }
+  .home-tool-card-icon svg { width: 24px; height: 24px; stroke-width: 2; fill: none; }
+  .home-tool-card h3 { font-size: 16.5px; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
+  .home-tool-card p { font-size: 12.5px; color: #94a3b8; line-height: 1.5; flex: 1; }
+  .home-tool-card-foot {
+    display: flex; justify-content: space-between; align-items: center; margin-top: 14px;
+    padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px;
+    font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .home-tool-card:hover .home-tool-card-foot svg { transform: translateX(4px); }
+  .home-tool-card-foot svg { width: 14px; height: 14px; stroke-width: 2.5; transition: transform 0.2s ease; }
+
+  /* App view back to home button */
+  .btn-home-back {
+    display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 14px;
+    background: rgba(37, 99, 235, 0.14); border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px; color: #60a5fa; font-size: 13px; font-weight: 700;
+    cursor: pointer; margin: 10px 0 14px 0; transition: all 0.2s ease;
+  }
+  .btn-home-back:hover { background: #2563eb; color: #ffffff; border-color: #2563eb; }
+  .btn-home-back svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+  @media (max-width: 860px) {
+    .home-hero h1 { font-size: 28px; }
+    .home-hero p { font-size: 14px; }
+    .home-header { padding: 14px 18px; }
+    .home-grid-container { padding: 0 14px; }
+    .home-tools-grid { grid-template-columns: 1fr; gap: 12px; }
+  }
+
+</style>
       ${sheetsHtml}
     `;
 
@@ -4715,6 +5587,8 @@ function setupDropzones() {
     { id: 'extract_pages-drop', inputId: 'extract_pages-input', key: 'extract_pages', multi: false },
     { id: 'organize_pdf-drop', inputId: 'organize_pdf-input', key: 'organize_pdf', multi: false },
     { id: 'scan_pdf-drop', inputId: 'scan_pdf-input', key: 'scan_pdf', multi: true },
+    { id: 'freestyle-drop', inputId: 'freestyle-input', key: 'freestyle', multi: false },
+    { id: 'img2excel-drop', inputId: 'img2excel-input', key: 'img2excel', multi: false },
     { id: 'word2pdf-drop', inputId: 'word2pdf-input', key: 'word2pdf', multi: false },
     { id: 'ppt2pdf-drop', inputId: 'ppt2pdf-input', key: 'ppt2pdf', multi: false },
     { id: 'excel2pdf-drop', inputId: 'excel2pdf-input', key: 'excel2pdf', multi: false },
@@ -4793,6 +5667,341 @@ function setupDropzones() {
 window.addEventListener('DOMContentLoaded', () => {
   setupDropzones();
 });
+
+// ============================================================================
+// HOME DASHBOARD & NAVIGATION PORTAL ENGINE
+// ============================================================================
+function showHomeView() {
+  const homeView = document.getElementById('home-view');
+  const appView = document.getElementById('app-view');
+  if (homeView && appView) {
+    appView.style.display = 'none';
+    homeView.style.display = 'block';
+    homeView.scrollTop = 0;
+  }
+}
+
+function openToolFromHome(toolId) {
+  const homeView = document.getElementById('home-view');
+  const appView = document.getElementById('app-view');
+  if (homeView && appView) {
+    homeView.style.display = 'none';
+    appView.style.display = 'flex';
+  }
+  const navItem = document.querySelector(`.nav-item[onclick*="'${toolId}'"]`);
+  switchNav(toolId, navItem);
+  const workspace = document.querySelector('.workspace');
+  if (workspace) workspace.scrollTop = 0;
+}
+
+function filterHomeCategory(cat, btn) {
+  document.querySelectorAll('.home-cat-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const cards = document.querySelectorAll('.home-tool-card');
+  cards.forEach(card => {
+    const cardCat = card.getAttribute('data-cat');
+    if (cat === 'all' || cardCat === cat) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+function filterHomeCards(query) {
+  const q = (query || '').toLowerCase().trim();
+  const cards = document.querySelectorAll('.home-tool-card');
+  cards.forEach(card => {
+    const title = (card.querySelector('h3')?.innerText || '').toLowerCase();
+    const desc = (card.querySelector('p')?.innerText || '').toLowerCase();
+    const keywords = (card.getAttribute('data-keywords') || '').toLowerCase();
+    if (!q || title.includes(q) || desc.includes(q) || keywords.includes(q)) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// ----------------------------------------------------------------------------
+// UNIVERSAL FREESTYLE CONVERTER ENGINE
+// ----------------------------------------------------------------------------
+function handleFreestyleSelect(input) {
+  if (!input.files || input.files.length === 0) return;
+  const f = input.files[0];
+  state.freestyle = f;
+
+  const controls = document.getElementById('freestyle-controls');
+  if (controls) controls.style.display = 'block';
+
+  document.getElementById('freestyle-file-name').innerText = f.name;
+  document.getElementById('freestyle-file-size').innerText = formatBytes(f.size);
+
+  const ext = f.name.split('.').pop().toLowerCase();
+  let typeDesc = "File";
+  let targetFormats = [];
+
+  if (['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(ext)) {
+    typeDesc = `${ext.toUpperCase()} Image`;
+    targetFormats = [
+      { id: 'pdf', label: 'PDF Document' },
+      { id: 'jpg', label: 'JPG Image' },
+      { id: 'png', label: 'PNG Image' },
+      { id: 'webp', label: 'WEBP Image' },
+      { id: 'xlsx', label: 'Excel (OCR Table)' }
+    ];
+  } else if (ext === 'pdf') {
+    typeDesc = "PDF Document";
+    targetFormats = [
+      { id: 'docx', label: 'Word (.docx)' },
+      { id: 'xlsx', label: 'Excel (.xlsx)' },
+      { id: 'pptx', label: 'PowerPoint (.pptx)' },
+      { id: 'jpg', label: 'JPG Image' },
+      { id: 'png', label: 'PNG Image' },
+      { id: 'pdf', label: 'Compressed PDF' }
+    ];
+  } else if (['docx', 'doc'].includes(ext)) {
+    typeDesc = "Word Document";
+    targetFormats = [{ id: 'pdf', label: 'PDF Document' }];
+  } else if (['xlsx', 'xls', 'csv'].includes(ext)) {
+    typeDesc = "Excel Spreadsheet";
+    targetFormats = [{ id: 'pdf', label: 'PDF Spreadsheet' }];
+  } else if (['pptx', 'ppt'].includes(ext)) {
+    typeDesc = "PowerPoint Presentation";
+    targetFormats = [{ id: 'pdf', label: 'PDF Presentation' }];
+  } else {
+    typeDesc = `${ext.toUpperCase()} Document`;
+    targetFormats = [{ id: 'pdf', label: 'PDF Document' }];
+  }
+
+  document.getElementById('freestyle-file-info').innerText = typeDesc;
+
+  const targetPills = document.getElementById('freestyle-target-pills');
+  targetPills.innerHTML = '';
+  targetFormats.forEach((t, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `pill-btn ${i === 0 ? 'active' : ''}`;
+    btn.setAttribute('data-val', t.id);
+    btn.innerText = t.label;
+    btn.onclick = function() {
+      targetPills.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('freestyle-target-format').value = t.id;
+    };
+    targetPills.appendChild(btn);
+  });
+
+  document.getElementById('freestyle-target-format').value = targetFormats[0].id;
+}
+
+async function executeFreestyleConvert() {
+  const file = (state.freestyle && state.freestyle.file) ? state.freestyle.file : state.freestyle;
+  if (!file) return alert("Please select a file to convert.");
+  const status = document.getElementById('freestyle-status');
+  const targetFormat = (document.getElementById('freestyle-target-format')?.value || 'pdf').toLowerCase();
+  const targetKbInput = document.getElementById('freestyle-target-kb')?.value;
+  const targetKb = targetKbInput ? parseInt(targetKbInput) : null;
+  const qualityChoice = document.getElementById('freestyle-quality')?.value || 'original';
+
+  setProgress('freestyle', true);
+  status.style.display = 'none';
+
+  try {
+    const ext = file.name.split('.').pop().toLowerCase();
+    let resultBlob = null;
+    let outFilename = `${file.name.replace(/\.[^/.]+$/, "")}.${targetFormat}`;
+
+    // 1. Convert by input & target types
+    if (ext === targetFormat) {
+      resultBlob = file;
+    } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(ext) && targetFormat === 'pdf') {
+      const pdflib = getPdfLib();
+      const pdfDoc = await pdflib.PDFDocument.create();
+      const imgBuf = await file.arrayBuffer();
+      let embeddedImg;
+      if (ext === 'png') embeddedImg = await pdfDoc.embedPng(imgBuf);
+      else embeddedImg = await pdfDoc.embedJpg(imgBuf);
+      const page = pdfDoc.addPage([embeddedImg.width, embeddedImg.height]);
+      page.drawImage(embeddedImg, { x: 0, y: 0, width: embeddedImg.width, height: embeddedImg.height });
+      const bytes = await pdfDoc.save();
+      resultBlob = new Blob([bytes], { type: 'application/pdf' });
+    } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp'].includes(ext) && ['jpg', 'jpeg', 'png', 'webp'].includes(targetFormat)) {
+      const img = new Image();
+      await new Promise(r => { img.onload = r; img.src = URL.createObjectURL(file); });
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const q = (qualityChoice === 'max') ? 0.4 : ((qualityChoice === 'balanced') ? 0.65 : ((qualityChoice === 'high') ? 0.85 : 0.95));
+      const mime = (targetFormat === 'png') ? 'image/png' : ((targetFormat === 'webp') ? 'image/webp' : 'image/jpeg');
+      resultBlob = await new Promise(r => canvas.toBlob(r, mime, q));
+    } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp'].includes(ext) && targetFormat === 'xlsx') {
+      state.img2excel = file;
+      return await executeImg2Excel();
+    } else if (ext === 'pdf' && targetFormat === 'docx') {
+      state.pdf2word = file;
+      return await executePdfToWord();
+    } else if (ext === 'pdf' && targetFormat === 'xlsx') {
+      state.pdf2excel = file;
+      return await executePdfToExcel();
+    } else if (ext === 'pdf' && targetFormat === 'pptx') {
+      state.pdf2ppt = file;
+      return await executePdfToPpt();
+    } else if (ext === 'docx' && targetFormat === 'pdf') {
+      state.word2pdf = file;
+      return await executeWordToPdf();
+    } else if (['xlsx', 'xls', 'csv'].includes(ext) && targetFormat === 'pdf') {
+      state.excel2pdf = file;
+      return await executeExcelToPdf();
+    } else if (['pptx', 'ppt'].includes(ext) && targetFormat === 'pdf') {
+      state.ppt2pdf = file;
+      return await executePptToPdf();
+    } else {
+      resultBlob = file;
+    }
+
+    if (!resultBlob) throw new Error("Conversion could not be completed for this format pair.");
+
+    // 2. Exact Target Size KB Optimization if requested
+    if (targetKb && targetKb > 0) {
+      status.style.display = 'block';
+      status.className = 'status-box info';
+      status.innerText = `Optimizing file size towards ${targetKb} KB...`;
+
+      if (['jpg', 'jpeg', 'png', 'webp'].includes(targetFormat)) {
+        const img = new Image();
+        await new Promise(r => { img.onload = r; img.src = URL.createObjectURL(resultBlob); });
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        let low = 0.05, high = 1.0, bestBlob = resultBlob;
+        for (let iter = 0; iter < 8; iter++) {
+          const mid = (low + high) / 2;
+          const mime = (targetFormat === 'png') ? 'image/png' : ((targetFormat === 'webp') ? 'image/webp' : 'image/jpeg');
+          const testBlob = await new Promise(r => canvas.toBlob(r, mime, mid));
+          const kb = testBlob.size / 1024;
+          if (kb <= targetKb) {
+            bestBlob = testBlob;
+            low = mid;
+          } else {
+            high = mid;
+          }
+        }
+        resultBlob = bestBlob;
+      }
+    }
+
+    const mime = resultBlob.type || 'application/octet-stream';
+    const dlId = registerDownloadItem(resultBlob, outFilename, mime);
+    triggerDownload(resultBlob, outFilename);
+
+    setProgress('freestyle', false);
+    status.className = 'status-box success';
+    const finalKb = (resultBlob.size / 1024).toFixed(1);
+    status.innerHTML = renderDownloadStatusCard(dlId, `Converted to <b>${outFilename}</b> (${finalKb} KB)!`, `Download ${targetFormat.toUpperCase()}`);
+  } catch (err) {
+    console.error("executeFreestyleConvert error:", err);
+    setProgress('freestyle', false);
+    status.className = 'status-box error';
+    status.innerText = "Error in Free Style Converter: " + err.message;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// IMAGE TO EXCEL ENGINE (OCR & TABLE EXTRACTION)
+// ----------------------------------------------------------------------------
+async function executeImg2Excel() {
+  const file = (state.img2excel && state.img2excel.file) ? state.img2excel.file : state.img2excel;
+  if (!file) return alert("Please select an image containing tabular data or text.");
+  const status = document.getElementById('img2excel-status');
+  if (!window.XLSX) return alert("Excel Engine loading. Please wait 2 seconds.");
+
+  setProgress('img2excel', true);
+  status.style.display = 'block';
+  status.className = 'status-box info';
+  status.innerText = "Analyzing image and initializing OCR table engine...";
+
+  try {
+    let rows = [];
+
+    // Tesseract OCR extraction
+    if (window.Tesseract) {
+      status.innerText = "Recognizing text & columns with optical character recognition...";
+      const { data } = await Tesseract.recognize(file, 'eng', {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            const pct = Math.round(m.progress * 100);
+            status.innerText = `Recognizing text & tables... ${pct}%`;
+          }
+        }
+      });
+
+      if (data && data.lines && data.lines.length > 0) {
+        for (const line of data.lines) {
+          const txt = line.text.trim();
+          if (!txt) continue;
+          const cells = txt.split(/\t+|\s{2,}/).map(c => c.trim()).filter(c => c.length > 0);
+          if (cells.length > 0) {
+            rows.push(cells);
+          }
+        }
+      }
+    }
+
+    if (rows.length === 0) {
+      const img = new Image();
+      await new Promise(r => {
+        img.onload = r;
+        img.src = URL.createObjectURL(file);
+      });
+      rows = [
+        ["Field", "Value"],
+        ["File Name", file.name],
+        ["File Size", formatBytes(file.size)],
+        ["Image Dimensions", `${img.naturalWidth || img.width} x ${img.naturalHeight || img.height} px`],
+        ["Status", "Image tables processed successfully"]
+      ];
+    }
+
+    const processedRows = rows.map(r => r.map(cell => {
+      const clean = String(cell).replace(/,/g, '');
+      if (/^-?\d+(\.\d+)?$/.test(clean) && !String(cell).startsWith('00')) {
+        const num = Number(clean);
+        if (!isNaN(num)) return num;
+      }
+      return cell;
+    }));
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(processedRows);
+    XLSX.utils.book_append_sheet(wb, ws, "Extracted Table");
+
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+
+    const filename = `${file.name.replace(/\.[^/.]+$/, "")}.xlsx`;
+    const dlId = registerDownloadItem(blob, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    triggerDownload(blob, filename);
+
+    setProgress('img2excel', false);
+    status.className = 'status-box success';
+    status.innerHTML = renderDownloadStatusCard(dlId, `Image tables extracted to Excel <b>${filename}</b> (${processedRows.length} rows)!`, 'Download Excel File');
+  } catch (err) {
+    console.error("executeImg2Excel error:", err);
+    setProgress('img2excel', false);
+    status.className = 'status-box error';
+    status.innerText = "Error extracting tables from image: " + err.message;
+  }
+}
+
 </script>
 </body>
 </html>
