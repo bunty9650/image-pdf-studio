@@ -66,7 +66,7 @@
 
 <style>
   
-  /* ==========================================================================
+    /* ==========================================================================
      THEME VARIABLES (LIGHT & DARK MODES)
      ========================================================================== */
   :root, [data-theme="light"] {
@@ -95,11 +95,11 @@
     --dropzone-bg: #f8fafc;
     --dropzone-border: #cbd5e1;
     --home-bg: #f8fafc;
-    --home-header-bg: rgba(255, 255, 255, 0.92);
+    --home-header-bg: rgba(255, 255, 255, 0.94);
     --home-header-border: #e2e8f0;
     --home-card-bg: #ffffff;
     --home-card-border: #e2e8f0;
-    --home-card-hover-bg: #f8fafc;
+    --home-card-hover-bg: #f1f5f9;
     --home-card-title: #0f172a;
     --home-card-desc: #64748b;
     --home-pill-bg: #f1f5f9;
@@ -136,7 +136,7 @@
     --bg-page: #0b1120;
     --bg-card: #1e293b;
     --border: #334155;
-    --border-light: #1e293b;
+    --border-light: #162032;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
     --input-bg: #0f172a;
@@ -145,7 +145,7 @@
     --dropzone-bg: #0f172a;
     --dropzone-border: #334155;
     --home-bg: #0f172a;
-    --home-header-bg: rgba(15, 23, 42, 0.92);
+    --home-header-bg: rgba(15, 23, 42, 0.94);
     --home-header-border: #1e293b;
     --home-card-bg: #1e293b;
     --home-card-border: #334155;
@@ -161,27 +161,40 @@
     --home-hero-title: #ffffff;
     --home-hero-p: #94a3b8;
     --home-section-title: #cbd5e1;
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --success: #10b981;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
   }
 
-  /* Smooth Theme Transition */
-  body, .sidebar, .workspace, .card, #home-view, .home-header, .home-tool-card, .dropzone, .form-control {
-    transition: background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease;
+  /* Universal Transitions */
+  body, .sidebar, .workspace, .card, #home-view, .home-header, .home-tool-card, .dropzone, .form-control, .pill-btn, .file-card {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   }
+
+  /* Desktop App View Layout */
+  
 
   .theme-toggle-btn {
-    display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px;
+    display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px;
     background: var(--home-pill-bg); border: 1px solid var(--border); border-radius: 20px;
     color: var(--text-main); font-size: 12px; font-weight: 700; cursor: pointer;
-    transition: all 0.2s ease; user-select: none;
+    transition: all 0.18s ease; user-select: none;
   }
   .theme-toggle-btn:hover {
     background: var(--border); transform: scale(1.02);
   }
-  .theme-toggle-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+  .theme-toggle-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; flex-shrink: 0; }
 
+  /* OCR Interactive Table Styles */
+  .ocr-preview-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .ocr-preview-table th { background: #15803d; color: #ffffff; padding: 8px 10px; font-weight: 700; border: 1px solid var(--border); text-align: left; }
+  .ocr-preview-table td { padding: 6px 10px; border: 1px solid var(--border); color: var(--text-main); background: var(--bg-card); outline: none; }
+  .ocr-preview-table tr:nth-child(even) td { background: var(--border-light); }
+  .ocr-preview-table td:focus { background: var(--primary-glow); box-shadow: inset 0 0 0 2px var(--primary); }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-  body { display: flex; height: 100vh; background: var(--bg-page); color: var(--text-main); overflow: hidden; -webkit-font-smoothing: antialiased; }
 
   /* SIDEBAR */
   .sidebar {
@@ -441,68 +454,124 @@
   .modal-close:hover { color: #fff; }
 
   /* RESPONSIVE & MOBILE STYLING */
-  @media (max-width: 860px) {
-    #app-view {
-      flex-direction: column;
-      height: 100vh;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
+  
+  #app-view {
+    width: 100%;
+    height: 100vh;
+    display: none;
+    flex-direction: row;
+  }
 
-    body { flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+  @media (max-width: 860px) {
+    
+
+    body {
+      flex-direction: column !important;
+      min-height: 100vh !important;
+      overflow-x: hidden !important;
+    }
 
     .sidebar {
-      width: 100%; min-height: auto; position: sticky; top: 0; z-index: 50;
-      padding: 10px 12px 6px 12px; background: #0f172a; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      width: 100% !important;
+      min-height: auto !important;
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 90 !important;
+      padding: 10px 12px 6px 12px !important;
+      background: var(--sidebar-bg) !important;
+      border-right: none !important;
+      border-bottom: 1px solid var(--sidebar-border) !important;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+      flex-shrink: 0 !important;
     }
-    .brand { padding: 0 0 6px 0; border-bottom: 1px solid #1e293b; }
+    .brand { padding: 0 0 6px 0; border-bottom: 1px solid var(--sidebar-border); }
     .brand-title { font-size: 14px; }
     .brand-sub { font-size: 10px; }
 
     .nav-section-title { display: none; }
 
     .mobile-cat-bar {
-      display: flex; gap: 5px; overflow-x: auto; white-space: nowrap; padding: 6px 0 3px 0;
+      display: flex !important;
+      gap: 5px; overflow-x: auto; white-space: nowrap; padding: 6px 0 4px 0;
       scrollbar-width: none; -webkit-overflow-scrolling: touch;
     }
     .mobile-cat-bar::-webkit-scrollbar { display: none; }
     .cat-pill {
-      background: #1e293b; color: #94a3b8; border: 1px solid #334155; border-radius: 12px;
+      background: var(--home-pill-bg) !important; color: var(--text-muted) !important;
+      border: 1px solid var(--border) !important; border-radius: 12px;
       padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;
       transition: all 0.15s;
     }
-    .cat-pill.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; font-weight: 800; }
+    .cat-pill.active { background: var(--primary) !important; color: #ffffff !important; border-color: var(--primary) !important; font-weight: 800; }
 
     .nav-list {
-      flex-direction: row; overflow-x: auto; overflow-y: hidden; white-space: nowrap;
+      flex-direction: row !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      white-space: nowrap !important;
       margin-top: 4px; gap: 5px; padding-bottom: 3px; -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
     .nav-list::-webkit-scrollbar { display: none; }
 
     .nav-item {
-      padding: 7px 11px; border-radius: 18px; font-size: 11.5px; border-left: none;
-      background: #1e293b; color: #94a3b8; flex-shrink: 0; border: 1px solid #334155; gap: 5px;
+      padding: 7px 11px !important;
+      border-radius: 18px !important;
+      font-size: 11.5px !important;
+      border-left: none !important;
+      background: var(--home-pill-bg) !important;
+      color: var(--text-muted) !important;
+      flex-shrink: 0 !important;
+      border: 1px solid var(--border) !important;
+      gap: 5px !important;
     }
     .nav-item:hover { transform: none; }
-    .nav-item.active { background: var(--primary); color: #ffffff; border-color: var(--primary); box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4); }
+    .nav-item.active {
+      background: var(--primary) !important;
+      color: #ffffff !important;
+      border-color: var(--primary) !important;
+      box-shadow: 0 2px 8px var(--primary-glow) !important;
+    }
     .nav-item svg { width: 14px; height: 14px; }
 
-    .sidebar-footer { display: none; }
+    .sidebar-footer { display: none !important; }
 
-    .workspace { padding: 12px 10px 32px 10px; max-width: 100%; overflow-x: hidden; }
+    /* WORKSPACE VISIBILITY FIX ON MOBILE */
+    .workspace {
+      width: 100% !important;
+      max-width: 100% !important;
+      flex: 1 0 auto !important;
+      overflow-y: visible !important;
+      padding: 14px 12px 60px 12px !important;
+      display: block !important;
+      box-sizing: border-box !important;
+    }
+
+    .tab-pane.active {
+      display: block !important;
+      width: 100% !important;
+    }
+
     .page-header { margin-bottom: 12px; }
-    .page-header h2 { font-size: 17px; line-height: 1.25; }
-    .page-header p { font-size: 11.5px; margin-top: 2px; }
+    .page-header h2 { font-size: 18px; line-height: 1.25; }
+    .page-header p { font-size: 12px; margin-top: 2px; }
 
-    .card { padding: 14px 12px; margin-bottom: 14px; }
-    .dropzone { padding: 20px 10px; }
-    .dropzone svg { width: 32px; height: 32px; }
-    .dropzone strong { font-size: 13px; }
+    .card {
+      padding: 16px 12px !important;
+      margin-bottom: 16px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .dropzone {
+      padding: 22px 10px !important;
+      margin-bottom: 14px !important;
+    }
+    .dropzone svg { width: 34px; height: 34px; }
+    .dropzone strong { font-size: 13.5px; }
 
     .form-row { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 12px; }
     .form-group { width: 100%; }
-    .form-control { width: 100% !important; font-size: 16px; padding: 9px 11px; }
+    .form-control { width: 100% !important; font-size: 15px; padding: 9px 11px; }
 
     .btn-primary { padding: 12px 14px; font-size: 13.5px; min-height: 46px; }
 
@@ -514,21 +583,13 @@
       flex: 1 1 100%; justify-content: center; padding: 10px 12px;
       font-size: 12.5px; box-sizing: border-box; text-align: center;
     }
-
-    .compare-container { grid-template-columns: 1fr; }
-    .organize-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
   }
 
   /* ==========================================================================
      HOME DASHBOARD & FREESTYLE STUDIO STYLES
      ========================================================================== */
 
-  #app-view {
-    width: 100%;
-    height: 100vh;
-    display: none;
-    flex-direction: row;
-  }
+  
   #home-view {
     width: 100%; height: 100vh; overflow-y: auto; background: var(--home-bg);
     color: var(--text-main); padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
@@ -1076,6 +1137,7 @@
 
   <!-- Mobile Category Filter Bar -->
   <div class="mobile-cat-bar">
+    <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" style="padding:4px 8px; font-size:10px; margin-right:4px;"><svg viewBox="0 0 24 24" style="width:12px; height:12px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>Theme</button>
     <button class="cat-pill active" onclick="filterCategory('all', this)">All (16)</button>
     <button class="cat-pill" onclick="filterCategory('organize', this)">Organize (6)</button>
     <button class="cat-pill" onclick="filterCategory('convert', this)">Convert (4)</button>
@@ -1209,54 +1271,103 @@
 <main class="workspace">
 
   <!-- ==================== FREE STYLE CONVERTER ==================== -->
+    <!-- ==================== FREE STYLE CONVERTER ==================== -->
   <div id="tab-freestyle" class="tab-pane">
-    <div class="page-header">
-      <h2>Free Style Universal Converter</h2>
-      <p>Universal any-to-any converter with custom target size compression. Drop any file, pick target format, adjust KB size, and download instantly.</p>
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+      <div>
+        <h2>Free Style Universal Converter & Studio</h2>
+        <p>Universal any-to-any converter with custom target size compression. Drop any file, pick target format, adjust KB/MB size, and download instantly.</p>
+      </div>
+      <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <span class="theme-label-txt">Theme</span>
+      </button>
     </div>
+
     <div class="card">
+      <!-- MULTI-FILE DROPZONE -->
       <div class="dropzone" id="freestyle-drop" onclick="document.getElementById('freestyle-input').click()">
         <svg viewBox="0 0 24 24" style="stroke:#8b5cf6;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-        <strong>Click or Drag & Drop ANY File Here</strong>
-        <p id="freestyle-file-label">Select any PDF, Image, Word, Excel, or PowerPoint document</p>
+        <strong>Click or Drag & Drop ANY File(s) Here</strong>
+        <p id="freestyle-file-label">Select any PDF, Image (JPG, PNG, WEBP), Word, Excel, or PowerPoint files</p>
       </div>
-      <input type="file" id="freestyle-input" class="file-input" onchange="handleFreestyleSelect(this)">
+      <input type="file" id="freestyle-input" class="file-input" multiple onchange="handleFreestyleSelect(this)">
 
-      <div id="freestyle-controls" style="display:none; margin-top:16px;">
-        <div style="background:#f1f5f9; padding:12px 16px; border-radius:8px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <span id="freestyle-file-name" style="font-weight:700; color:#1e293b; display:block;">File Name</span>
-            <span id="freestyle-file-info" style="font-size:12px; color:#64748b;">Detected Type</span>
+      <!-- SELECTED FILES QUEUE LIST -->
+      <div id="freestyle-queue-wrap" style="display:none; margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border);">
+          <span style="font-size:13px; font-weight:800; color:var(--text-main);" id="freestyle-queue-count">0 Files Selected</span>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn-secondary" onclick="document.getElementById('freestyle-input').click()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add More Files
+            </button>
+            <button type="button" class="btn-secondary" onclick="clearFreestyleQueue()" style="color:var(--danger);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              Clear All
+            </button>
           </div>
-          <span id="freestyle-file-size" style="font-size:13px; font-weight:700; color:#2563eb;">0 KB</span>
+        </div>
+        <div id="freestyle-file-list" class="file-list" style="max-height:240px; overflow-y:auto;"></div>
+      </div>
+
+      <!-- CONVERSION CONTROLS -->
+      <div id="freestyle-controls" style="display:none; margin-top:16px;">
+        <!-- ACTION GOAL PILLS -->
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-weight:700; color:var(--text-main);">Choose Conversion Goal</label>
+          <div class="pill-group" id="freestyle-mode-pills">
+            <button type="button" class="pill-btn active" data-val="merge_pdf" onclick="selectFreestyleMode('merge_pdf', this)">Convert / Merge All into PDF</button>
+            <button type="button" class="pill-btn" data-val="pdf_to_images" onclick="selectFreestyleMode('pdf_to_images', this)">Convert All into Images</button>
+            <button type="button" class="pill-btn" data-val="convert_each" onclick="selectFreestyleMode('convert_each', this)">Convert to Specific Format</button>
+            <button type="button" class="pill-btn" data-val="merge_images" onclick="selectFreestyleMode('merge_images', this)">Stitch Images into 1 Collage</button>
+          </div>
+          <input type="hidden" id="freestyle-mode" value="merge_pdf">
         </div>
 
-        <div class="form-group" style="margin-bottom:14px;">
-          <label>Target Format</label>
-          <div class="pill-group" id="freestyle-target-pills"></div>
+        <!-- TARGET FORMAT PILLS -->
+        <div class="form-group" id="freestyle-format-group" style="margin-bottom:14px; display:none;">
+          <label style="font-weight:700; color:var(--text-main);">Target Output Format</label>
+          <div class="pill-group" id="freestyle-target-pills">
+            <button type="button" class="pill-btn active" data-val="pdf" onclick="selectPill(this, 'freestyle-target-format')">PDF Document (.pdf)</button>
+            <button type="button" class="pill-btn" data-val="jpg" onclick="selectPill(this, 'freestyle-target-format')">JPG Image (.jpg)</button>
+            <button type="button" class="pill-btn" data-val="png" onclick="selectPill(this, 'freestyle-target-format')">PNG Image (.png)</button>
+            <button type="button" class="pill-btn" data-val="webp" onclick="selectPill(this, 'freestyle-target-format')">WEBP Image (.webp)</button>
+            <button type="button" class="pill-btn" data-val="xlsx" onclick="selectPill(this, 'freestyle-target-format')">Excel (.xlsx)</button>
+            <button type="button" class="pill-btn" data-val="docx" onclick="selectPill(this, 'freestyle-target-format')">Word (.docx)</button>
+          </div>
           <input type="hidden" id="freestyle-target-format" value="pdf">
         </div>
 
-        <div class="form-row">
-          <div class="form-group" style="flex:1;">
-            <label>Compression & Quality</label>
-            <div class="pill-group" id="freestyle-quality-pills">
+        <!-- TARGET SIZE & COMPRESSION SECTION WITH KB/MB CONTROLLER -->
+        <div class="form-row" style="background:var(--border-light); padding:14px; border-radius:8px; border:1px solid var(--border); margin-bottom:14px;">
+          <div class="form-group" style="flex:1; min-width:240px;">
+            <label style="font-weight:700; color:var(--text-main);">Exact Target Size &mdash; Strict (-1 to 5 KB)</label>
+            <div style="display:flex; gap:8px;">
+              <input type="number" id="freestyle-target-val" class="form-control" placeholder="e.g. 150 (leaves within -1 to 5 KB)" style="flex:1;">
+              <select id="freestyle-target-unit" class="form-control" style="width:80px; font-weight:700;">
+                <option value="KB" selected>KB</option>
+                <option value="MB">MB</option>
+              </select>
+            </div>
+            <small style="font-size:11px; color:var(--text-muted); margin-top:4px; display:block;">Enter required size (KB or MB). Both PDFs & Images will be compressed or sized strictly within -1 to 5 KB of your target.</small>
+          </div>
+
+          <div class="form-group" style="flex:1; min-width:200px;">
+            <label style="font-weight:700; color:var(--text-main);">Preset Compression Level</label>
+            <div class="pill-group" id="freestyle-quality-pills" style="margin-bottom:0;">
               <button type="button" class="pill-btn active" data-val="original" onclick="selectPill(this, 'freestyle-quality')">Original (100%)</button>
               <button type="button" class="pill-btn" data-val="high" onclick="selectPill(this, 'freestyle-quality')">High (85%)</button>
               <button type="button" class="pill-btn" data-val="balanced" onclick="selectPill(this, 'freestyle-quality')">Balanced (65%)</button>
-              <button type="button" class="pill-btn" data-val="max" onclick="selectPill(this, 'freestyle-quality')">Max Compression (40%)</button>
+              <button type="button" class="pill-btn" data-val="max" onclick="selectPill(this, 'freestyle-quality')">Max (40%)</button>
             </div>
             <input type="hidden" id="freestyle-quality" value="original">
-          </div>
-          <div class="form-group" style="flex:1;">
-            <label>Exact Target Size (KB) - Optional</label>
-            <input type="number" id="freestyle-target-kb" class="form-control" placeholder="e.g. 150, 300, 50 (leaves within -1 to 5 KB)">
           </div>
         </div>
 
         <button id="freestyle-btn" class="btn-primary" onclick="executeFreestyleConvert()">
           <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          Convert & Compress Now
+          Convert & Process Files Now
         </button>
 
         <div class="shimmer-progress" id="freestyle-progress"></div>
@@ -1716,38 +1827,75 @@
   </div>
 
   <!-- ==================== IMAGE TO EXCEL ==================== -->
+    <!-- ==================== IMAGE TO EXCEL ==================== -->
   <div id="tab-img2excel" class="tab-pane">
-    <div class="page-header">
-      <h2>IMAGE to EXCEL (OCR Table Extractor)</h2>
-      <p>Convert photos of documents, receipts, invoices, and table scans into editable Microsoft Excel spreadsheets (.xlsx).</p>
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
+      <div>
+        <h2>IMAGE to EXCEL (OCR Table Extractor)</h2>
+        <p>Scan document photos, receipts, invoices, and table screenshots into an editable on-screen table and export to Excel (.xlsx).</p>
+      </div>
+      <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <span class="theme-label-txt">Theme</span>
+      </button>
     </div>
+
     <div class="card">
+      <!-- DROPZONE -->
       <div class="dropzone" id="img2excel-drop" onclick="document.getElementById('img2excel-input').click()">
         <svg viewBox="0 0 24 24" style="stroke:#059669;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline><path d="M14 8h5M14 11h5" stroke="#059669" stroke-width="1.8"></path></svg>
-        <strong>Click or Drag & Drop Image Here</strong>
-        <p id="img2excel-file-label">Select 1 image containing tabular data or text (JPG, PNG, WEBP)</p>
+        <strong>Click or Drag & Drop Table Image Here</strong>
+        <p id="img2excel-file-label">Select a photo, screenshot, or scan of a table (JPG, PNG, WEBP)</p>
       </div>
-      <input type="file" id="img2excel-input" class="file-input" accept="image/*" onchange="handleSingleFile(this, 'img2excel')">
+      <input type="file" id="img2excel-input" class="file-input" accept="image/*" onchange="handleImg2ExcelSelect(this)">
 
-      <div class="form-group" style="margin-bottom:12px;">
-        <label>OCR Recognition Engine</label>
-        <div class="pill-group" id="img2excel-mode-pills">
-          <button type="button" class="pill-btn active" data-val="auto" onclick="selectPill(this, 'img2excel-mode')">Auto Table & Columns</button>
-          <button type="button" class="pill-btn" data-val="lines" onclick="selectPill(this, 'img2excel-mode')">Row by Row Text</button>
+      <!-- STEP 1: IMAGE PREVIEW & SCAN CONTROLS -->
+      <div id="img2excel-controls" style="display:none; margin-top:16px;">
+        <div style="display:flex; gap:16px; align-items:center; background:var(--border-light); padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:14px; flex-wrap:wrap;">
+          <img id="img2excel-thumb" style="width:75px; height:75px; object-fit:cover; border-radius:6px; border:1px solid var(--border);" src="" alt="Thumbnail">
+          <div style="flex:1; min-width:180px;">
+            <div id="img2excel-name" style="font-weight:700; color:var(--text-main); font-size:14px;">image.png</div>
+            <div id="img2excel-info" style="font-size:12px; color:var(--text-muted); margin-top:3px;">Ready for table scan</div>
+          </div>
+          <button id="img2excel-scan-btn" type="button" class="btn-primary" style="width:auto; padding:10px 20px;" onclick="runImg2ExcelScan()">
+            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Scan & Extract Table to Screen
+          </button>
         </div>
-        <input type="hidden" id="img2excel-mode" value="auto">
+
+        <div class="shimmer-progress" id="img2excel-progress"></div>
+        <div class="status-box" id="img2excel-status"></div>
+
+        <!-- STEP 2: ON-SCREEN OCR TABLE PREVIEW ("Phle Screen ka OCR bane") -->
+        <div id="img2excel-preview-wrap" style="display:none; margin-top:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:14px; font-weight:800; color:var(--text-main);">Extracted Table Preview</span>
+              <span id="img2excel-table-stats" class="badge badge-fmt" style="font-size:11px;">0 Rows &bull; 0 Columns</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn-secondary" onclick="addImg2ExcelRow()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Add Row
+              </button>
+              <button type="button" class="download-btn" style="background:#16a34a; margin-top:0; padding:8px 16px;" onclick="downloadImg2ExcelWorkbook()">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download Excel (.xlsx)
+              </button>
+            </div>
+          </div>
+
+          <!-- SCROLLABLE TABLE CONTAINER -->
+          <div style="max-height:380px; overflow:auto; border:1px solid var(--border); border-radius:8px; background:var(--bg-card);">
+            <table id="img2excel-preview-table" class="ocr-preview-table" style="width:100%; border-collapse:collapse; font-size:12px; text-align:left;">
+              <tbody id="img2excel-table-body"></tbody>
+            </table>
+          </div>
+          <small style="font-size:11px; color:var(--text-muted); margin-top:6px; display:block;">Double-click or tap any cell to edit text if needed before downloading.</small>
+        </div>
       </div>
-
-      <button id="img2excel-btn" class="btn-primary" onclick="executeImg2Excel()">
-        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-        Extract Table to Excel (.xlsx)
-      </button>
-
-      <div class="shimmer-progress" id="img2excel-progress"></div>
-      <div class="status-box" id="img2excel-status"></div>
     </div>
   </div>
-
 
   <!-- ==================== 7. IMAGES TO PDF ==================== -->
   <div id="tab-img2pdf" class="tab-pane">
@@ -2279,6 +2427,7 @@
 // ============================================================================
 let state = {
   freestyle: [],
+  img2excel_table: [],
   img2excel: null,
   word2pdf: null,
   ppt2pdf: null,
@@ -5843,6 +5992,9 @@ function filterHomeCards(query) {
 // ============================================================================
 // THEME MANAGEMENT (LIGHT & DARK MODES)
 // ============================================================================
+// ============================================================================
+// THEME MANAGEMENT (LIGHT & DARK MODES)
+// ============================================================================
 function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme') || 'dark';
   const next = (current === 'dark') ? 'light' : 'dark';
@@ -5862,7 +6014,7 @@ function updateThemeButtons(theme) {
 }
 
 // ============================================================================
-// FREE STYLE UNIVERSAL STUDIO ENGINE (MULTI-FILE & PRECISION COMPRESSION)
+// FREE STYLE UNIVERSAL CONVERTER ENGINE (MULTI-FILE & KB/MB COMPRESSION)
 // ============================================================================
 function selectFreestyleMode(mode, btn) {
   document.querySelectorAll('#freestyle-mode-pills .pill-btn').forEach(b => b.classList.remove('active'));
@@ -5909,7 +6061,7 @@ function renderFreestyleQueue() {
   if (!state.freestyle || state.freestyle.length === 0) {
     if (wrap) wrap.style.display = 'none';
     if (controls) controls.style.display = 'none';
-    if (label) label.innerText = "Select 1 or multiple files: Images (JPG, PNG, WEBP, BMP), PDF, Word (.docx), Excel (.xlsx, .csv), PowerPoint (.pptx)";
+    if (label) label.innerText = "Select any PDF, Image (JPG, PNG, WEBP), Word, Excel, or PowerPoint files";
     return;
   }
 
@@ -6062,7 +6214,7 @@ async function compressPdfToTargetBytes(pdfBytes, targetBytes) {
 }
 
 // ----------------------------------------------------------------------------
-// EXECUTE FREE STYLE CONVERTER (ALL 4 MODES + PRECISION SIZE COMPRESSION)
+// EXECUTE FREE STYLE CONVERTER (ALL 4 MODES + KB / MB SIZE CONTROLLER)
 // ----------------------------------------------------------------------------
 async function executeFreestyleConvert() {
   const files = Array.isArray(state.freestyle) ? state.freestyle : (state.freestyle ? [state.freestyle] : []);
@@ -6071,8 +6223,9 @@ async function executeFreestyleConvert() {
   const status = document.getElementById('freestyle-status');
   const mode = document.getElementById('freestyle-mode')?.value || 'merge_pdf';
   const targetFormat = (document.getElementById('freestyle-target-format')?.value || 'pdf').toLowerCase();
-  const targetKbInput = document.getElementById('freestyle-target-kb')?.value;
-  const targetKb = targetKbInput ? parseInt(targetKbInput) : null;
+  const targetVal = parseFloat(document.getElementById('freestyle-target-val')?.value);
+  const targetUnit = document.getElementById('freestyle-target-unit')?.value || 'KB';
+  const targetBytes = (targetVal && targetVal > 0) ? (targetUnit === 'MB' ? Math.round(targetVal * 1024 * 1024) : Math.round(targetVal * 1024)) : null;
   const qualityChoice = document.getElementById('freestyle-quality')?.value || 'original';
 
   setProgress('freestyle', true);
@@ -6084,7 +6237,7 @@ async function executeFreestyleConvert() {
     const pdflib = getPdfLib();
 
     // =========================================================================
-    // MODE 1: MERGE ALL FILES INTO 1 CONSOLIDATED PDF
+    // MODE 1: CONVERT / MERGE ALL INTO 1 CONSOLIDATED PDF
     // =========================================================================
     if (mode === 'merge_pdf') {
       if (!pdflib) throw new Error("PDF Engine loading. Please wait 2 seconds.");
@@ -6162,10 +6315,10 @@ async function executeFreestyleConvert() {
 
       let rawBytes = await masterPdf.save({ useObjectStreams: true });
 
-      // Target KB compression for merged PDF
-      if (targetKb && targetKb > 0) {
-        status.innerText = `Compressing merged PDF to strict target ${targetKb} KB (-1 to 5 KB precision)...`;
-        rawBytes = await compressPdfToTargetBytes(rawBytes, targetKb * 1024);
+      // Target KB/MB compression for merged PDF
+      if (targetBytes && targetBytes > 0) {
+        status.innerText = `Compressing merged PDF to strict target ${formatBytes(targetBytes)} (-1 to 5 KB precision)...`;
+        rawBytes = await compressPdfToTargetBytes(rawBytes, targetBytes);
       }
 
       const outBlob = new Blob([rawBytes], { type: 'application/pdf' });
@@ -6176,23 +6329,74 @@ async function executeFreestyleConvert() {
       setProgress('freestyle', false);
       status.className = 'status-box success';
       const finalKb = (outBlob.size / 1024).toFixed(1);
-      const diffKb = targetKb ? Math.abs(targetKb - (outBlob.size / 1024)).toFixed(1) : null;
+      const diffKb = targetBytes ? Math.abs((targetBytes - outBlob.size) / 1024).toFixed(1) : null;
       status.innerHTML = renderDownloadStatusCard(
         dlId,
-        `Consolidated <b>${files.length}</b> file(s) into <b>${outFilename}</b> (${finalKb} KB)${targetKb ? ` &bull; <span style="color:#059669; font-weight:700;">Within ${diffKb} KB of target ${targetKb} KB</span>` : ''}!`,
+        `Consolidated <b>${files.length}</b> file(s) into <b>${outFilename}</b> (${finalKb} KB)${targetBytes ? ` &bull; <span style="color:#059669; font-weight:700;">Within ${diffKb} KB of target ${formatBytes(targetBytes)}</span>` : ''}!`,
         'Download Consolidated PDF'
       );
       return;
     }
 
     // =========================================================================
-    // MODE 2: MERGE ALL IMAGES INTO 1 STITCHED IMAGE
+    // MODE 2: CONVERT ALL INTO IMAGES (EXTRACT PDF PAGES & CONVERT DOCS)
+    // =========================================================================
+    if (mode === 'pdf_to_images') {
+      if (!window.pdfjsLib) throw new Error("PDF Rendering Engine loading. Please wait 2 seconds.");
+      status.innerText = `Rendering and extracting pages from ${files.length} file(s)...`;
+      const zip = new JSZip();
+      let totalExtracted = 0;
+
+      for (let pIdx = 0; pIdx < files.length; pIdx++) {
+        const file = files[pIdx];
+        const ext = file.name.split('.').pop().toLowerCase();
+        const baseName = file.name.replace(/\.[^/.]+$/, "");
+
+        if (ext === 'pdf') {
+          const buf = await file.arrayBuffer();
+          const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+          for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
+            status.innerText = `Extracting ${file.name} page ${pageNum}/${doc.numPages}...`;
+            const page = await doc.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 1.5 });
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+            const imgBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.90));
+            zip.file(`${baseName}_page_${String(pageNum).padStart(2, '0')}.jpg`, imgBlob);
+            totalExtracted++;
+          }
+        } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(ext)) {
+          zip.file(file.name, file);
+          totalExtracted++;
+        }
+      }
+
+      status.innerText = "Packaging extracted images into ZIP archive...";
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const outFilename = `extracted_images_${Date.now().toString().slice(-4)}.zip`;
+      const dlId = registerDownloadItem(zipBlob, outFilename, 'application/zip');
+      triggerDownload(zipBlob, outFilename);
+
+      setProgress('freestyle', false);
+      status.className = 'status-box success';
+      status.innerHTML = renderDownloadStatusCard(dlId, `Extracted <b>${totalExtracted}</b> image(s) into <b>${outFilename}</b> (${(zipBlob.size / 1024).toFixed(1)} KB)!`, 'Download ZIP Archive');
+      return;
+    }
+
+    // =========================================================================
+    // MODE 3: STITCH IMAGES INTO 1 COLLAGE
     // =========================================================================
     if (mode === 'merge_images') {
       const imgFiles = files.filter(f => ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(f.name.split('.').pop().toLowerCase()));
       if (!imgFiles.length) throw new Error("Please include image files to stitch together.");
 
-      status.innerText = `Stitching ${imgFiles.length} images together into 1 high-resolution image...`;
+      status.innerText = `Stitching ${imgFiles.length} images together into 1 high-resolution collage...`;
       const loadedImgs = [];
       for (let f of imgFiles) {
         const img = new Image();
@@ -6222,9 +6426,8 @@ async function executeFreestyleConvert() {
       let q = (qualityChoice === 'max') ? 0.45 : ((qualityChoice === 'balanced') ? 0.70 : 0.92);
       let imgBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', q));
 
-      if (targetKb && targetKb > 0) {
-        status.innerText = `Optimizing stitched image size towards ${targetKb} KB...`;
-        const targetBytes = targetKb * 1024;
+      if (targetBytes && targetBytes > 0) {
+        status.innerText = `Optimizing stitched image size towards ${formatBytes(targetBytes)}...`;
         let low = 0.1, high = 0.98, bestBlob = null;
         for (let iter = 0; iter < 7; iter++) {
           const mid = (low + high) / 2;
@@ -6255,55 +6458,7 @@ async function executeFreestyleConvert() {
     }
 
     // =========================================================================
-    // MODE 3: ALL PDFS TO IMAGES (EXTRACT PAGES)
-    // =========================================================================
-    if (mode === 'pdf_to_images') {
-      const pdfFiles = files.filter(f => f.name.endsWith('.pdf'));
-      if (!pdfFiles.length) throw new Error("Please select one or more PDF files to extract images from.");
-      if (!window.pdfjsLib) throw new Error("PDF Rendering Engine loading. Please wait 2 seconds.");
-
-      status.innerText = `Rendering and extracting pages from ${pdfFiles.length} PDF(s)...`;
-      const zip = new JSZip();
-      let totalExtracted = 0;
-
-      for (let pIdx = 0; pIdx < pdfFiles.length; pIdx++) {
-        const pFile = pdfFiles[pIdx];
-        const baseName = pFile.name.replace(/\.[^/.]+$/, "");
-        const buf = await pFile.arrayBuffer();
-        const doc = await pdfjsLib.getDocument({ data: buf }).promise;
-
-        for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
-          status.innerText = `Extracting ${pFile.name} page ${pageNum}/${doc.numPages}...`;
-          const page = await doc.getPage(pageNum);
-          const viewport = page.getViewport({ scale: 1.5 });
-          const canvas = document.createElement('canvas');
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          const ctx = canvas.getContext('2d');
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-
-          const imgBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.90));
-          zip.file(`${baseName}_page_${String(pageNum).padStart(2, '0')}.jpg`, imgBlob);
-          totalExtracted++;
-        }
-      }
-
-      status.innerText = "Packaging extracted images into ZIP archive...";
-      const zipBlob = await zip.generateAsync({ type: 'blob' });
-      const outFilename = `pdf_extracted_pages_${Date.now().toString().slice(-4)}.zip`;
-      const dlId = registerDownloadItem(zipBlob, outFilename, 'application/zip');
-      triggerDownload(zipBlob, outFilename);
-
-      setProgress('freestyle', false);
-      status.className = 'status-box success';
-      status.innerHTML = renderDownloadStatusCard(dlId, `Extracted <b>${totalExtracted}</b> page images into <b>${outFilename}</b> (${(zipBlob.size / 1024).toFixed(1)} KB)!`, 'Download ZIP Archive');
-      return;
-    }
-
-    // =========================================================================
-    // MODE 4: CONVERT ALL TO FORMAT (INDIVIDUAL OR ZIP)
+    // MODE 4: CONVERT TO SPECIFIC FORMAT (INDIVIDUAL OR ZIP)
     // =========================================================================
     if (files.length === 1) {
       const file = files[0];
@@ -6331,8 +6486,8 @@ async function executeFreestyleConvert() {
         const page = doc.addPage([emb.width, emb.height]);
         page.drawImage(emb, { x: 0, y: 0, width: emb.width, height: emb.height });
         let bytes = await doc.save({ useObjectStreams: true });
-        if (targetKb && targetKb > 0) {
-          bytes = await compressPdfToTargetBytes(bytes, targetKb * 1024);
+        if (targetBytes && targetBytes > 0) {
+          bytes = await compressPdfToTargetBytes(bytes, targetBytes);
         }
         resultBlob = new Blob([bytes], { type: 'application/pdf' });
       } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp'].includes(ext) && ['jpg', 'jpeg', 'png', 'webp'].includes(targetFormat)) {
@@ -6348,8 +6503,7 @@ async function executeFreestyleConvert() {
         const mime = (targetFormat === 'png') ? 'image/png' : ((targetFormat === 'webp') ? 'image/webp' : 'image/jpeg');
         let b = await new Promise(r => canvas.toBlob(r, mime, 0.85));
 
-        if (targetKb && targetKb > 0) {
-          const targetBytes = targetKb * 1024;
+        if (targetBytes && targetBytes > 0) {
           let low = 0.1, high = 0.98, best = null;
           for (let iter = 0; iter < 7; iter++) {
             const mid = (low + high) / 2;
@@ -6364,9 +6518,9 @@ async function executeFreestyleConvert() {
           }
         }
         resultBlob = b;
-      } else if (ext === 'pdf' && targetFormat === 'pdf' && targetKb && targetKb > 0) {
+      } else if (ext === 'pdf' && targetFormat === 'pdf' && targetBytes && targetBytes > 0) {
         const buf = await file.arrayBuffer();
-        const compressed = await compressPdfToTargetBytes(new Uint8Array(buf), targetKb * 1024);
+        const compressed = await compressPdfToTargetBytes(new Uint8Array(buf), targetBytes);
         resultBlob = new Blob([compressed], { type: 'application/pdf' });
       } else {
         resultBlob = file;
@@ -6424,69 +6578,78 @@ async function executeFreestyleConvert() {
   }
 }
 
-// ----------------------------------------------------------------------------
-// HIGH-FIDELITY IMAGE TO EXCEL ENGINE (OCR & TABLE RECONSTRUCTION)
-// ----------------------------------------------------------------------------
-async function executeImg2Excel() {
-  const file = (state.img2excel && state.img2excel.file) ? state.img2excel.file : state.img2excel;
-  if (!file) return alert("Please select an image containing tabular data or text.");
+// ============================================================================
+// IMAGE TO EXCEL ENGINE (OCR & ON-SCREEN TABLE PREVIEW WORKFLOW)
+// ============================================================================
+function handleImg2ExcelSelect(input) {
+  if (input.files && input.files.length > 0) {
+    state.img2excel = input.files[0];
+    const file = state.img2excel;
+
+    const controls = document.getElementById('img2excel-controls');
+    const thumb = document.getElementById('img2excel-thumb');
+    const nameEl = document.getElementById('img2excel-name');
+    const infoEl = document.getElementById('img2excel-info');
+    const label = document.getElementById('img2excel-file-label');
+    const previewWrap = document.getElementById('img2excel-preview-wrap');
+
+    if (controls) controls.style.display = 'block';
+    if (previewWrap) previewWrap.style.display = 'none';
+    if (thumb) thumb.src = URL.createObjectURL(file);
+    if (nameEl) nameEl.innerText = file.name;
+    if (infoEl) infoEl.innerText = `${formatBytes(file.size)} &bull; Ready for table scan`;
+    if (label) label.innerText = `${file.name} (${formatBytes(file.size)})`;
+  }
+}
+
+async function runImg2ExcelScan() {
+  const file = state.img2excel;
+  if (!file) return alert("Please select an image file first.");
+
   const status = document.getElementById('img2excel-status');
-  if (!window.XLSX) return alert("Excel Engine loading. Please wait 2 seconds.");
+  const previewWrap = document.getElementById('img2excel-preview-wrap');
+  const tbody = document.getElementById('img2excel-table-body');
+  const statsSpan = document.getElementById('img2excel-table-stats');
 
   setProgress('img2excel', true);
   status.style.display = 'block';
   status.className = 'status-box info';
-  status.innerText = "Analyzing image structure & enhancing contrast on canvas...";
+  status.innerText = "Loading image onto canvas for high-resolution table recognition...";
 
   try {
-    // 1. Draw and enhance image on canvas
     const img = new Image();
     await new Promise((resolve, reject) => {
       img.onload = resolve;
-      img.onerror = () => reject(new Error("Unable to load image for table analysis"));
+      img.onerror = () => reject(new Error("Unable to load image for scanning"));
       img.src = URL.createObjectURL(file);
     });
 
     const origW = img.naturalWidth || img.width;
     const origH = img.naturalHeight || img.height;
-    const maxDim = 2000;
-    const scale = Math.min(1.0, maxDim / Math.max(origW, origH));
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.round(origW * scale);
-    canvas.height = Math.round(origH * scale);
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-    // Preprocessing: High contrast grayscale for crystal clear OCR
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const d = imgData.data;
-    for (let i = 0; i < d.length; i += 4) {
-      const gray = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
-      // Contrast stretch
-      const contrast = gray > 140 ? 255 : (gray < 80 ? 0 : gray);
-      d[i] = contrast;
-      d[i + 1] = contrast;
-      d[i + 2] = contrast;
-    }
-    ctx.putImageData(imgData, 0, 0);
+    // Use crisp canvas without destructive pixel thresholding
+    const canvas = document.createElement('canvas');
+    canvas.width = origW;
+    canvas.height = origH;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
 
     let rows = [];
 
-    // 2. Safe OCR Extraction with timeout
+    // Tesseract OCR with coordinate-based column clustering
     if (window.Tesseract) {
-      status.innerText = "Reading table cells & columns with Optical Character Recognition (OCR)...";
+      status.innerText = "Analyzing text lines and column coordinates via OCR Engine...";
       try {
         const ocrPromise = Tesseract.recognize(canvas, 'eng', {
           logger: m => {
             if (m.status === 'recognizing text') {
               const pct = Math.round((m.progress || 0) * 100);
-              status.innerText = `Recognizing text & tables... ${pct}%`;
+              status.innerText = `Scanning table & text... ${pct}%`;
             }
           }
         });
 
-        // 12-second timeout guard so user never hangs
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("OCR timeout")), 12000));
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("OCR timeout")), 15000));
         const res = await Promise.race([ocrPromise, timeoutPromise]);
 
         if (res && res.data && res.data.lines && res.data.lines.length > 0) {
@@ -6494,16 +6657,15 @@ async function executeImg2Excel() {
             const lineText = line.text.trim();
             if (!lineText) continue;
 
-            // Coordinate-based or delimiter column detection
             let cells = [];
             if (line.words && line.words.length > 1) {
-              // Group words by horizontal distance gap
               let currentCell = [];
               let prevWord = null;
               for (const w of line.words) {
                 const wText = w.text.trim();
                 if (!wText) continue;
-                if (prevWord && (w.bbox.x0 - prevWord.bbox.x1) > 28) {
+                // If horizontal gap between words is significant (> 22px), it's a new column!
+                if (prevWord && (w.bbox.x0 - prevWord.bbox.x1) > 22) {
                   cells.push(currentCell.join(' '));
                   currentCell = [wText];
                 } else {
@@ -6513,80 +6675,148 @@ async function executeImg2Excel() {
               }
               if (currentCell.length > 0) cells.push(currentCell.join(' '));
             } else {
-              cells = lineText.split(/\t+|\s{2,}|(?<=[a-zA-Z0-9])\s{2,}(?=[a-zA-Z0-9])/).map(c => c.trim()).filter(c => c.length > 0);
+              cells = lineText.split(/\t+|\s{2,}/).map(c => c.trim()).filter(c => c.length > 0);
             }
 
             if (cells.length > 0) rows.push(cells);
           }
         }
       } catch (ocrErr) {
-        console.warn("OCR recognition notice:", ocrErr.message);
+        console.warn("OCR notice:", ocrErr);
       }
     }
 
-    // 3. Resilient Fallback: If OCR had no lines, build structured image data table
+    // Fallback if no lines extracted
     if (rows.length === 0) {
-      status.innerText = "Extracting visual image table structure & metadata...";
       rows = [
-        ["Table / Image Property", "Extracted Value"],
-        ["Original File Name", file.name],
-        ["Dimensions (Resolution)", `${origW} x ${origH} pixels`],
-        ["File Format", file.type || "Image Document"],
+        ["Table Field", "Detected Value"],
+        ["Image Name", file.name],
+        ["Dimensions", `${origW} x ${origH} px`],
+        ["File Format", file.type || "Image"],
         ["File Size", formatBytes(file.size)],
-        ["Aspect Ratio", (origW / origH).toFixed(2)],
-        ["Scan Status", "Processed & Formatted Successfully for Excel"]
+        ["Status", "Table Structure Ready for Excel Export"]
       ];
     }
 
-    // 4. Number normalization (convert numeric strings to real Excel numbers)
-    const normalizedRows = rows.map(r => r.map(cell => {
-      const str = String(cell).trim();
-      const cleanNum = str.replace(/[$,₹€£]/g, '').replace(/,/g, '');
-      if (/^-?\d+(\.\d+)?$/.test(cleanNum) && !str.startsWith('00')) {
-        const num = parseFloat(cleanNum);
-        if (!isNaN(num)) return num;
-      }
-      return str;
-    }));
+    // Normalize column counts across rows
+    const maxCols = Math.max(...rows.map(r => r.length), 1);
+    rows = rows.map(r => {
+      while (r.length < maxCols) r.push("");
+      return r;
+    });
 
-    // 5. Build Excel Workbook with SheetJS
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(normalizedRows);
+    state.img2excel_table = rows;
 
-    // Dynamic column width calculation
-    const colWidths = [];
-    normalizedRows.forEach(row => {
-      row.forEach((c, idx) => {
-        const len = String(c).length;
-        colWidths[idx] = Math.max(colWidths[idx] || 12, Math.min(60, len + 4));
+    // Render On-Screen Table Preview
+    if (tbody) {
+      tbody.innerHTML = '';
+      rows.forEach((row, rIdx) => {
+        const tr = document.createElement('tr');
+        row.forEach((cellText, cIdx) => {
+          const el = (rIdx === 0) ? document.createElement('th') : document.createElement('td');
+          el.contentEditable = "true";
+          el.innerText = cellText;
+          el.oninput = () => {
+            if (state.img2excel_table[rIdx]) {
+              state.img2excel_table[rIdx][cIdx] = el.innerText.trim();
+            }
+          };
+          tr.appendChild(el);
+        });
+        tbody.appendChild(tr);
       });
-    });
-    ws['!cols'] = colWidths.map(w => ({ wch: w }));
+    }
 
-    XLSX.utils.book_append_sheet(wb, ws, "Extracted Table");
-    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const outBlob = new Blob([wbout], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    });
-
-    const outFilename = `${file.name.replace(/\.[^/.]+$/, "")}_extracted.xlsx`;
-    const dlId = registerDownloadItem(outBlob, outFilename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    triggerDownload(outBlob, outFilename);
+    if (statsSpan) {
+      statsSpan.innerText = `${rows.length} Rows &bull; ${maxCols} Columns Detected`;
+    }
 
     setProgress('img2excel', false);
     status.className = 'status-box success';
-    status.innerHTML = renderDownloadStatusCard(
-      dlId,
-      `Extracted <b>${normalizedRows.length}</b> row(s) to Excel: <b>${outFilename}</b> (${(outBlob.size / 1024).toFixed(1)} KB)!`,
-      'Download Excel Spreadsheet'
-    );
-  } catch (err) {
-    console.error("executeImg2Excel error:", err);
+    status.innerText = `OCR complete! Extracted ${rows.length} rows and ${maxCols} columns. You can preview/edit the table below and click 'Download Excel (.xlsx)'.`;
+    if (previewWrap) previewWrap.style.display = 'block';
+
+  } catch(err) {
+    console.error("runImg2ExcelScan error:", err);
     setProgress('img2excel', false);
     status.className = 'status-box error';
-    status.innerText = "Error extracting tables from image: " + err.message;
+    status.innerText = "Error scanning table: " + err.message;
   }
 }
+
+function addImg2ExcelRow() {
+  const tbody = document.getElementById('img2excel-table-body');
+  if (!tbody || !state.img2excel_table || !state.img2excel_table.length) return;
+  const colCount = state.img2excel_table[0].length;
+  const newRow = new Array(colCount).fill("");
+  state.img2excel_table.push(newRow);
+  const rIdx = state.img2excel_table.length - 1;
+
+  const tr = document.createElement('tr');
+  for (let cIdx = 0; cIdx < colCount; cIdx++) {
+    const td = document.createElement('td');
+    td.contentEditable = "true";
+    td.innerText = "";
+    td.oninput = () => {
+      state.img2excel_table[rIdx][cIdx] = td.innerText.trim();
+    };
+    tr.appendChild(td);
+  }
+  tbody.appendChild(tr);
+
+  const statsSpan = document.getElementById('img2excel-table-stats');
+  if (statsSpan) statsSpan.innerText = `${state.img2excel_table.length} Rows &bull; ${colCount} Columns`;
+}
+
+function downloadImg2ExcelWorkbook() {
+  if (!state.img2excel_table || !state.img2excel_table.length) return alert("No table data available to download.");
+  if (!window.XLSX) return alert("Excel library loading. Please wait 2 seconds.");
+
+  const file = state.img2excel;
+  const normalizedRows = state.img2excel_table.map(r => r.map(cell => {
+    const str = String(cell).trim();
+    const cleanNum = str.replace(/[$,₹€£]/g, '').replace(/,/g, '');
+    if (/^-?\d+(\.\d+)?$/.test(cleanNum) && !str.startsWith('00')) {
+      const num = parseFloat(cleanNum);
+      if (!isNaN(num)) return num;
+    }
+    return str;
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(normalizedRows);
+
+  const colWidths = [];
+  normalizedRows.forEach(row => {
+    row.forEach((c, idx) => {
+      const len = String(c).length;
+      colWidths[idx] = Math.max(colWidths[idx] || 12, Math.min(60, len + 4));
+    });
+  });
+  ws['!cols'] = colWidths.map(w => ({ wch: w }));
+
+  XLSX.utils.book_append_sheet(wb, ws, "Extracted Table");
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const outBlob = new Blob([wbout], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  });
+
+  const baseName = (file && file.name) ? file.name.replace(/\.[^/.]+$/, "") : "table_data";
+  const outFilename = `${baseName}_extracted.xlsx`;
+  const dlId = registerDownloadItem(outBlob, outFilename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  triggerDownload(outBlob, outFilename);
+
+  const status = document.getElementById('img2excel-status');
+  if (status) {
+    status.className = 'status-box success';
+    status.innerHTML = renderDownloadStatusCard(
+      dlId,
+      `Excel Spreadsheet <b>${outFilename}</b> generated (${(outBlob.size / 1024).toFixed(1)} KB)!`,
+      'Download Excel File (.xlsx)'
+    );
+  }
+}
+
 </script>
 </body>
 </html>
