@@ -1354,3 +1354,63 @@ def freestyle_convert(input_path: str, output_path: str, target_format: str, tar
             shutil.move(compressed_temp, output_path)
 
     return output_path
+
+
+def freestyle_multi_convert(
+    input_paths: list,
+    output_path: str,
+    action: str = "merge_pdf",
+    target_format: str = "pdf",
+    target_kb: int = None
+) -> str:
+    """
+    Batch / multi-file universal converter supporting:
+    1. 'merge_pdf': converts all inputs to PDF and combines them into one PDF.
+    2. 'merge_images': stitches all input images into one single image.
+    3. 'convert_all': converts all inputs to target_format.
+    Supports strict target KB compression (-1 to 5 KB).
+    """
+    if not input_paths:
+        raise ValueError("No input files provided.")
+
+    os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+
+    if action == "merge_pdf":
+        temp_pdfs = []
+        temp_dir = os.path.join(os.path.dirname(os.path.abspath(output_path)), "_temp_multi_pdf")
+        os.makedirs(temp_dir, exist_ok=True)
+        try:
+            for idx, p in enumerate(input_paths):
+                ext = os.path.splitext(p)[1].lower().lstrip(".")
+                if ext == "pdf":
+                    temp_pdfs.append(p)
+                else:
+                    temp_pdf = os.path.join(temp_dir, f"converted_{idx}.pdf")
+                    freestyle_convert(p, temp_pdf, target_format="pdf")
+                    temp_pdfs.append(temp_pdf)
+
+            merge_pdfs(temp_pdfs, output_path)
+
+            if target_kb and target_kb > 0:
+                compressed_temp = output_path + ".compressed"
+                compress_pdf(output_path, compressed_temp, target_kb=target_kb)
+                if os.path.exists(compressed_temp):
+                    import shutil
+                    shutil.move(compressed_temp, output_path)
+        finally:
+            import shutil
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+    elif action == "merge_images":
+        merge_images_vertically(input_paths, output_path)
+        if target_kb and target_kb > 0:
+            compressed_temp = output_path + ".compressed"
+            compress_image(output_path, compressed_temp, target_kb=target_kb)
+            if os.path.exists(compressed_temp):
+                import shutil
+                shutil.move(compressed_temp, output_path)
+    else:
+        # Fallback to first file conversion
+        freestyle_convert(input_paths[0], output_path, target_format=target_format, target_kb=target_kb)
+
+    return output_path

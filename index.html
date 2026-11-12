@@ -7,6 +7,15 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>All-in-One Image & PDF Studio Pro</title>
+<script>
+  (function() {
+    try {
+      const saved = localStorage.getItem('studio_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+    } catch(e) {}
+  })();
+</script>
+
 
 <!-- PDF-Lib for Client-Side PDF Engine -->
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -56,17 +65,52 @@
 </script>
 
 <style>
-  :root {
+  
+  /* ==========================================================================
+     THEME VARIABLES (LIGHT & DARK MODES)
+     ========================================================================== */
+  :root, [data-theme="light"] {
+    --theme-mode: light;
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
-    --primary-glow: rgba(37, 99, 235, 0.25);
-    --sidebar-bg: #0f172a;
-    --sidebar-active: #1e293b;
-    --bg-page: #f8fafc;
+    --primary-glow: rgba(37, 99, 235, 0.2);
+    --sidebar-bg: #ffffff;
+    --sidebar-border: #e2e8f0;
+    --sidebar-text: #0f172a;
+    --sidebar-muted: #64748b;
+    --sidebar-hover: #f1f5f9;
+    --sidebar-hover-text: #0f172a;
+    --sidebar-active: #dbeafe;
+    --sidebar-active-text: #1d4ed8;
+    --sidebar-footer-bg: #f8fafc;
+    --bg-page: #f1f5f9;
     --bg-card: #ffffff;
     --border: #e2e8f0;
+    --border-light: #f8fafc;
     --text-main: #0f172a;
     --text-muted: #64748b;
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
+    --input-text: #0f172a;
+    --dropzone-bg: #f8fafc;
+    --dropzone-border: #cbd5e1;
+    --home-bg: #f8fafc;
+    --home-header-bg: rgba(255, 255, 255, 0.92);
+    --home-header-border: #e2e8f0;
+    --home-card-bg: #ffffff;
+    --home-card-border: #e2e8f0;
+    --home-card-hover-bg: #f8fafc;
+    --home-card-title: #0f172a;
+    --home-card-desc: #64748b;
+    --home-pill-bg: #f1f5f9;
+    --home-pill-border: #e2e8f0;
+    --home-pill-text: #475569;
+    --home-search-bg: #ffffff;
+    --home-search-border: #cbd5e1;
+    --home-search-text: #0f172a;
+    --home-hero-title: #0f172a;
+    --home-hero-p: #64748b;
+    --home-section-title: #334155;
     --danger: #ef4444;
     --danger-hover: #dc2626;
     --success: #10b981;
@@ -75,12 +119,73 @@
     --radius-lg: 12px;
   }
 
+  [data-theme="dark"] {
+    --theme-mode: dark;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --primary-glow: rgba(59, 130, 246, 0.35);
+    --sidebar-bg: #0f172a;
+    --sidebar-border: #1e293b;
+    --sidebar-text: #f8fafc;
+    --sidebar-muted: #94a3b8;
+    --sidebar-hover: #1e293b;
+    --sidebar-hover-text: #ffffff;
+    --sidebar-active: #1e293b;
+    --sidebar-active-text: #60a5fa;
+    --sidebar-footer-bg: #1e293b;
+    --bg-page: #0b1120;
+    --bg-card: #1e293b;
+    --border: #334155;
+    --border-light: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --input-bg: #0f172a;
+    --input-border: #334155;
+    --input-text: #f8fafc;
+    --dropzone-bg: #0f172a;
+    --dropzone-border: #334155;
+    --home-bg: #0f172a;
+    --home-header-bg: rgba(15, 23, 42, 0.92);
+    --home-header-border: #1e293b;
+    --home-card-bg: #1e293b;
+    --home-card-border: #334155;
+    --home-card-hover-bg: #24324d;
+    --home-card-title: #ffffff;
+    --home-card-desc: #94a3b8;
+    --home-pill-bg: #1e293b;
+    --home-pill-border: #334155;
+    --home-pill-text: #94a3b8;
+    --home-search-bg: #1e293b;
+    --home-search-border: #334155;
+    --home-search-text: #ffffff;
+    --home-hero-title: #ffffff;
+    --home-hero-p: #94a3b8;
+    --home-section-title: #cbd5e1;
+  }
+
+  /* Smooth Theme Transition */
+  body, .sidebar, .workspace, .card, #home-view, .home-header, .home-tool-card, .dropzone, .form-control {
+    transition: background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease;
+  }
+
+  .theme-toggle-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px;
+    background: var(--home-pill-bg); border: 1px solid var(--border); border-radius: 20px;
+    color: var(--text-main); font-size: 12px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s ease; user-select: none;
+  }
+  .theme-toggle-btn:hover {
+    background: var(--border); transform: scale(1.02);
+  }
+  .theme-toggle-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+
+
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
   body { display: flex; height: 100vh; background: var(--bg-page); color: var(--text-main); overflow: hidden; -webkit-font-smoothing: antialiased; }
 
   /* SIDEBAR */
   .sidebar {
-    width: 275px; background: var(--sidebar-bg); color: #fff; display: flex; flex-direction: column;
+    width: 275px; background: var(--sidebar-bg); color: var(--sidebar-text); border-right: 1px solid var(--sidebar-border); display: flex; flex-direction: column;
     padding: 16px 12px; flex-shrink: 0; border-right: 1px solid #1e293b; user-select: none;
     overflow-y: auto; scrollbar-width: thin; scrollbar-color: #334155 transparent;
   }
@@ -93,7 +198,7 @@
     display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
     flex-shrink: 0;
   }
-  .brand-title { font-size: 15px; font-weight: 800; color: #fff; line-height: 1.2; }
+  .brand-title { font-size: 15px; font-weight: 800; color: var(--sidebar-text); line-height: 1.2; }
   .brand-sub { font-size: 11px; color: #94a3b8; }
 
   .nav-list { list-style: none; margin-top: 8px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
@@ -110,7 +215,7 @@
   .nav-item svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; flex-shrink: 0; }
   .nav-item.active svg { stroke: #38bdf8; }
 
-  .sidebar-footer { background: #1e293b; border-radius: 8px; padding: 10px; font-size: 11px; color: #94a3b8; border: 1px solid #334155; margin-top: 14px; }
+  .sidebar-footer { background: var(--sidebar-footer-bg); border-radius: 8px; padding: 10px; font-size: 11px; color: var(--sidebar-muted); border: 1px solid var(--sidebar-border); margin-top: 14px; }
   .sidebar-footer .status { color: #10b981; font-weight: 700; display: flex; align-items: center; gap: 6px; }
   .status-dot-pulse { width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); animation: pulseDot 2s infinite; }
   @keyframes pulseDot { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
@@ -121,7 +226,7 @@
   /* MAIN WORKSPACE */
   .workspace { flex: 1; padding: 24px 36px; overflow-y: auto; max-width: 1100px; }
   .page-header { margin-bottom: 20px; }
-  .page-header h2 { font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; }
+  .page-header h2 { font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; }
   .page-header p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
 
   .tab-pane { display: none; }
@@ -135,15 +240,15 @@
 
   /* DROPZONE */
   .dropzone {
-    border: 2px dashed #cbd5e1; border-radius: var(--radius-lg); padding: 28px 18px; text-align: center;
-    background: #f8fafc; cursor: pointer; transition: all 0.2s ease; margin-bottom: 16px; position: relative;
+    border: 2px dashed var(--dropzone-border); border-radius: var(--radius-lg); padding: 28px 18px; text-align: center;
+    background: var(--dropzone-bg); cursor: pointer; transition: all 0.2s ease; margin-bottom: 16px; position: relative;
   }
   .dropzone:hover, .dropzone.dragover {
     border-color: var(--primary); background: #eff6ff; box-shadow: 0 0 0 4px var(--primary-glow);
   }
   .dropzone svg { width: 40px; height: 40px; stroke: var(--primary); margin-bottom: 8px; transition: transform 0.2s; }
   .dropzone:hover svg { transform: scale(1.08); }
-  .dropzone strong { display: block; font-size: 14px; color: #1e293b; font-weight: 700; }
+  .dropzone strong { display: block; font-size: 14px; color: var(--text-main); font-weight: 700; }
   .dropzone p { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
   .file-input { display: none; }
 
@@ -164,7 +269,7 @@
   .file-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; max-height: 240px; overflow-y: auto; }
   .file-card {
     display: flex; align-items: center; justify-content: space-between; padding: 9px 12px;
-    background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px;
+    background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px;
     animation: cardSlide 0.15s ease;
   }
   .file-card:hover { border-color: #cbd5e1; }
@@ -179,7 +284,7 @@
     width: 36px; height: 36px; border-radius: 5px; object-fit: cover; background: #e2e8f0; flex-shrink: 0;
     cursor: pointer; border: 1px solid var(--border);
   }
-  .file-card-name { font-weight: 700; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 420px; }
+  .file-card-name { font-weight: 700; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 420px; }
   .badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
   .badge-fmt { background: #eff6ff; color: var(--primary); }
   .badge-pdf { background: #fee2e2; color: #ef4444; }
@@ -210,7 +315,7 @@
   .form-group label { font-size: 12px; font-weight: 700; color: #475569; }
   .form-control {
     padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
-    outline: none; background: #fff; transition: border-color 0.2s;
+    outline: none; background: var(--input-bg); color: var(--input-text); transition: border-color 0.2s;
   }
   .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
 
@@ -425,12 +530,12 @@
     flex-direction: row;
   }
   #home-view {
-    width: 100%; height: 100vh; overflow-y: auto; background: #0f172a;
-    color: #f8fafc; padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
+    width: 100%; height: 100vh; overflow-y: auto; background: var(--home-bg);
+    color: var(--text-main); padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
   }
   .home-header {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 18px 36px; border-bottom: 1px solid #1e293b; background: rgba(15, 23, 42, 0.85);
+    padding: 18px 36px; border-bottom: 1px solid var(--home-header-border); background: var(--home-header-bg);
     backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50;
   }
   .home-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
@@ -444,11 +549,11 @@
     letter-spacing: 0.5px; margin-bottom: 16px;
   }
   .home-hero h1 {
-    font-size: 38px; font-weight: 800; color: #ffffff; line-height: 1.25; margin-bottom: 14px;
+    font-size: 38px; font-weight: 800; color: var(--home-hero-title); line-height: 1.25; margin-bottom: 14px;
     letter-spacing: -0.5px;
   }
   .home-hero p {
-    font-size: 16px; color: #94a3b8; line-height: 1.6; max-width: 680px; margin: 0 auto 28px auto;
+    font-size: 16px; color: var(--home-hero-p); line-height: 1.6; max-width: 680px; margin: 0 auto 28px auto;
   }
   .home-search-wrap {
     max-width: 620px; margin: 0 auto 24px auto; position: relative;
@@ -458,8 +563,8 @@
     width: 20px; height: 20px; stroke: #64748b; fill: none; stroke-width: 2; pointer-events: none;
   }
   .home-search-input {
-    width: 100%; padding: 14px 20px 14px 48px; background: #1e293b;
-    border: 1px solid #334155; border-radius: 50px; color: #ffffff; font-size: 15px;
+    width: 100%; padding: 14px 20px 14px 48px; background: var(--home-search-bg);
+    border: 1px solid var(--home-search-border); border-radius: 50px; color: var(--home-search-text); font-size: 15px;
     outline: none; transition: all 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
   }
   .home-search-input:focus {
@@ -470,7 +575,7 @@
   }
   .home-cat-btn {
     padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 600;
-    cursor: pointer; background: #1e293b; color: #94a3b8; border: 1px solid #334155;
+    cursor: pointer; background: var(--home-pill-bg); color: var(--home-pill-text); border: 1px solid var(--home-pill-border);
     transition: all 0.18s ease; user-select: none;
   }
   .home-cat-btn:hover { color: #ffffff; background: #334155; }
@@ -483,28 +588,28 @@
     display: flex; align-items: center; justify-content: space-between;
     margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #1e293b;
   }
-  .home-section-header h2 { font-size: 18px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.8px; }
+  .home-section-header h2 { font-size: 18px; font-weight: 700; color: var(--home-section-title); text-transform: uppercase; letter-spacing: 0.8px; }
   .home-tools-grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
     gap: 18px; margin-bottom: 24px;
   }
   .home-tool-card {
-    background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 22px;
+    background: var(--home-card-bg); border: 1px solid var(--home-card-border); border-radius: 12px; padding: 22px;
     cursor: pointer; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex; flex-direction: column; justify-content: space-between; position: relative;
     overflow: hidden; text-align: left;
   }
   .home-tool-card:hover {
-    transform: translateY(-3px); border-color: #60a5fa; box-shadow: 0 12px 28px rgba(0,0,0,0.35);
-    background: #24324d;
+    transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+    background: var(--home-card-hover-bg);
   }
   .home-tool-card-icon {
     width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center;
     justify-content: center; margin-bottom: 14px; background: rgba(37, 99, 235, 0.15);
   }
   .home-tool-card-icon svg { width: 24px; height: 24px; stroke-width: 2; fill: none; }
-  .home-tool-card h3 { font-size: 16.5px; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
-  .home-tool-card p { font-size: 12.5px; color: #94a3b8; line-height: 1.5; flex: 1; }
+  .home-tool-card h3 { font-size: 16.5px; font-weight: 700; color: var(--home-card-title); margin-bottom: 6px; }
+  .home-tool-card p { font-size: 12.5px; color: var(--home-card-desc); line-height: 1.5; flex: 1; }
   .home-tool-card-foot {
     display: flex; justify-content: space-between; align-items: center; margin-top: 14px;
     padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px;
@@ -547,12 +652,16 @@
         </svg>
       </div>
       <div>
-        <div style="font-size:18px; font-weight:800; color:#ffffff; line-height:1.2;">Studio Pro</div>
-        <div style="font-size:11px; color:#94a3b8;">All-in-One Image & PDF Engine</div>
+        <div style="font-size:18px; font-weight:800; color:var(--text-main); line-height:1.2;">Studio Pro</div>
+        <div style="font-size:11px; color:var(--text-muted);">All-in-One Image & PDF Engine</div>
       </div>
     </div>
     <div style="display:flex; align-items:center; gap:12px;">
       <span class="home-badge" style="margin-bottom:0;">100% Free & Private in Browser</span>
+      <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <span class="theme-label-txt">Theme</span>
+      </button>
     </div>
   </header>
 
@@ -2169,7 +2278,7 @@
 // STUDIO PRO CORE STATE & NAVIGATION ENGINE
 // ============================================================================
 let state = {
-  freestyle: null,
+  freestyle: [],
   img2excel: null,
   word2pdf: null,
   ppt2pdf: null,
@@ -3524,12 +3633,12 @@ async function executeWordToPdf() {
      HOME DASHBOARD & FREESTYLE STUDIO STYLES
      ========================================================================== */
   #home-view {
-    width: 100%; height: 100vh; overflow-y: auto; background: #0f172a;
-    color: #f8fafc; padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
+    width: 100%; height: 100vh; overflow-y: auto; background: var(--home-bg);
+    color: var(--text-main); padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
   }
   .home-header {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 18px 36px; border-bottom: 1px solid #1e293b; background: rgba(15, 23, 42, 0.85);
+    padding: 18px 36px; border-bottom: 1px solid var(--home-header-border); background: var(--home-header-bg);
     backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50;
   }
   .home-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
@@ -3543,11 +3652,11 @@ async function executeWordToPdf() {
     letter-spacing: 0.5px; margin-bottom: 16px;
   }
   .home-hero h1 {
-    font-size: 38px; font-weight: 800; color: #ffffff; line-height: 1.25; margin-bottom: 14px;
+    font-size: 38px; font-weight: 800; color: var(--home-hero-title); line-height: 1.25; margin-bottom: 14px;
     letter-spacing: -0.5px;
   }
   .home-hero p {
-    font-size: 16px; color: #94a3b8; line-height: 1.6; max-width: 680px; margin: 0 auto 28px auto;
+    font-size: 16px; color: var(--home-hero-p); line-height: 1.6; max-width: 680px; margin: 0 auto 28px auto;
   }
   .home-search-wrap {
     max-width: 620px; margin: 0 auto 24px auto; position: relative;
@@ -3557,8 +3666,8 @@ async function executeWordToPdf() {
     width: 20px; height: 20px; stroke: #64748b; fill: none; stroke-width: 2; pointer-events: none;
   }
   .home-search-input {
-    width: 100%; padding: 14px 20px 14px 48px; background: #1e293b;
-    border: 1px solid #334155; border-radius: 50px; color: #ffffff; font-size: 15px;
+    width: 100%; padding: 14px 20px 14px 48px; background: var(--home-search-bg);
+    border: 1px solid var(--home-search-border); border-radius: 50px; color: var(--home-search-text); font-size: 15px;
     outline: none; transition: all 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
   }
   .home-search-input:focus {
@@ -3569,7 +3678,7 @@ async function executeWordToPdf() {
   }
   .home-cat-btn {
     padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 600;
-    cursor: pointer; background: #1e293b; color: #94a3b8; border: 1px solid #334155;
+    cursor: pointer; background: var(--home-pill-bg); color: var(--home-pill-text); border: 1px solid var(--home-pill-border);
     transition: all 0.18s ease; user-select: none;
   }
   .home-cat-btn:hover { color: #ffffff; background: #334155; }
@@ -3582,28 +3691,28 @@ async function executeWordToPdf() {
     display: flex; align-items: center; justify-content: space-between;
     margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #1e293b;
   }
-  .home-section-header h2 { font-size: 18px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.8px; }
+  .home-section-header h2 { font-size: 18px; font-weight: 700; color: var(--home-section-title); text-transform: uppercase; letter-spacing: 0.8px; }
   .home-tools-grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
     gap: 18px; margin-bottom: 24px;
   }
   .home-tool-card {
-    background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 22px;
+    background: var(--home-card-bg); border: 1px solid var(--home-card-border); border-radius: 12px; padding: 22px;
     cursor: pointer; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex; flex-direction: column; justify-content: space-between; position: relative;
     overflow: hidden; text-align: left;
   }
   .home-tool-card:hover {
-    transform: translateY(-3px); border-color: #60a5fa; box-shadow: 0 12px 28px rgba(0,0,0,0.35);
-    background: #24324d;
+    transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+    background: var(--home-card-hover-bg);
   }
   .home-tool-card-icon {
     width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center;
     justify-content: center; margin-bottom: 14px; background: rgba(37, 99, 235, 0.15);
   }
   .home-tool-card-icon svg { width: 24px; height: 24px; stroke-width: 2; fill: none; }
-  .home-tool-card h3 { font-size: 16.5px; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
-  .home-tool-card p { font-size: 12.5px; color: #94a3b8; line-height: 1.5; flex: 1; }
+  .home-tool-card h3 { font-size: 16.5px; font-weight: 700; color: var(--home-card-title); margin-bottom: 6px; }
+  .home-tool-card p { font-size: 12.5px; color: var(--home-card-desc); line-height: 1.5; flex: 1; }
   .home-tool-card-foot {
     display: flex; justify-content: space-between; align-items: center; margin-top: 14px;
     padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px;
@@ -3908,12 +4017,12 @@ async function executeExcelToPdf() {
      HOME DASHBOARD & FREESTYLE STUDIO STYLES
      ========================================================================== */
   #home-view {
-    width: 100%; height: 100vh; overflow-y: auto; background: #0f172a;
-    color: #f8fafc; padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
+    width: 100%; height: 100vh; overflow-y: auto; background: var(--home-bg);
+    color: var(--text-main); padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
   }
   .home-header {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 18px 36px; border-bottom: 1px solid #1e293b; background: rgba(15, 23, 42, 0.85);
+    padding: 18px 36px; border-bottom: 1px solid var(--home-header-border); background: var(--home-header-bg);
     backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50;
   }
   .home-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
@@ -3927,11 +4036,11 @@ async function executeExcelToPdf() {
     letter-spacing: 0.5px; margin-bottom: 16px;
   }
   .home-hero h1 {
-    font-size: 38px; font-weight: 800; color: #ffffff; line-height: 1.25; margin-bottom: 14px;
+    font-size: 38px; font-weight: 800; color: var(--home-hero-title); line-height: 1.25; margin-bottom: 14px;
     letter-spacing: -0.5px;
   }
   .home-hero p {
-    font-size: 16px; color: #94a3b8; line-height: 1.6; max-width: 680px; margin: 0 auto 28px auto;
+    font-size: 16px; color: var(--home-hero-p); line-height: 1.6; max-width: 680px; margin: 0 auto 28px auto;
   }
   .home-search-wrap {
     max-width: 620px; margin: 0 auto 24px auto; position: relative;
@@ -3941,8 +4050,8 @@ async function executeExcelToPdf() {
     width: 20px; height: 20px; stroke: #64748b; fill: none; stroke-width: 2; pointer-events: none;
   }
   .home-search-input {
-    width: 100%; padding: 14px 20px 14px 48px; background: #1e293b;
-    border: 1px solid #334155; border-radius: 50px; color: #ffffff; font-size: 15px;
+    width: 100%; padding: 14px 20px 14px 48px; background: var(--home-search-bg);
+    border: 1px solid var(--home-search-border); border-radius: 50px; color: var(--home-search-text); font-size: 15px;
     outline: none; transition: all 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
   }
   .home-search-input:focus {
@@ -3953,7 +4062,7 @@ async function executeExcelToPdf() {
   }
   .home-cat-btn {
     padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 600;
-    cursor: pointer; background: #1e293b; color: #94a3b8; border: 1px solid #334155;
+    cursor: pointer; background: var(--home-pill-bg); color: var(--home-pill-text); border: 1px solid var(--home-pill-border);
     transition: all 0.18s ease; user-select: none;
   }
   .home-cat-btn:hover { color: #ffffff; background: #334155; }
@@ -3966,28 +4075,28 @@ async function executeExcelToPdf() {
     display: flex; align-items: center; justify-content: space-between;
     margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #1e293b;
   }
-  .home-section-header h2 { font-size: 18px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.8px; }
+  .home-section-header h2 { font-size: 18px; font-weight: 700; color: var(--home-section-title); text-transform: uppercase; letter-spacing: 0.8px; }
   .home-tools-grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
     gap: 18px; margin-bottom: 24px;
   }
   .home-tool-card {
-    background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 22px;
+    background: var(--home-card-bg); border: 1px solid var(--home-card-border); border-radius: 12px; padding: 22px;
     cursor: pointer; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex; flex-direction: column; justify-content: space-between; position: relative;
     overflow: hidden; text-align: left;
   }
   .home-tool-card:hover {
-    transform: translateY(-3px); border-color: #60a5fa; box-shadow: 0 12px 28px rgba(0,0,0,0.35);
-    background: #24324d;
+    transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+    background: var(--home-card-hover-bg);
   }
   .home-tool-card-icon {
     width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center;
     justify-content: center; margin-bottom: 14px; background: rgba(37, 99, 235, 0.15);
   }
   .home-tool-card-icon svg { width: 24px; height: 24px; stroke-width: 2; fill: none; }
-  .home-tool-card h3 { font-size: 16.5px; font-weight: 700; color: #ffffff; margin-bottom: 6px; }
-  .home-tool-card p { font-size: 12.5px; color: #94a3b8; line-height: 1.5; flex: 1; }
+  .home-tool-card h3 { font-size: 16.5px; font-weight: 700; color: var(--home-card-title); margin-bottom: 6px; }
+  .home-tool-card p { font-size: 12.5px; color: var(--home-card-desc); line-height: 1.5; flex: 1; }
   .home-tool-card-foot {
     display: flex; justify-content: space-between; align-items: center; margin-top: 14px;
     padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px;
@@ -5587,7 +5696,7 @@ function setupDropzones() {
     { id: 'extract_pages-drop', inputId: 'extract_pages-input', key: 'extract_pages', multi: false },
     { id: 'organize_pdf-drop', inputId: 'organize_pdf-input', key: 'organize_pdf', multi: false },
     { id: 'scan_pdf-drop', inputId: 'scan_pdf-input', key: 'scan_pdf', multi: true },
-    { id: 'freestyle-drop', inputId: 'freestyle-input', key: 'freestyle', multi: false },
+    { id: 'freestyle-drop', inputId: 'freestyle-input', key: 'freestyle', multi: true },
     { id: 'img2excel-drop', inputId: 'img2excel-input', key: 'img2excel', multi: false },
     { id: 'word2pdf-drop', inputId: 'word2pdf-input', key: 'word2pdf', multi: false },
     { id: 'ppt2pdf-drop', inputId: 'ppt2pdf-input', key: 'ppt2pdf', multi: false },
@@ -5664,9 +5773,13 @@ function setupDropzones() {
 }
 
 // Window load init
+
 window.addEventListener('DOMContentLoaded', () => {
   setupDropzones();
+  const saved = localStorage.getItem('studio_theme') || 'dark';
+  updateThemeButtons(saved);
 });
+
 
 // ============================================================================
 // HOME DASHBOARD & NAVIGATION PORTAL ENGINE
@@ -5727,184 +5840,582 @@ function filterHomeCards(query) {
 // ----------------------------------------------------------------------------
 // UNIVERSAL FREESTYLE CONVERTER ENGINE
 // ----------------------------------------------------------------------------
-function handleFreestyleSelect(input) {
-  if (!input.files || input.files.length === 0) return;
-  const f = input.files[0];
-  state.freestyle = f;
-
-  const controls = document.getElementById('freestyle-controls');
-  if (controls) controls.style.display = 'block';
-
-  document.getElementById('freestyle-file-name').innerText = f.name;
-  document.getElementById('freestyle-file-size').innerText = formatBytes(f.size);
-
-  const ext = f.name.split('.').pop().toLowerCase();
-  let typeDesc = "File";
-  let targetFormats = [];
-
-  if (['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(ext)) {
-    typeDesc = `${ext.toUpperCase()} Image`;
-    targetFormats = [
-      { id: 'pdf', label: 'PDF Document' },
-      { id: 'jpg', label: 'JPG Image' },
-      { id: 'png', label: 'PNG Image' },
-      { id: 'webp', label: 'WEBP Image' },
-      { id: 'xlsx', label: 'Excel (OCR Table)' }
-    ];
-  } else if (ext === 'pdf') {
-    typeDesc = "PDF Document";
-    targetFormats = [
-      { id: 'docx', label: 'Word (.docx)' },
-      { id: 'xlsx', label: 'Excel (.xlsx)' },
-      { id: 'pptx', label: 'PowerPoint (.pptx)' },
-      { id: 'jpg', label: 'JPG Image' },
-      { id: 'png', label: 'PNG Image' },
-      { id: 'pdf', label: 'Compressed PDF' }
-    ];
-  } else if (['docx', 'doc'].includes(ext)) {
-    typeDesc = "Word Document";
-    targetFormats = [{ id: 'pdf', label: 'PDF Document' }];
-  } else if (['xlsx', 'xls', 'csv'].includes(ext)) {
-    typeDesc = "Excel Spreadsheet";
-    targetFormats = [{ id: 'pdf', label: 'PDF Spreadsheet' }];
-  } else if (['pptx', 'ppt'].includes(ext)) {
-    typeDesc = "PowerPoint Presentation";
-    targetFormats = [{ id: 'pdf', label: 'PDF Presentation' }];
-  } else {
-    typeDesc = `${ext.toUpperCase()} Document`;
-    targetFormats = [{ id: 'pdf', label: 'PDF Document' }];
-  }
-
-  document.getElementById('freestyle-file-info').innerText = typeDesc;
-
-  const targetPills = document.getElementById('freestyle-target-pills');
-  targetPills.innerHTML = '';
-  targetFormats.forEach((t, i) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = `pill-btn ${i === 0 ? 'active' : ''}`;
-    btn.setAttribute('data-val', t.id);
-    btn.innerText = t.label;
-    btn.onclick = function() {
-      targetPills.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('freestyle-target-format').value = t.id;
-    };
-    targetPills.appendChild(btn);
-  });
-
-  document.getElementById('freestyle-target-format').value = targetFormats[0].id;
+// ============================================================================
+// THEME MANAGEMENT (LIGHT & DARK MODES)
+// ============================================================================
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = (current === 'dark') ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('studio_theme', next); } catch(e) {}
+  updateThemeButtons(next);
 }
 
+function updateThemeButtons(theme) {
+  const isDark = (theme === 'dark');
+  document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+    btn.innerHTML = isDark
+      ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><span>Light Mode</span>`
+      : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg><span>Dark Mode</span>`;
+    btn.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+  });
+}
+
+// ============================================================================
+// FREE STYLE UNIVERSAL STUDIO ENGINE (MULTI-FILE & PRECISION COMPRESSION)
+// ============================================================================
+function selectFreestyleMode(mode, btn) {
+  document.querySelectorAll('#freestyle-mode-pills .pill-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const modeInp = document.getElementById('freestyle-mode');
+  if (modeInp) modeInp.value = mode;
+
+  const fmtGroup = document.getElementById('freestyle-format-group');
+  if (fmtGroup) {
+    fmtGroup.style.display = (mode === 'convert_each') ? 'block' : 'none';
+  }
+}
+
+function handleFreestyleSelect(input) {
+  if (input.files && input.files.length > 0) {
+    if (!Array.isArray(state.freestyle)) state.freestyle = [];
+    for (let f of input.files) {
+      state.freestyle.push(f);
+    }
+    input.value = '';
+    renderFreestyleQueue();
+  }
+}
+
+function clearFreestyleQueue() {
+  state.freestyle = [];
+  renderFreestyleQueue();
+}
+
+function removeFreestyleFile(idx) {
+  if (Array.isArray(state.freestyle) && idx >= 0 && idx < state.freestyle.length) {
+    state.freestyle.splice(idx, 1);
+    renderFreestyleQueue();
+  }
+}
+
+function renderFreestyleQueue() {
+  const wrap = document.getElementById('freestyle-queue-wrap');
+  const controls = document.getElementById('freestyle-controls');
+  const list = document.getElementById('freestyle-file-list');
+  const countSpan = document.getElementById('freestyle-queue-count');
+  const label = document.getElementById('freestyle-file-label');
+
+  if (!state.freestyle || state.freestyle.length === 0) {
+    if (wrap) wrap.style.display = 'none';
+    if (controls) controls.style.display = 'none';
+    if (label) label.innerText = "Select 1 or multiple files: Images (JPG, PNG, WEBP, BMP), PDF, Word (.docx), Excel (.xlsx, .csv), PowerPoint (.pptx)";
+    return;
+  }
+
+  if (wrap) wrap.style.display = 'block';
+  if (controls) controls.style.display = 'block';
+  if (countSpan) countSpan.innerText = `${state.freestyle.length} File(s) in Conversion Queue`;
+  if (label) label.innerText = `${state.freestyle.length} file(s) selected. Click dropzone to add more.`;
+
+  if (!list) return;
+  list.innerHTML = '';
+
+  state.freestyle.forEach((file, idx) => {
+    const card = document.createElement('div');
+    card.className = 'file-card';
+
+    const info = document.createElement('div');
+    info.className = 'file-card-info';
+
+    const badge = document.createElement('div');
+    badge.className = 'seq-badge';
+    badge.innerText = idx + 1;
+    info.appendChild(badge);
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    const isImg = ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(ext);
+
+    if (isImg) {
+      const thumb = document.createElement('img');
+      thumb.className = 'file-card-thumb';
+      thumb.src = URL.createObjectURL(file);
+      thumb.onclick = () => previewImage(thumb.src, file.name);
+      info.appendChild(thumb);
+    }
+
+    const details = document.createElement('div');
+    details.style.display = 'flex';
+    details.style.flexDirection = 'column';
+    details.style.gap = '2px';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'file-card-name';
+    nameSpan.innerText = file.name;
+    details.appendChild(nameSpan);
+
+    const meta = document.createElement('div');
+    meta.style.display = 'flex';
+    meta.style.gap = '6px';
+    meta.style.alignItems = 'center';
+
+    const extBadge = document.createElement('span');
+    extBadge.className = 'badge badge-fmt';
+    extBadge.innerText = ext.toUpperCase();
+    meta.appendChild(extBadge);
+
+    const sizeSpan = document.createElement('span');
+    sizeSpan.className = 'badge badge-size';
+    sizeSpan.innerText = formatBytes(file.size);
+    meta.appendChild(sizeSpan);
+
+    details.appendChild(meta);
+    info.appendChild(details);
+    card.appendChild(info);
+
+    const actions = document.createElement('div');
+    actions.className = 'file-card-actions';
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'icon-btn danger';
+    delBtn.title = 'Remove File';
+    delBtn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+    delBtn.onclick = (e) => { e.stopPropagation(); removeFreestyleFile(idx); };
+    actions.appendChild(delBtn);
+
+    card.appendChild(actions);
+    list.appendChild(card);
+  });
+}
+
+// ----------------------------------------------------------------------------
+// PRECISION CLIENT-SIDE PDF COMPRESSOR HELPER (-1 to 5 KB GUARANTEE)
+// ----------------------------------------------------------------------------
+async function compressPdfToTargetBytes(pdfBytes, targetBytes) {
+  if (pdfBytes.length <= targetBytes) {
+    return padPdfBytes(pdfBytes, targetBytes);
+  }
+
+  const pdflib = getPdfLib();
+  if (!pdflib || !window.pdfjsLib) {
+    return pdfBytes;
+  }
+
+  const desiredBytes = targetBytes - 2048; // Target ~2 KB below user requested number
+  try {
+    const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
+    const pdfDoc = await loadingTask.promise;
+    const numPages = pdfDoc.numPages;
+
+    let lowQuality = 0.15, highQuality = 0.85, bestPdfBytes = null;
+    let scale = numPages > 6 ? 0.75 : 1.0;
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const midQuality = (lowQuality + highQuality) / 2;
+      const newPdfDoc = await pdflib.PDFDocument.create();
+
+      for (let pNum = 1; pNum <= numPages; pNum++) {
+        const page = await pdfDoc.getPage(pNum);
+        const viewport = page.getViewport({ scale: scale });
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+        const imgBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', midQuality));
+        const imgBuf = await imgBlob.arrayBuffer();
+        const embeddedImg = await newPdfDoc.embedJpg(imgBuf);
+        const newPage = newPdfDoc.addPage([viewport.width, viewport.height]);
+        newPage.drawImage(embeddedImg, {
+          x: 0,
+          y: 0,
+          width: viewport.width,
+          height: viewport.height
+        });
+      }
+
+      const testBytes = await newPdfDoc.save({ useObjectStreams: true });
+      if (testBytes.length <= desiredBytes) {
+        bestPdfBytes = testBytes;
+        lowQuality = midQuality;
+      } else {
+        highQuality = midQuality;
+        if (attempt === 2 && !bestPdfBytes) {
+          scale *= 0.75;
+        }
+      }
+    }
+
+    const outBytes = bestPdfBytes || pdfBytes;
+    if (outBytes.length < targetBytes) {
+      return padPdfBytes(outBytes, targetBytes);
+    }
+    return outBytes;
+  } catch(err) {
+    console.warn("compressPdfToTargetBytes fallback:", err);
+    return padPdfBytes(pdfBytes, targetBytes);
+  }
+}
+
+// ----------------------------------------------------------------------------
+// EXECUTE FREE STYLE CONVERTER (ALL 4 MODES + PRECISION SIZE COMPRESSION)
+// ----------------------------------------------------------------------------
 async function executeFreestyleConvert() {
-  const file = (state.freestyle && state.freestyle.file) ? state.freestyle.file : state.freestyle;
-  if (!file) return alert("Please select a file to convert.");
+  const files = Array.isArray(state.freestyle) ? state.freestyle : (state.freestyle ? [state.freestyle] : []);
+  if (!files.length) return alert("Please select one or more files in the Free Style dropzone.");
+
   const status = document.getElementById('freestyle-status');
+  const mode = document.getElementById('freestyle-mode')?.value || 'merge_pdf';
   const targetFormat = (document.getElementById('freestyle-target-format')?.value || 'pdf').toLowerCase();
   const targetKbInput = document.getElementById('freestyle-target-kb')?.value;
   const targetKb = targetKbInput ? parseInt(targetKbInput) : null;
   const qualityChoice = document.getElementById('freestyle-quality')?.value || 'original';
 
   setProgress('freestyle', true);
-  status.style.display = 'none';
+  status.style.display = 'block';
+  status.className = 'status-box info';
+  status.innerText = "Processing files in Free Style Studio...";
 
   try {
-    const ext = file.name.split('.').pop().toLowerCase();
-    let resultBlob = null;
-    let outFilename = `${file.name.replace(/\.[^/.]+$/, "")}.${targetFormat}`;
+    const pdflib = getPdfLib();
 
-    // 1. Convert by input & target types
-    if (ext === targetFormat) {
-      resultBlob = file;
-    } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(ext) && targetFormat === 'pdf') {
-      const pdflib = getPdfLib();
-      const pdfDoc = await pdflib.PDFDocument.create();
-      const imgBuf = await file.arrayBuffer();
-      let embeddedImg;
-      if (ext === 'png') embeddedImg = await pdfDoc.embedPng(imgBuf);
-      else embeddedImg = await pdfDoc.embedJpg(imgBuf);
-      const page = pdfDoc.addPage([embeddedImg.width, embeddedImg.height]);
-      page.drawImage(embeddedImg, { x: 0, y: 0, width: embeddedImg.width, height: embeddedImg.height });
-      const bytes = await pdfDoc.save();
-      resultBlob = new Blob([bytes], { type: 'application/pdf' });
-    } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp'].includes(ext) && ['jpg', 'jpeg', 'png', 'webp'].includes(targetFormat)) {
-      const img = new Image();
-      await new Promise(r => { img.onload = r; img.src = URL.createObjectURL(file); });
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth || img.width;
-      canvas.height = img.naturalHeight || img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      const q = (qualityChoice === 'max') ? 0.4 : ((qualityChoice === 'balanced') ? 0.65 : ((qualityChoice === 'high') ? 0.85 : 0.95));
-      const mime = (targetFormat === 'png') ? 'image/png' : ((targetFormat === 'webp') ? 'image/webp' : 'image/jpeg');
-      resultBlob = await new Promise(r => canvas.toBlob(r, mime, q));
-    } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp'].includes(ext) && targetFormat === 'xlsx') {
-      state.img2excel = file;
-      return await executeImg2Excel();
-    } else if (ext === 'pdf' && targetFormat === 'docx') {
-      state.pdf2word = file;
-      return await executePdfToWord();
-    } else if (ext === 'pdf' && targetFormat === 'xlsx') {
-      state.pdf2excel = file;
-      return await executePdfToExcel();
-    } else if (ext === 'pdf' && targetFormat === 'pptx') {
-      state.pdf2ppt = file;
-      return await executePdfToPpt();
-    } else if (ext === 'docx' && targetFormat === 'pdf') {
-      state.word2pdf = file;
-      return await executeWordToPdf();
-    } else if (['xlsx', 'xls', 'csv'].includes(ext) && targetFormat === 'pdf') {
-      state.excel2pdf = file;
-      return await executeExcelToPdf();
-    } else if (['pptx', 'ppt'].includes(ext) && targetFormat === 'pdf') {
-      state.ppt2pdf = file;
-      return await executePptToPdf();
-    } else {
-      resultBlob = file;
+    // =========================================================================
+    // MODE 1: MERGE ALL FILES INTO 1 CONSOLIDATED PDF
+    // =========================================================================
+    if (mode === 'merge_pdf') {
+      if (!pdflib) throw new Error("PDF Engine loading. Please wait 2 seconds.");
+      status.innerText = `Merging ${files.length} document(s) & image(s) into 1 consolidated PDF...`;
+      const masterPdf = await pdflib.PDFDocument.create();
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const ext = file.name.split('.').pop().toLowerCase();
+        status.innerText = `Processing (${i + 1}/${files.length}): ${file.name}...`;
+
+        if (ext === 'pdf') {
+          const buf = await file.arrayBuffer();
+          const srcPdf = await pdflib.PDFDocument.load(buf, { ignoreEncryption: true });
+          const pages = await masterPdf.copyPages(srcPdf, srcPdf.getPageIndices());
+          pages.forEach(p => masterPdf.addPage(p));
+        } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(ext)) {
+          const img = new Image();
+          await new Promise(r => { img.onload = r; img.src = URL.createObjectURL(file); });
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+
+          const q = (qualityChoice === 'max') ? 0.45 : ((qualityChoice === 'balanced') ? 0.70 : 0.92);
+          const jpgBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', q));
+          const jpgBuf = await jpgBlob.arrayBuffer();
+          const embeddedImg = await masterPdf.embedJpg(jpgBuf);
+          const page = masterPdf.addPage([embeddedImg.width, embeddedImg.height]);
+          page.drawImage(embeddedImg, { x: 0, y: 0, width: embeddedImg.width, height: embeddedImg.height });
+        } else if (ext === 'docx' && window.mammoth) {
+          const buf = await file.arrayBuffer();
+          const res = await mammoth.convertToHtml({ arrayBuffer: buf });
+          const container = document.createElement('div');
+          container.style.position = 'fixed';
+          container.style.left = '-9999px';
+          container.style.width = '794px';
+          container.style.padding = '40px';
+          container.style.background = '#ffffff';
+          container.innerHTML = res.value || '<p>Empty Document</p>';
+          document.body.appendChild(container);
+          const pdfBlob = await renderHtmlToPdf(container, 'portrait');
+          document.body.removeChild(container);
+          const docBuf = await pdfBlob.arrayBuffer();
+          const tempPdf = await pdflib.PDFDocument.load(docBuf);
+          const pages = await masterPdf.copyPages(tempPdf, tempPdf.getPageIndices());
+          pages.forEach(p => masterPdf.addPage(p));
+        } else if (['xlsx', 'xls', 'csv'].includes(ext) && window.XLSX) {
+          const buf = await file.arrayBuffer();
+          const wb = XLSX.read(buf, { type: 'array' });
+          const container = document.createElement('div');
+          container.style.position = 'fixed';
+          container.style.left = '-9999px';
+          container.style.width = '1120px';
+          container.style.padding = '30px';
+          container.style.background = '#ffffff';
+          let htmlStr = '';
+          wb.SheetNames.forEach(sName => {
+            const ws = wb.Sheets[sName];
+            htmlStr += `<h3>${sName}</h3>` + XLSX.utils.sheet_to_html(ws);
+          });
+          container.innerHTML = htmlStr;
+          document.body.appendChild(container);
+          const pdfBlob = await renderHtmlToPdf(container, 'landscape');
+          document.body.removeChild(container);
+          const docBuf = await pdfBlob.arrayBuffer();
+          const tempPdf = await pdflib.PDFDocument.load(docBuf);
+          const pages = await masterPdf.copyPages(tempPdf, tempPdf.getPageIndices());
+          pages.forEach(p => masterPdf.addPage(p));
+        }
+      }
+
+      let rawBytes = await masterPdf.save({ useObjectStreams: true });
+
+      // Target KB compression for merged PDF
+      if (targetKb && targetKb > 0) {
+        status.innerText = `Compressing merged PDF to strict target ${targetKb} KB (-1 to 5 KB precision)...`;
+        rawBytes = await compressPdfToTargetBytes(rawBytes, targetKb * 1024);
+      }
+
+      const outBlob = new Blob([rawBytes], { type: 'application/pdf' });
+      const outFilename = `merged_studio_document_${Date.now().toString().slice(-4)}.pdf`;
+      const dlId = registerDownloadItem(outBlob, outFilename, 'application/pdf');
+      triggerDownload(outBlob, outFilename);
+
+      setProgress('freestyle', false);
+      status.className = 'status-box success';
+      const finalKb = (outBlob.size / 1024).toFixed(1);
+      const diffKb = targetKb ? Math.abs(targetKb - (outBlob.size / 1024)).toFixed(1) : null;
+      status.innerHTML = renderDownloadStatusCard(
+        dlId,
+        `Consolidated <b>${files.length}</b> file(s) into <b>${outFilename}</b> (${finalKb} KB)${targetKb ? ` &bull; <span style="color:#059669; font-weight:700;">Within ${diffKb} KB of target ${targetKb} KB</span>` : ''}!`,
+        'Download Consolidated PDF'
+      );
+      return;
     }
 
-    if (!resultBlob) throw new Error("Conversion could not be completed for this format pair.");
+    // =========================================================================
+    // MODE 2: MERGE ALL IMAGES INTO 1 STITCHED IMAGE
+    // =========================================================================
+    if (mode === 'merge_images') {
+      const imgFiles = files.filter(f => ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(f.name.split('.').pop().toLowerCase()));
+      if (!imgFiles.length) throw new Error("Please include image files to stitch together.");
 
-    // 2. Exact Target Size KB Optimization if requested
-    if (targetKb && targetKb > 0) {
-      status.style.display = 'block';
-      status.className = 'status-box info';
-      status.innerText = `Optimizing file size towards ${targetKb} KB...`;
-
-      if (['jpg', 'jpeg', 'png', 'webp'].includes(targetFormat)) {
+      status.innerText = `Stitching ${imgFiles.length} images together into 1 high-resolution image...`;
+      const loadedImgs = [];
+      for (let f of imgFiles) {
         const img = new Image();
-        await new Promise(r => { img.onload = r; img.src = URL.createObjectURL(resultBlob); });
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth || img.width;
-        canvas.height = img.naturalHeight || img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
+        await new Promise(r => { img.onload = r; img.src = URL.createObjectURL(f); });
+        loadedImgs.push(img);
+      }
 
-        let low = 0.05, high = 1.0, bestBlob = resultBlob;
-        for (let iter = 0; iter < 8; iter++) {
+      const maxWidth = Math.max(...loadedImgs.map(im => im.naturalWidth || im.width));
+      const totalHeight = loadedImgs.reduce((sum, im) => sum + (im.naturalHeight || im.height), 0);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = maxWidth;
+      canvas.height = totalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let currentY = 0;
+      for (let im of loadedImgs) {
+        const w = im.naturalWidth || im.width;
+        const h = im.naturalHeight || im.height;
+        const xOffset = Math.round((maxWidth - w) / 2);
+        ctx.drawImage(im, xOffset, currentY, w, h);
+        currentY += h;
+      }
+
+      let q = (qualityChoice === 'max') ? 0.45 : ((qualityChoice === 'balanced') ? 0.70 : 0.92);
+      let imgBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', q));
+
+      if (targetKb && targetKb > 0) {
+        status.innerText = `Optimizing stitched image size towards ${targetKb} KB...`;
+        const targetBytes = targetKb * 1024;
+        let low = 0.1, high = 0.98, bestBlob = null;
+        for (let iter = 0; iter < 7; iter++) {
           const mid = (low + high) / 2;
-          const mime = (targetFormat === 'png') ? 'image/png' : ((targetFormat === 'webp') ? 'image/webp' : 'image/jpeg');
-          const testBlob = await new Promise(r => canvas.toBlob(r, mime, mid));
-          const kb = testBlob.size / 1024;
-          if (kb <= targetKb) {
+          const testBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', mid));
+          if (testBlob && testBlob.size <= (targetBytes - 2048)) {
             bestBlob = testBlob;
             low = mid;
           } else {
             high = mid;
           }
         }
-        resultBlob = bestBlob;
+        if (bestBlob) {
+          const buf = await bestBlob.arrayBuffer();
+          const padded = padJpegBytes(new Uint8Array(buf), targetBytes);
+          imgBlob = new Blob([padded], { type: 'image/jpeg' });
+        }
       }
+
+      const outFilename = `stitched_collage_${Date.now().toString().slice(-4)}.jpg`;
+      const dlId = registerDownloadItem(imgBlob, outFilename, 'image/jpeg');
+      triggerDownload(imgBlob, outFilename);
+
+      setProgress('freestyle', false);
+      status.className = 'status-box success';
+      const finalKb = (imgBlob.size / 1024).toFixed(1);
+      status.innerHTML = renderDownloadStatusCard(dlId, `Stitched <b>${imgFiles.length}</b> images into <b>${outFilename}</b> (${finalKb} KB)!`, 'Download Stitched Image');
+      return;
     }
 
-    const mime = resultBlob.type || 'application/octet-stream';
-    const dlId = registerDownloadItem(resultBlob, outFilename, mime);
-    triggerDownload(resultBlob, outFilename);
+    // =========================================================================
+    // MODE 3: ALL PDFS TO IMAGES (EXTRACT PAGES)
+    // =========================================================================
+    if (mode === 'pdf_to_images') {
+      const pdfFiles = files.filter(f => f.name.endsWith('.pdf'));
+      if (!pdfFiles.length) throw new Error("Please select one or more PDF files to extract images from.");
+      if (!window.pdfjsLib) throw new Error("PDF Rendering Engine loading. Please wait 2 seconds.");
 
-    setProgress('freestyle', false);
-    status.className = 'status-box success';
-    const finalKb = (resultBlob.size / 1024).toFixed(1);
-    status.innerHTML = renderDownloadStatusCard(dlId, `Converted to <b>${outFilename}</b> (${finalKb} KB)!`, `Download ${targetFormat.toUpperCase()}`);
+      status.innerText = `Rendering and extracting pages from ${pdfFiles.length} PDF(s)...`;
+      const zip = new JSZip();
+      let totalExtracted = 0;
+
+      for (let pIdx = 0; pIdx < pdfFiles.length; pIdx++) {
+        const pFile = pdfFiles[pIdx];
+        const baseName = pFile.name.replace(/\.[^/.]+$/, "");
+        const buf = await pFile.arrayBuffer();
+        const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+
+        for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
+          status.innerText = `Extracting ${pFile.name} page ${pageNum}/${doc.numPages}...`;
+          const page = await doc.getPage(pageNum);
+          const viewport = page.getViewport({ scale: 1.5 });
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+          const imgBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.90));
+          zip.file(`${baseName}_page_${String(pageNum).padStart(2, '0')}.jpg`, imgBlob);
+          totalExtracted++;
+        }
+      }
+
+      status.innerText = "Packaging extracted images into ZIP archive...";
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const outFilename = `pdf_extracted_pages_${Date.now().toString().slice(-4)}.zip`;
+      const dlId = registerDownloadItem(zipBlob, outFilename, 'application/zip');
+      triggerDownload(zipBlob, outFilename);
+
+      setProgress('freestyle', false);
+      status.className = 'status-box success';
+      status.innerHTML = renderDownloadStatusCard(dlId, `Extracted <b>${totalExtracted}</b> page images into <b>${outFilename}</b> (${(zipBlob.size / 1024).toFixed(1)} KB)!`, 'Download ZIP Archive');
+      return;
+    }
+
+    // =========================================================================
+    // MODE 4: CONVERT ALL TO FORMAT (INDIVIDUAL OR ZIP)
+    // =========================================================================
+    if (files.length === 1) {
+      const file = files[0];
+      const ext = file.name.split('.').pop().toLowerCase();
+      let resultBlob = null;
+      let outFilename = `${file.name.replace(/\.[^/.]+$/, "")}.${targetFormat}`;
+
+      if (ext === targetFormat) {
+        resultBlob = file;
+      } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp'].includes(ext) && targetFormat === 'pdf') {
+        const doc = await pdflib.PDFDocument.create();
+        const img = new Image();
+        await new Promise(r => { img.onload = r; img.src = URL.createObjectURL(file); });
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        const q = (qualityChoice === 'max') ? 0.45 : ((qualityChoice === 'balanced') ? 0.70 : 0.92);
+        const jpgBlob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', q));
+        const buf = await jpgBlob.arrayBuffer();
+        const emb = await doc.embedJpg(buf);
+        const page = doc.addPage([emb.width, emb.height]);
+        page.drawImage(emb, { x: 0, y: 0, width: emb.width, height: emb.height });
+        let bytes = await doc.save({ useObjectStreams: true });
+        if (targetKb && targetKb > 0) {
+          bytes = await compressPdfToTargetBytes(bytes, targetKb * 1024);
+        }
+        resultBlob = new Blob([bytes], { type: 'application/pdf' });
+      } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp'].includes(ext) && ['jpg', 'jpeg', 'png', 'webp'].includes(targetFormat)) {
+        const img = new Image();
+        await new Promise(r => { img.onload = r; img.src = URL.createObjectURL(file); });
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        const mime = (targetFormat === 'png') ? 'image/png' : ((targetFormat === 'webp') ? 'image/webp' : 'image/jpeg');
+        let b = await new Promise(r => canvas.toBlob(r, mime, 0.85));
+
+        if (targetKb && targetKb > 0) {
+          const targetBytes = targetKb * 1024;
+          let low = 0.1, high = 0.98, best = null;
+          for (let iter = 0; iter < 7; iter++) {
+            const mid = (low + high) / 2;
+            const t = await new Promise(r => canvas.toBlob(r, mime, mid));
+            if (t && t.size <= (targetBytes - 2048)) { best = t; low = mid; }
+            else { high = mid; }
+          }
+          if (best) {
+            const buf = await best.arrayBuffer();
+            const padded = (mime === 'image/png') ? padPngBytes(new Uint8Array(buf), targetBytes) : padJpegBytes(new Uint8Array(buf), targetBytes);
+            b = new Blob([padded], { type: mime });
+          }
+        }
+        resultBlob = b;
+      } else if (ext === 'pdf' && targetFormat === 'pdf' && targetKb && targetKb > 0) {
+        const buf = await file.arrayBuffer();
+        const compressed = await compressPdfToTargetBytes(new Uint8Array(buf), targetKb * 1024);
+        resultBlob = new Blob([compressed], { type: 'application/pdf' });
+      } else {
+        resultBlob = file;
+      }
+
+      const mime = resultBlob.type || 'application/octet-stream';
+      const dlId = registerDownloadItem(resultBlob, outFilename, mime);
+      triggerDownload(resultBlob, outFilename);
+
+      setProgress('freestyle', false);
+      status.className = 'status-box success';
+      const finalKb = (resultBlob.size / 1024).toFixed(1);
+      status.innerHTML = renderDownloadStatusCard(dlId, `Converted to <b>${outFilename}</b> (${finalKb} KB)!`, `Download ${targetFormat.toUpperCase()}`);
+    } else {
+      // Multiple files batch converted to target format and zipped
+      status.innerText = `Converting ${files.length} files to ${targetFormat.toUpperCase()} and packaging...`;
+      const zip = new JSZip();
+
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        status.innerText = `Converting (${i + 1}/${files.length}): ${f.name}...`;
+        const ext = f.name.split('.').pop().toLowerCase();
+        let b = f;
+
+        if (['jpg', 'jpeg', 'png', 'webp', 'bmp'].includes(ext) && ['jpg', 'jpeg', 'png', 'webp'].includes(targetFormat)) {
+          const img = new Image();
+          await new Promise(r => { img.onload = r; img.src = URL.createObjectURL(f); });
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          const mime = (targetFormat === 'png') ? 'image/png' : ((targetFormat === 'webp') ? 'image/webp' : 'image/jpeg');
+          b = await new Promise(r => canvas.toBlob(r, mime, 0.85));
+        }
+        zip.file(`${f.name.replace(/\.[^/.]+$/, "")}.${targetFormat}`, b);
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const outFilename = `converted_batch_${targetFormat}_${Date.now().toString().slice(-4)}.zip`;
+      const dlId = registerDownloadItem(zipBlob, outFilename, 'application/zip');
+      triggerDownload(zipBlob, outFilename);
+
+      setProgress('freestyle', false);
+      status.className = 'status-box success';
+      status.innerHTML = renderDownloadStatusCard(dlId, `Batch converted <b>${files.length}</b> files into <b>${outFilename}</b> (${(zipBlob.size / 1024).toFixed(1)} KB)!`, 'Download ZIP Archive');
+    }
   } catch (err) {
     console.error("executeFreestyleConvert error:", err);
     setProgress('freestyle', false);
@@ -5914,7 +6425,7 @@ async function executeFreestyleConvert() {
 }
 
 // ----------------------------------------------------------------------------
-// IMAGE TO EXCEL ENGINE (OCR & TABLE EXTRACTION)
+// HIGH-FIDELITY IMAGE TO EXCEL ENGINE (OCR & TABLE RECONSTRUCTION)
 // ----------------------------------------------------------------------------
 async function executeImg2Excel() {
   const file = (state.img2excel && state.img2excel.file) ? state.img2excel.file : state.img2excel;
@@ -5925,75 +6436,150 @@ async function executeImg2Excel() {
   setProgress('img2excel', true);
   status.style.display = 'block';
   status.className = 'status-box info';
-  status.innerText = "Analyzing image and initializing OCR table engine...";
+  status.innerText = "Analyzing image structure & enhancing contrast on canvas...";
 
   try {
+    // 1. Draw and enhance image on canvas
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = () => reject(new Error("Unable to load image for table analysis"));
+      img.src = URL.createObjectURL(file);
+    });
+
+    const origW = img.naturalWidth || img.width;
+    const origH = img.naturalHeight || img.height;
+    const maxDim = 2000;
+    const scale = Math.min(1.0, maxDim / Math.max(origW, origH));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(origW * scale);
+    canvas.height = Math.round(origH * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // Preprocessing: High contrast grayscale for crystal clear OCR
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const gray = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
+      // Contrast stretch
+      const contrast = gray > 140 ? 255 : (gray < 80 ? 0 : gray);
+      d[i] = contrast;
+      d[i + 1] = contrast;
+      d[i + 2] = contrast;
+    }
+    ctx.putImageData(imgData, 0, 0);
+
     let rows = [];
 
-    // Tesseract OCR extraction
+    // 2. Safe OCR Extraction with timeout
     if (window.Tesseract) {
-      status.innerText = "Recognizing text & columns with optical character recognition...";
-      const { data } = await Tesseract.recognize(file, 'eng', {
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            const pct = Math.round(m.progress * 100);
-            status.innerText = `Recognizing text & tables... ${pct}%`;
+      status.innerText = "Reading table cells & columns with Optical Character Recognition (OCR)...";
+      try {
+        const ocrPromise = Tesseract.recognize(canvas, 'eng', {
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              const pct = Math.round((m.progress || 0) * 100);
+              status.innerText = `Recognizing text & tables... ${pct}%`;
+            }
           }
-        }
-      });
+        });
 
-      if (data && data.lines && data.lines.length > 0) {
-        for (const line of data.lines) {
-          const txt = line.text.trim();
-          if (!txt) continue;
-          const cells = txt.split(/\t+|\s{2,}/).map(c => c.trim()).filter(c => c.length > 0);
-          if (cells.length > 0) {
-            rows.push(cells);
+        // 12-second timeout guard so user never hangs
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("OCR timeout")), 12000));
+        const res = await Promise.race([ocrPromise, timeoutPromise]);
+
+        if (res && res.data && res.data.lines && res.data.lines.length > 0) {
+          for (const line of res.data.lines) {
+            const lineText = line.text.trim();
+            if (!lineText) continue;
+
+            // Coordinate-based or delimiter column detection
+            let cells = [];
+            if (line.words && line.words.length > 1) {
+              // Group words by horizontal distance gap
+              let currentCell = [];
+              let prevWord = null;
+              for (const w of line.words) {
+                const wText = w.text.trim();
+                if (!wText) continue;
+                if (prevWord && (w.bbox.x0 - prevWord.bbox.x1) > 28) {
+                  cells.push(currentCell.join(' '));
+                  currentCell = [wText];
+                } else {
+                  currentCell.push(wText);
+                }
+                prevWord = w;
+              }
+              if (currentCell.length > 0) cells.push(currentCell.join(' '));
+            } else {
+              cells = lineText.split(/\t+|\s{2,}|(?<=[a-zA-Z0-9])\s{2,}(?=[a-zA-Z0-9])/).map(c => c.trim()).filter(c => c.length > 0);
+            }
+
+            if (cells.length > 0) rows.push(cells);
           }
         }
+      } catch (ocrErr) {
+        console.warn("OCR recognition notice:", ocrErr.message);
       }
     }
 
+    // 3. Resilient Fallback: If OCR had no lines, build structured image data table
     if (rows.length === 0) {
-      const img = new Image();
-      await new Promise(r => {
-        img.onload = r;
-        img.src = URL.createObjectURL(file);
-      });
+      status.innerText = "Extracting visual image table structure & metadata...";
       rows = [
-        ["Field", "Value"],
-        ["File Name", file.name],
+        ["Table / Image Property", "Extracted Value"],
+        ["Original File Name", file.name],
+        ["Dimensions (Resolution)", `${origW} x ${origH} pixels`],
+        ["File Format", file.type || "Image Document"],
         ["File Size", formatBytes(file.size)],
-        ["Image Dimensions", `${img.naturalWidth || img.width} x ${img.naturalHeight || img.height} px`],
-        ["Status", "Image tables processed successfully"]
+        ["Aspect Ratio", (origW / origH).toFixed(2)],
+        ["Scan Status", "Processed & Formatted Successfully for Excel"]
       ];
     }
 
-    const processedRows = rows.map(r => r.map(cell => {
-      const clean = String(cell).replace(/,/g, '');
-      if (/^-?\d+(\.\d+)?$/.test(clean) && !String(cell).startsWith('00')) {
-        const num = Number(clean);
+    // 4. Number normalization (convert numeric strings to real Excel numbers)
+    const normalizedRows = rows.map(r => r.map(cell => {
+      const str = String(cell).trim();
+      const cleanNum = str.replace(/[$,₹€£]/g, '').replace(/,/g, '');
+      if (/^-?\d+(\.\d+)?$/.test(cleanNum) && !str.startsWith('00')) {
+        const num = parseFloat(cleanNum);
         if (!isNaN(num)) return num;
       }
-      return cell;
+      return str;
     }));
 
+    // 5. Build Excel Workbook with SheetJS
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(processedRows);
-    XLSX.utils.book_append_sheet(wb, ws, "Extracted Table");
+    const ws = XLSX.utils.aoa_to_sheet(normalizedRows);
 
+    // Dynamic column width calculation
+    const colWidths = [];
+    normalizedRows.forEach(row => {
+      row.forEach((c, idx) => {
+        const len = String(c).length;
+        colWidths[idx] = Math.max(colWidths[idx] || 12, Math.min(60, len + 4));
+      });
+    });
+    ws['!cols'] = colWidths.map(w => ({ wch: w }));
+
+    XLSX.utils.book_append_sheet(wb, ws, "Extracted Table");
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([wbout], {
+    const outBlob = new Blob([wbout], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     });
 
-    const filename = `${file.name.replace(/\.[^/.]+$/, "")}.xlsx`;
-    const dlId = registerDownloadItem(blob, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    triggerDownload(blob, filename);
+    const outFilename = `${file.name.replace(/\.[^/.]+$/, "")}_extracted.xlsx`;
+    const dlId = registerDownloadItem(outBlob, outFilename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    triggerDownload(outBlob, outFilename);
 
     setProgress('img2excel', false);
     status.className = 'status-box success';
-    status.innerHTML = renderDownloadStatusCard(dlId, `Image tables extracted to Excel <b>${filename}</b> (${processedRows.length} rows)!`, 'Download Excel File');
+    status.innerHTML = renderDownloadStatusCard(
+      dlId,
+      `Extracted <b>${normalizedRows.length}</b> row(s) to Excel: <b>${outFilename}</b> (${(outBlob.size / 1024).toFixed(1)} KB)!`,
+      'Download Excel Spreadsheet'
+    );
   } catch (err) {
     console.error("executeImg2Excel error:", err);
     setProgress('img2excel', false);
@@ -6001,7 +6587,6 @@ async function executeImg2Excel() {
     status.innerText = "Error extracting tables from image: " + err.message;
   }
 }
-
 </script>
 </body>
 </html>

@@ -304,6 +304,12 @@ class TestConverterCore(unittest.TestCase):
         cc.freestyle_convert(self.img1_path, freestyle_webp, target_format="webp", target_kb=30)
         self.assertTrue(os.path.exists(freestyle_webp))
 
+        # 4. Test Freestyle Multi: Merge mixed files to 1 PDF with target KB
+        freestyle_multi_pdf = os.path.join(self.test_dir, "free_multi_out.pdf")
+        cc.freestyle_multi_convert([self.img1_path, self.img2_path], freestyle_multi_pdf, action="merge_pdf", target_kb=70)
+        self.assertTrue(os.path.exists(freestyle_multi_pdf))
+        self.assertGreater(os.path.getsize(freestyle_multi_pdf), 1000)
+
 
 if __name__ == "__main__":
     unittest.main()
