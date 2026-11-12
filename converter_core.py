@@ -10,6 +10,7 @@ Provides modular processing functions for:
 
 import os
 import io
+import re
 import math
 import zlib
 from typing import List, Optional, Tuple, Union

@@ -10,7 +10,7 @@
 <script>
   (function() {
     try {
-      const saved = localStorage.getItem('studio_theme') || 'dark';
+      const saved = localStorage.getItem('studio_theme') || 'light';
       document.documentElement.setAttribute('data-theme', saved);
     } catch(e) {}
   })();
@@ -55,7 +55,13 @@
   }
 </script>
 <!-- Tesseract.js for Image to Excel OCR -->
+<!-- Tesseract.js for Image to Excel OCR -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+  if (!window.Tesseract) {
+    document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"><\/script>');
+  }
+</script>
 <!-- html2canvas for High-Fidelity Office Document Rendering -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
@@ -69,48 +75,73 @@
     /* ==========================================================================
      THEME VARIABLES (LIGHT & DARK MODES)
      ========================================================================== */
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  html {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: 100% !important;
+    background: var(--home-bg) !important;
+  }
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: 100% !important;
+    background: var(--home-bg) !important;
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow-x: hidden !important;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+
   :root, [data-theme="light"] {
     --theme-mode: light;
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
-    --primary-glow: rgba(37, 99, 235, 0.2);
-    --sidebar-bg: #ffffff;
+    --primary-glow: rgba(37, 99, 235, 0.18);
+    --sidebar-bg: #f8fafc;
     --sidebar-border: #e2e8f0;
     --sidebar-text: #0f172a;
     --sidebar-muted: #64748b;
-    --sidebar-hover: #f1f5f9;
+    --sidebar-hover: #edf2f7;
     --sidebar-hover-text: #0f172a;
-    --sidebar-active: #dbeafe;
-    --sidebar-active-text: #1d4ed8;
-    --sidebar-footer-bg: #f8fafc;
-    --bg-page: #f1f5f9;
-    --bg-card: #ffffff;
+    --sidebar-active: #e0e7ff;
+    --sidebar-active-text: #2563eb;
+    --sidebar-footer-bg: #f1f5f9;
+    --bg-page: #f5f6f8;            /* Premium Off-White Page */
+    --bg-card: #ffffff;            /* Card Background */
     --border: #e2e8f0;
-    --border-light: #f8fafc;
+    --border-light: #f1f5f9;
     --text-main: #0f172a;
     --text-muted: #64748b;
     --input-bg: #ffffff;
     --input-border: #cbd5e1;
     --input-text: #0f172a;
-    --dropzone-bg: #f8fafc;
+    --dropzone-bg: #fafbfc;
     --dropzone-border: #cbd5e1;
-    --home-bg: #f8fafc;
-    --home-header-bg: rgba(255, 255, 255, 0.94);
+    --home-bg: #f5f6f8;            /* Premium Off-White Landing */
+    --home-header-bg: rgba(245, 246, 248, 0.94);
     --home-header-border: #e2e8f0;
     --home-card-bg: #ffffff;
     --home-card-border: #e2e8f0;
-    --home-card-hover-bg: #f1f5f9;
+    --home-card-hover-bg: #ffffff;
     --home-card-title: #0f172a;
     --home-card-desc: #64748b;
-    --home-pill-bg: #f1f5f9;
-    --home-pill-border: #e2e8f0;
-    --home-pill-text: #475569;
+    --home-pill-bg: #e9edf2;
+    --home-pill-border: #cbd5e1;
+    --home-pill-text: #334155;
     --home-search-bg: #ffffff;
     --home-search-border: #cbd5e1;
     --home-search-text: #0f172a;
     --home-hero-title: #0f172a;
-    --home-hero-p: #64748b;
-    --home-section-title: #334155;
+    --home-hero-p: #475569;
+    --home-section-title: #1e293b;
     --danger: #ef4444;
     --danger-hover: #dc2626;
     --success: #10b981;
@@ -463,88 +494,164 @@
   }
 
   @media (max-width: 860px) {
-    
+    #app-view {
+      flex-direction: column !important;
+      height: auto !important;
+      min-height: 100vh !important;
+      width: 100% !important;
+      overflow-x: hidden !important;
+      display: none;
+    }
 
     body {
       flex-direction: column !important;
       min-height: 100vh !important;
       overflow-x: hidden !important;
+      width: 100% !important;
     }
 
+    .home-header {
+      padding: 12px 16px !important;
+    }
+    .home-header .home-badge {
+      display: none !important; /* Hide long badge on mobile header to prevent overlapping */
+    }
+    .home-brand .brand-title {
+      font-size: 16px !important;
+    }
+    .home-hero {
+      margin: 24px auto 20px auto !important;
+      padding: 0 16px !important;
+    }
+    .home-hero h1 {
+      font-size: 24px !important;
+      line-height: 1.3 !important;
+      margin-bottom: 10px !important;
+    }
+    .home-hero p {
+      font-size: 13.5px !important;
+      line-height: 1.5 !important;
+      margin-bottom: 20px !important;
+    }
+    .home-cat-pills {
+      gap: 6px !important;
+      margin-bottom: 24px !important;
+    }
+    .home-cat-btn {
+      padding: 6px 14px !important;
+      font-size: 12px !important;
+    }
+    .home-grid-container {
+      padding: 0 14px !important;
+    }
+    .home-tools-grid {
+      grid-template-columns: 1fr !important;
+      gap: 12px !important;
+    }
+
+    /* Mobile Sidebar - Compact Top Sticky Bar (Upload & Convert Stay Directly Visible) */
     .sidebar {
       width: 100% !important;
-      min-height: auto !important;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
       position: sticky !important;
       top: 0 !important;
-      z-index: 90 !important;
-      padding: 10px 12px 6px 12px !important;
+      z-index: 95 !important;
+      padding: 8px 12px !important;
       background: var(--sidebar-bg) !important;
       border-right: none !important;
       border-bottom: 1px solid var(--sidebar-border) !important;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08) !important;
       flex-shrink: 0 !important;
+      overflow: visible !important;
     }
-    .brand { padding: 0 0 6px 0; border-bottom: 1px solid var(--sidebar-border); }
-    .brand-title { font-size: 14px; }
-    .brand-sub { font-size: 10px; }
-
-    .nav-section-title { display: none; }
-
+    .sidebar .brand {
+      display: none !important; /* Save vertical screen space for the actual tool workspace */
+    }
+    .sidebar-footer {
+      display: none !important;
+    }
     .mobile-cat-bar {
-      display: flex !important;
-      gap: 5px; overflow-x: auto; white-space: nowrap; padding: 6px 0 4px 0;
-      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+      display: none !important;
     }
-    .mobile-cat-bar::-webkit-scrollbar { display: none; }
-    .cat-pill {
-      background: var(--home-pill-bg) !important; color: var(--text-muted) !important;
-      border: 1px solid var(--border) !important; border-radius: 12px;
-      padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;
-      transition: all 0.15s;
+    .nav-section-title {
+      display: none !important;
     }
-    .cat-pill.active { background: var(--primary) !important; color: #ffffff !important; border-color: var(--primary) !important; font-weight: 800; }
+
+    .btn-home-back {
+      width: auto !important;
+      display: inline-flex !important;
+      margin: 0 0 6px 0 !important;
+      padding: 6px 12px !important;
+      font-size: 12px !important;
+      border-radius: 6px !important;
+    }
 
     .nav-list {
+      display: flex !important;
       flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      flex: 0 0 auto !important; /* Never take remaining vertical space */
+      height: 38px !important;
+      min-height: 38px !important;
+      max-height: 38px !important;
       overflow-x: auto !important;
       overflow-y: hidden !important;
       white-space: nowrap !important;
-      margin-top: 4px; gap: 5px; padding-bottom: 3px; -webkit-overflow-scrolling: touch;
+      margin: 0 !important;
+      padding: 2px 0 4px 0 !important;
+      gap: 6px !important;
+      -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
-    .nav-list::-webkit-scrollbar { display: none; }
+    .nav-list::-webkit-scrollbar {
+      display: none;
+    }
 
     .nav-item {
-      padding: 7px 11px !important;
-      border-radius: 18px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex: 0 0 auto !important;
+      height: 32px !important;
+      min-height: 32px !important;
+      max-height: 32px !important;
+      padding: 0 12px !important;
+      border-radius: 16px !important;
       font-size: 11.5px !important;
       border-left: none !important;
       background: var(--home-pill-bg) !important;
       color: var(--text-muted) !important;
-      flex-shrink: 0 !important;
       border: 1px solid var(--border) !important;
       gap: 5px !important;
+      margin: 0 !important;
     }
-    .nav-item:hover { transform: none; }
+    .nav-item:hover {
+      transform: none !important;
+    }
     .nav-item.active {
       background: var(--primary) !important;
       color: #ffffff !important;
       border-color: var(--primary) !important;
-      box-shadow: 0 2px 8px var(--primary-glow) !important;
+      box-shadow: 0 2px 6px var(--primary-glow) !important;
+      font-weight: 700 !important;
     }
-    .nav-item svg { width: 14px; height: 14px; }
+    .nav-item svg {
+      width: 14px !important;
+      height: 14px !important;
+    }
 
-    .sidebar-footer { display: none !important; }
-
-    /* WORKSPACE VISIBILITY FIX ON MOBILE */
+    /* WORKSPACE - IMMEDIATE UPLOAD & CONVERT VISIBILITY */
     .workspace {
       width: 100% !important;
       max-width: 100% !important;
-      flex: 1 0 auto !important;
+      flex: 1 1 auto !important;
       overflow-y: visible !important;
       padding: 14px 12px 60px 12px !important;
       display: block !important;
       box-sizing: border-box !important;
+      background: var(--bg-page) !important;
     }
 
     .tab-pane.active {
@@ -552,9 +659,17 @@
       width: 100% !important;
     }
 
-    .page-header { margin-bottom: 12px; }
-    .page-header h2 { font-size: 18px; line-height: 1.25; }
-    .page-header p { font-size: 12px; margin-top: 2px; }
+    .page-header {
+      margin-bottom: 12px !important;
+    }
+    .page-header h2 {
+      font-size: 18px !important;
+      line-height: 1.25 !important;
+    }
+    .page-header p {
+      font-size: 12px !important;
+      margin-top: 2px !important;
+    }
 
     .card {
       padding: 16px 12px !important;
@@ -563,25 +678,53 @@
       box-sizing: border-box !important;
     }
     .dropzone {
-      padding: 22px 10px !important;
+      padding: 24px 12px !important;
       margin-bottom: 14px !important;
     }
-    .dropzone svg { width: 34px; height: 34px; }
-    .dropzone strong { font-size: 13.5px; }
+    .dropzone svg {
+      width: 32px !important;
+      height: 32px !important;
+    }
+    .dropzone strong {
+      font-size: 13.5px !important;
+    }
 
-    .form-row { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 12px; }
-    .form-group { width: 100%; }
-    .form-control { width: 100% !important; font-size: 15px; padding: 9px 11px; }
+    .form-row {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 10px !important;
+      margin-bottom: 12px !important;
+    }
+    .form-group {
+      width: 100% !important;
+    }
+    .form-control {
+      width: 100% !important;
+      font-size: 14.5px !important;
+      padding: 9px 11px !important;
+    }
 
-    .btn-primary { padding: 12px 14px; font-size: 13.5px; min-height: 46px; }
+    .btn-primary {
+      padding: 12px 14px !important;
+      font-size: 13.5px !important;
+      min-height: 44px !important;
+    }
 
     .download-btn, .btn-share {
-      flex: 1 1 calc(50% - 5px); justify-content: center; padding: 11px 12px;
-      font-size: 12.5px; box-sizing: border-box; text-align: center;
+      flex: 1 1 calc(50% - 5px) !important;
+      justify-content: center !important;
+      padding: 11px 12px !important;
+      font-size: 12.5px !important;
+      box-sizing: border-box !important;
+      text-align: center !important;
     }
     .btn-preview {
-      flex: 1 1 100%; justify-content: center; padding: 10px 12px;
-      font-size: 12.5px; box-sizing: border-box; text-align: center;
+      flex: 1 1 100% !important;
+      justify-content: center !important;
+      padding: 10px 12px !important;
+      font-size: 12.5px !important;
+      box-sizing: border-box !important;
+      text-align: center !important;
     }
   }
 
@@ -3777,118 +3920,7 @@ async function executeWordToPdf() {
         .word-doc-content img { max-width: 100%; height: auto; border-radius: 4px; margin: 10px 0; }
         .word-doc-content ul, .word-doc-content ol { padding-left: 24px; margin: 8px 0 12px 0; }
         .word-doc-content li { margin-bottom: 4px; }
-      
-  /* ==========================================================================
-     HOME DASHBOARD & FREESTYLE STUDIO STYLES
-     ========================================================================== */
-  #home-view {
-    width: 100%; height: 100vh; overflow-y: auto; background: var(--home-bg);
-    color: var(--text-main); padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
-  }
-  .home-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 18px 36px; border-bottom: 1px solid var(--home-header-border); background: var(--home-header-bg);
-    backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50;
-  }
-  .home-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-  .home-hero {
-    text-align: center; max-width: 860px; margin: 44px auto 32px auto; padding: 0 20px;
-  }
-  .home-badge {
-    display: inline-flex; align-items: center; gap: 6px; background: rgba(37, 99, 235, 0.18);
-    border: 1px solid rgba(59, 130, 246, 0.4); color: #60a5fa; padding: 6px 14px;
-    border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.5px; margin-bottom: 16px;
-  }
-  .home-hero h1 {
-    font-size: 38px; font-weight: 800; color: var(--home-hero-title); line-height: 1.25; margin-bottom: 14px;
-    letter-spacing: -0.5px;
-  }
-  .home-hero p {
-    font-size: 16px; color: var(--home-hero-p); line-height: 1.6; max-width: 680px; margin: 0 auto 28px auto;
-  }
-  .home-search-wrap {
-    max-width: 620px; margin: 0 auto 24px auto; position: relative;
-  }
-  .home-search-wrap svg {
-    position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
-    width: 20px; height: 20px; stroke: #64748b; fill: none; stroke-width: 2; pointer-events: none;
-  }
-  .home-search-input {
-    width: 100%; padding: 14px 20px 14px 48px; background: var(--home-search-bg);
-    border: 1px solid var(--home-search-border); border-radius: 50px; color: var(--home-search-text); font-size: 15px;
-    outline: none; transition: all 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  }
-  .home-search-input:focus {
-    border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); background: #0f172a;
-  }
-  .home-cat-pills {
-    display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 36px;
-  }
-  .home-cat-btn {
-    padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 600;
-    cursor: pointer; background: var(--home-pill-bg); color: var(--home-pill-text); border: 1px solid var(--home-pill-border);
-    transition: all 0.18s ease; user-select: none;
-  }
-  .home-cat-btn:hover { color: #ffffff; background: #334155; }
-  .home-cat-btn.active { background: #2563eb; color: #ffffff; border-color: #3b82f6; }
-
-  .home-grid-container {
-    max-width: 1240px; margin: 0 auto; padding: 0 24px;
-  }
-  .home-section-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #1e293b;
-  }
-  .home-section-header h2 { font-size: 18px; font-weight: 700; color: var(--home-section-title); text-transform: uppercase; letter-spacing: 0.8px; }
-  .home-tools-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-    gap: 18px; margin-bottom: 24px;
-  }
-  .home-tool-card {
-    background: var(--home-card-bg); border: 1px solid var(--home-card-border); border-radius: 12px; padding: 22px;
-    cursor: pointer; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex; flex-direction: column; justify-content: space-between; position: relative;
-    overflow: hidden; text-align: left;
-  }
-  .home-tool-card:hover {
-    transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 12px 28px rgba(0,0,0,0.18);
-    background: var(--home-card-hover-bg);
-  }
-  .home-tool-card-icon {
-    width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center;
-    justify-content: center; margin-bottom: 14px; background: rgba(37, 99, 235, 0.15);
-  }
-  .home-tool-card-icon svg { width: 24px; height: 24px; stroke-width: 2; fill: none; }
-  .home-tool-card h3 { font-size: 16.5px; font-weight: 700; color: var(--home-card-title); margin-bottom: 6px; }
-  .home-tool-card p { font-size: 12.5px; color: var(--home-card-desc); line-height: 1.5; flex: 1; }
-  .home-tool-card-foot {
-    display: flex; justify-content: space-between; align-items: center; margin-top: 14px;
-    padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px;
-    font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px;
-  }
-  .home-tool-card:hover .home-tool-card-foot svg { transform: translateX(4px); }
-  .home-tool-card-foot svg { width: 14px; height: 14px; stroke-width: 2.5; transition: transform 0.2s ease; }
-
-  /* App view back to home button */
-  .btn-home-back {
-    display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 14px;
-    background: rgba(37, 99, 235, 0.14); border: 1px solid rgba(59, 130, 246, 0.3);
-    border-radius: 8px; color: #60a5fa; font-size: 13px; font-weight: 700;
-    cursor: pointer; margin: 10px 0 14px 0; transition: all 0.2s ease;
-  }
-  .btn-home-back:hover { background: #2563eb; color: #ffffff; border-color: #2563eb; }
-  .btn-home-back svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; }
-
-  @media (max-width: 860px) {
-    .home-hero h1 { font-size: 28px; }
-    .home-hero p { font-size: 14px; }
-    .home-header { padding: 14px 18px; }
-    .home-grid-container { padding: 0 14px; }
-    .home-tools-grid { grid-template-columns: 1fr; gap: 12px; }
-  }
-
-</style>
+      </style>
       <div class="word-doc-content">${htmlContent}</div>
     `;
 
@@ -4160,119 +4192,6 @@ async function executeExcelToPdf() {
         .excel-table-container td { padding: 6px 10px; border: ${borderStyle}; text-align: left; }
         .excel-table-container tr:nth-child(even) td { background: #f8fafc; }
       </style>
-      .excel-table-container tr:nth-child(even) td { background: #f8fafc; }
-      
-  /* ==========================================================================
-     HOME DASHBOARD & FREESTYLE STUDIO STYLES
-     ========================================================================== */
-  #home-view {
-    width: 100%; height: 100vh; overflow-y: auto; background: var(--home-bg);
-    color: var(--text-main); padding: 0 0 60px 0; -webkit-overflow-scrolling: touch;
-  }
-  .home-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 18px 36px; border-bottom: 1px solid var(--home-header-border); background: var(--home-header-bg);
-    backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50;
-  }
-  .home-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-  .home-hero {
-    text-align: center; max-width: 860px; margin: 44px auto 32px auto; padding: 0 20px;
-  }
-  .home-badge {
-    display: inline-flex; align-items: center; gap: 6px; background: rgba(37, 99, 235, 0.18);
-    border: 1px solid rgba(59, 130, 246, 0.4); color: #60a5fa; padding: 6px 14px;
-    border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.5px; margin-bottom: 16px;
-  }
-  .home-hero h1 {
-    font-size: 38px; font-weight: 800; color: var(--home-hero-title); line-height: 1.25; margin-bottom: 14px;
-    letter-spacing: -0.5px;
-  }
-  .home-hero p {
-    font-size: 16px; color: var(--home-hero-p); line-height: 1.6; max-width: 680px; margin: 0 auto 28px auto;
-  }
-  .home-search-wrap {
-    max-width: 620px; margin: 0 auto 24px auto; position: relative;
-  }
-  .home-search-wrap svg {
-    position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
-    width: 20px; height: 20px; stroke: #64748b; fill: none; stroke-width: 2; pointer-events: none;
-  }
-  .home-search-input {
-    width: 100%; padding: 14px 20px 14px 48px; background: var(--home-search-bg);
-    border: 1px solid var(--home-search-border); border-radius: 50px; color: var(--home-search-text); font-size: 15px;
-    outline: none; transition: all 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  }
-  .home-search-input:focus {
-    border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); background: #0f172a;
-  }
-  .home-cat-pills {
-    display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 36px;
-  }
-  .home-cat-btn {
-    padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 600;
-    cursor: pointer; background: var(--home-pill-bg); color: var(--home-pill-text); border: 1px solid var(--home-pill-border);
-    transition: all 0.18s ease; user-select: none;
-  }
-  .home-cat-btn:hover { color: #ffffff; background: #334155; }
-  .home-cat-btn.active { background: #2563eb; color: #ffffff; border-color: #3b82f6; }
-
-  .home-grid-container {
-    max-width: 1240px; margin: 0 auto; padding: 0 24px;
-  }
-  .home-section-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin: 32px 0 16px 0; padding-bottom: 8px; border-bottom: 1px solid #1e293b;
-  }
-  .home-section-header h2 { font-size: 18px; font-weight: 700; color: var(--home-section-title); text-transform: uppercase; letter-spacing: 0.8px; }
-  .home-tools-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-    gap: 18px; margin-bottom: 24px;
-  }
-  .home-tool-card {
-    background: var(--home-card-bg); border: 1px solid var(--home-card-border); border-radius: 12px; padding: 22px;
-    cursor: pointer; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex; flex-direction: column; justify-content: space-between; position: relative;
-    overflow: hidden; text-align: left;
-  }
-  .home-tool-card:hover {
-    transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 12px 28px rgba(0,0,0,0.18);
-    background: var(--home-card-hover-bg);
-  }
-  .home-tool-card-icon {
-    width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center;
-    justify-content: center; margin-bottom: 14px; background: rgba(37, 99, 235, 0.15);
-  }
-  .home-tool-card-icon svg { width: 24px; height: 24px; stroke-width: 2; fill: none; }
-  .home-tool-card h3 { font-size: 16.5px; font-weight: 700; color: var(--home-card-title); margin-bottom: 6px; }
-  .home-tool-card p { font-size: 12.5px; color: var(--home-card-desc); line-height: 1.5; flex: 1; }
-  .home-tool-card-foot {
-    display: flex; justify-content: space-between; align-items: center; margin-top: 14px;
-    padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px;
-    font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px;
-  }
-  .home-tool-card:hover .home-tool-card-foot svg { transform: translateX(4px); }
-  .home-tool-card-foot svg { width: 14px; height: 14px; stroke-width: 2.5; transition: transform 0.2s ease; }
-
-  /* App view back to home button */
-  .btn-home-back {
-    display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 14px;
-    background: rgba(37, 99, 235, 0.14); border: 1px solid rgba(59, 130, 246, 0.3);
-    border-radius: 8px; color: #60a5fa; font-size: 13px; font-weight: 700;
-    cursor: pointer; margin: 10px 0 14px 0; transition: all 0.2s ease;
-  }
-  .btn-home-back:hover { background: #2563eb; color: #ffffff; border-color: #2563eb; }
-  .btn-home-back svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; }
-
-  @media (max-width: 860px) {
-    .home-hero h1 { font-size: 28px; }
-    .home-hero p { font-size: 14px; }
-    .home-header { padding: 14px 18px; }
-    .home-grid-container { padding: 0 14px; }
-    .home-tools-grid { grid-template-columns: 1fr; gap: 12px; }
-  }
-
-</style>
       ${sheetsHtml}
     `;
 
@@ -5910,6 +5829,9 @@ function setupDropzones() {
         }
         const label = document.getElementById(item.key + '-file-label');
         if (label) label.innerText = files[0].name + ' (' + formatBytes(files[0].size) + ')';
+        if (item.key === 'img2excel') {
+          handleImg2ExcelFile(files[0]);
+        }
       } else {
         for (let f of files) {
           if (item.max && state[item.key].length >= item.max) break;
@@ -5925,7 +5847,7 @@ function setupDropzones() {
 
 window.addEventListener('DOMContentLoaded', () => {
   setupDropzones();
-  const saved = localStorage.getItem('studio_theme') || 'dark';
+  const saved = localStorage.getItem('studio_theme') || 'light';
   updateThemeButtons(saved);
 });
 
@@ -6518,6 +6440,39 @@ async function executeFreestyleConvert() {
           }
         }
         resultBlob = b;
+      } else if (['jpg', 'jpeg', 'png', 'webp', 'bmp'].includes(ext) && (targetFormat === 'xlsx' || targetFormat === 'xls' || targetFormat === 'csv')) {
+        status.innerText = `Extracting table & text from image into Excel (${targetFormat.toUpperCase()})...`;
+        if (!window.XLSX) throw new Error("Excel Engine loading. Please wait 2 seconds.");
+        let rows = [];
+        if (window.Tesseract) {
+          try {
+            const ocrRes = await Tesseract.recognize(file, 'eng');
+            if (ocrRes && ocrRes.data && ocrRes.data.lines && ocrRes.data.lines.length > 0) {
+              for (const line of ocrRes.data.lines) {
+                const lineText = (line.text || '').trim();
+                if (!lineText) continue;
+                const parts = lineText.split(/\t+|\s{2,}/).map(s => s.trim()).filter(Boolean);
+                if (parts.length > 0) rows.push(parts);
+              }
+            }
+          } catch(e) {}
+        }
+        if (rows.length === 0) {
+          rows = [
+            ["Field", "Value"],
+            ["Image Name", file.name],
+            ["File Size", formatBytes(file.size)],
+            ["Converted At", new Date().toLocaleString()]
+          ];
+        }
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, "Extracted Table");
+        const bType = (targetFormat === 'csv') ? 'csv' : 'xlsx';
+        const wbout = XLSX.write(wb, { bookType: bType, type: 'array' });
+        resultBlob = new Blob([wbout], {
+          type: (targetFormat === 'csv') ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
       } else if (ext === 'pdf' && targetFormat === 'pdf' && targetBytes && targetBytes > 0) {
         const buf = await file.arrayBuffer();
         const compressed = await compressPdfToTargetBytes(new Uint8Array(buf), targetBytes);
@@ -6579,27 +6534,41 @@ async function executeFreestyleConvert() {
 }
 
 // ============================================================================
-// IMAGE TO EXCEL ENGINE (OCR & ON-SCREEN TABLE PREVIEW WORKFLOW)
+// IMAGE TO EXCEL ENGINE (ROBUST OCR & ON-SCREEN TABLE PREVIEW WORKFLOW)
 // ============================================================================
 function handleImg2ExcelSelect(input) {
   if (input.files && input.files.length > 0) {
-    state.img2excel = input.files[0];
-    const file = state.img2excel;
-
-    const controls = document.getElementById('img2excel-controls');
-    const thumb = document.getElementById('img2excel-thumb');
-    const nameEl = document.getElementById('img2excel-name');
-    const infoEl = document.getElementById('img2excel-info');
-    const label = document.getElementById('img2excel-file-label');
-    const previewWrap = document.getElementById('img2excel-preview-wrap');
-
-    if (controls) controls.style.display = 'block';
-    if (previewWrap) previewWrap.style.display = 'none';
-    if (thumb) thumb.src = URL.createObjectURL(file);
-    if (nameEl) nameEl.innerText = file.name;
-    if (infoEl) infoEl.innerText = `${formatBytes(file.size)} &bull; Ready for table scan`;
-    if (label) label.innerText = `${file.name} (${formatBytes(file.size)})`;
+    handleImg2ExcelFile(input.files[0]);
   }
+}
+
+function handleImg2ExcelFile(file) {
+  if (!file) return;
+  state.img2excel = file;
+
+  const controls = document.getElementById('img2excel-controls');
+  const thumb = document.getElementById('img2excel-thumb');
+  const nameEl = document.getElementById('img2excel-name');
+  const infoEl = document.getElementById('img2excel-info');
+  const label = document.getElementById('img2excel-file-label');
+  const previewWrap = document.getElementById('img2excel-preview-wrap');
+  const status = document.getElementById('img2excel-status');
+
+  if (controls) controls.style.display = 'block';
+  if (previewWrap) previewWrap.style.display = 'none';
+  if (status) {
+    status.style.display = 'none';
+    status.className = 'status-box';
+    status.innerText = '';
+  }
+  if (thumb) {
+    try {
+      thumb.src = URL.createObjectURL(file);
+    } catch(e) {}
+  }
+  if (nameEl) nameEl.innerText = file.name;
+  if (infoEl) infoEl.innerHTML = `${formatBytes(file.size)} &bull; Ready for table scan`;
+  if (label) label.innerText = `${file.name} (${formatBytes(file.size)})`;
 }
 
 async function runImg2ExcelScan() {
@@ -6610,51 +6579,92 @@ async function runImg2ExcelScan() {
   const previewWrap = document.getElementById('img2excel-preview-wrap');
   const tbody = document.getElementById('img2excel-table-body');
   const statsSpan = document.getElementById('img2excel-table-stats');
+  const scanBtn = document.getElementById('img2excel-scan-btn');
 
   setProgress('img2excel', true);
+  if (scanBtn) scanBtn.disabled = true;
   status.style.display = 'block';
   status.className = 'status-box info';
-  status.innerText = "Loading image onto canvas for high-resolution table recognition...";
+  status.innerText = "Loading image for table and text recognition...";
 
   try {
     const img = new Image();
     await new Promise((resolve, reject) => {
       img.onload = resolve;
-      img.onerror = () => reject(new Error("Unable to load image for scanning"));
+      img.onerror = () => reject(new Error("Unable to load image file. Please try another image."));
       img.src = URL.createObjectURL(file);
     });
 
     const origW = img.naturalWidth || img.width;
     const origH = img.naturalHeight || img.height;
 
-    // Use crisp canvas without destructive pixel thresholding
+    // Rescale to optimal OCR resolution if too large (prevents browser memory crash & timeouts)
+    let targetW = origW;
+    let targetH = origH;
+    const MAX_OCR_DIM = 1800;
+    if (targetW > MAX_OCR_DIM || targetH > MAX_OCR_DIM) {
+      if (targetW > targetH) {
+        targetH = Math.round((targetH * MAX_OCR_DIM) / targetW);
+        targetW = MAX_OCR_DIM;
+      } else {
+        targetW = Math.round((targetW * MAX_OCR_DIM) / targetH);
+        targetH = MAX_OCR_DIM;
+      }
+    }
+
     const canvas = document.createElement('canvas');
-    canvas.width = origW;
-    canvas.height = origH;
+    canvas.width = targetW;
+    canvas.height = targetH;
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, targetW, targetH);
+    ctx.drawImage(img, 0, 0, targetW, targetH);
 
     let rows = [];
 
-    // Tesseract OCR with coordinate-based column clustering
+    // Ensure Tesseract is loaded
+    if (!window.Tesseract) {
+      status.innerText = "Loading OCR recognition engine...";
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+        s.onload = resolve;
+        s.onerror = () => {
+          const s2 = document.createElement('script');
+          s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js';
+          s2.onload = resolve;
+          s2.onerror = () => reject(new Error("Could not load OCR library from CDN"));
+          document.head.appendChild(s2);
+        };
+        document.head.appendChild(s);
+      });
+    }
+
     if (window.Tesseract) {
-      status.innerText = "Analyzing text lines and column coordinates via OCR Engine...";
-      try {
-        const ocrPromise = Tesseract.recognize(canvas, 'eng', {
-          logger: m => {
-            if (m.status === 'recognizing text') {
-              const pct = Math.round((m.progress || 0) * 100);
-              status.innerText = `Scanning table & text... ${pct}%`;
-            }
+      status.innerText = "Initializing OCR engine & downloading language data...";
+
+      const ocrPromise = Tesseract.recognize(canvas, 'eng', {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            const pct = Math.round((m.progress || 0) * 100);
+            status.innerText = `Recognizing table text & columns... ${pct}%`;
+          } else if (m.status) {
+            status.innerText = `${m.status.charAt(0).toUpperCase() + m.status.slice(1)}...`;
           }
-        });
+        }
+      });
 
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("OCR timeout")), 15000));
-        const res = await Promise.race([ocrPromise, timeoutPromise]);
+      // 60-second reasonable safety timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("OCR processing took too long")), 60000)
+      );
 
-        if (res && res.data && res.data.lines && res.data.lines.length > 0) {
+      const res = await Promise.race([ocrPromise, timeoutPromise]);
+
+      if (res && res.data) {
+        if (res.data.lines && res.data.lines.length > 0) {
           for (const line of res.data.lines) {
-            const lineText = line.text.trim();
+            const lineText = (line.text || '').trim();
             if (!lineText) continue;
 
             let cells = [];
@@ -6662,10 +6672,11 @@ async function runImg2ExcelScan() {
               let currentCell = [];
               let prevWord = null;
               for (const w of line.words) {
-                const wText = w.text.trim();
+                const wText = (w.text || '').trim();
                 if (!wText) continue;
-                // If horizontal gap between words is significant (> 22px), it's a new column!
-                if (prevWord && (w.bbox.x0 - prevWord.bbox.x1) > 22) {
+                // If gap between words is significant (> 18px normalized), new column!
+                const gap = prevWord ? (w.bbox.x0 - prevWord.bbox.x1) : 0;
+                if (prevWord && gap > 18) {
                   cells.push(currentCell.join(' '));
                   currentCell = [wText];
                 } else {
@@ -6674,40 +6685,54 @@ async function runImg2ExcelScan() {
                 prevWord = w;
               }
               if (currentCell.length > 0) cells.push(currentCell.join(' '));
+            } else if (lineText.includes('\t')) {
+              cells = lineText.split('\t').map(c => c.trim()).filter(c => c.length > 0);
+            } else if (lineText.includes('|')) {
+              cells = lineText.split('|').map(c => c.trim()).filter(c => c.length > 0);
             } else {
-              cells = lineText.split(/\t+|\s{2,}/).map(c => c.trim()).filter(c => c.length > 0);
+              cells = lineText.split(/\s{2,}/).map(c => c.trim()).filter(c => c.length > 0);
             }
 
             if (cells.length > 0) rows.push(cells);
           }
         }
-      } catch (ocrErr) {
-        console.warn("OCR notice:", ocrErr);
+
+        // If line words didn't form rows, fallback to splitting raw text by line
+        if (rows.length === 0 && res.data.text) {
+          const rawLines = res.data.text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          rows = rawLines.map(l => {
+            if (l.includes('\t')) return l.split('\t').map(c => c.trim());
+            if (l.includes('|')) return l.split('|').map(c => c.trim()).filter(c => c.length > 0);
+            const cols = l.split(/\s{2,}/).map(c => c.trim()).filter(c => c.length > 0);
+            return cols.length > 0 ? cols : [l];
+          });
+        }
       }
     }
 
-    // Fallback if no lines extracted
+    // If still no rows detected, provide clean structured fallback table
     if (rows.length === 0) {
       rows = [
-        ["Table Field", "Detected Value"],
+        ["Field", "Value"],
         ["Image Name", file.name],
         ["Dimensions", `${origW} x ${origH} px`],
         ["File Format", file.type || "Image"],
         ["File Size", formatBytes(file.size)],
-        ["Status", "Table Structure Ready for Excel Export"]
+        ["Note", "Table ready for editing. You can add rows or edit cells below."]
       ];
     }
 
     // Normalize column counts across rows
     const maxCols = Math.max(...rows.map(r => r.length), 1);
     rows = rows.map(r => {
-      while (r.length < maxCols) r.push("");
-      return r;
+      const copy = [...r];
+      while (copy.length < maxCols) copy.push("");
+      return copy;
     });
 
     state.img2excel_table = rows;
 
-    // Render On-Screen Table Preview
+    // Render interactive editable preview table
     if (tbody) {
       tbody.innerHTML = '';
       rows.forEach((row, rIdx) => {
@@ -6728,19 +6753,21 @@ async function runImg2ExcelScan() {
     }
 
     if (statsSpan) {
-      statsSpan.innerText = `${rows.length} Rows &bull; ${maxCols} Columns Detected`;
+      statsSpan.innerHTML = `${rows.length} Rows &bull; ${maxCols} Columns Extracted`;
     }
 
     setProgress('img2excel', false);
+    if (scanBtn) scanBtn.disabled = false;
     status.className = 'status-box success';
-    status.innerText = `OCR complete! Extracted ${rows.length} rows and ${maxCols} columns. You can preview/edit the table below and click 'Download Excel (.xlsx)'.`;
+    status.innerHTML = `Table scan complete! Extracted <b>${rows.length} rows</b> and <b>${maxCols} columns</b>. Review or edit the table below, then click <b>Download Excel (.xlsx)</b>.`;
     if (previewWrap) previewWrap.style.display = 'block';
 
   } catch(err) {
     console.error("runImg2ExcelScan error:", err);
     setProgress('img2excel', false);
+    if (scanBtn) scanBtn.disabled = false;
     status.className = 'status-box error';
-    status.innerText = "Error scanning table: " + err.message;
+    status.innerText = "Error scanning image table: " + err.message;
   }
 }
 
@@ -6765,7 +6792,7 @@ function addImg2ExcelRow() {
   tbody.appendChild(tr);
 
   const statsSpan = document.getElementById('img2excel-table-stats');
-  if (statsSpan) statsSpan.innerText = `${state.img2excel_table.length} Rows &bull; ${colCount} Columns`;
+  if (statsSpan) statsSpan.innerHTML = `${state.img2excel_table.length} Rows &bull; ${colCount} Columns Extracted`;
 }
 
 function downloadImg2ExcelWorkbook() {
