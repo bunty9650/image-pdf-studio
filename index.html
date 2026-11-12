@@ -4056,7 +4056,7 @@ function filterCategory(cat, btn) {
   }
 }
 
-function switchNav(tabId, el) {
+function switchNav(tabId, el, updateHistory = true) {
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   if (el) el.classList.add('active');
@@ -4070,6 +4070,12 @@ function switchNav(tabId, el) {
   // Initialize signature pad if opened
   if (tabId === 'sign_pdf') {
     setTimeout(initSignaturePad, 50);
+  }
+
+  if (updateHistory && window.history && window.history.replaceState) {
+    try {
+      window.history.replaceState({ view: 'tool', tool: tabId }, '', '#' + tabId);
+    } catch(e) {}
   }
 }
 
@@ -7266,13 +7272,46 @@ window.addEventListener('DOMContentLoaded', () => {
   setupDropzones();
   const saved = localStorage.getItem('studio_theme') || 'light';
   updateThemeButtons(saved);
+
+  // Initialize SPA History & Handle Back/Forward Navigation
+  const initialHash = window.location.hash.replace(/^#/, '');
+  if (initialHash && document.getElementById('tab-' + initialHash)) {
+    openToolFromHome(initialHash, false);
+    if (window.history && window.history.replaceState) {
+      try {
+        window.history.replaceState({ view: 'tool', tool: initialHash }, '', '#' + initialHash);
+      } catch(e) {}
+    }
+  } else {
+    showHomeView(false);
+    if (window.history && window.history.replaceState) {
+      try {
+        window.history.replaceState({ view: 'home' }, '', window.location.pathname + window.location.search);
+      } catch(e) {}
+    }
+  }
+
+  // Handle phone back button, browser back arrow, and swipe gestures
+  window.addEventListener('popstate', (event) => {
+    const state = event.state;
+    const hash = window.location.hash.replace(/^#/, '');
+
+    if (state && state.view === 'tool' && state.tool && document.getElementById('tab-' + state.tool)) {
+      openToolFromHome(state.tool, false);
+    } else if (hash && document.getElementById('tab-' + hash)) {
+      openToolFromHome(hash, false);
+    } else {
+      // User pressed Back inside a tool -> return to Home Dashboard!
+      showHomeView(false);
+    }
+  });
 });
 
 
 // ============================================================================
-// HOME DASHBOARD & NAVIGATION PORTAL ENGINE
+// HOME DASHBOARD & NAVIGATION PORTAL ENGINE (SPA WITH BROWSER BACK BUTTON SUPPORT)
 // ============================================================================
-function showHomeView() {
+function showHomeView(userAction = true) {
   const homeView = document.getElementById('home-view');
   const appView = document.getElementById('app-view');
   if (homeView && appView) {
@@ -7280,9 +7319,20 @@ function showHomeView() {
     homeView.style.display = 'block';
     homeView.scrollTop = 0;
   }
+
+  if (userAction && window.history) {
+    // If we're inside a tool and user clicked "All Tools Dashboard", use history.back()
+    if (window.history.state && window.history.state.view === 'tool') {
+      window.history.back();
+      return;
+    }
+    try {
+      window.history.pushState({ view: 'home' }, '', window.location.pathname + window.location.search);
+    } catch(e) {}
+  }
 }
 
-function openToolFromHome(toolId) {
+function openToolFromHome(toolId, pushHistory = true) {
   const homeView = document.getElementById('home-view');
   const appView = document.getElementById('app-view');
   if (homeView && appView) {
@@ -7290,9 +7340,15 @@ function openToolFromHome(toolId) {
     appView.style.display = 'flex';
   }
   const navItem = document.querySelector(`.nav-item[onclick*="'${toolId}'"]`);
-  switchNav(toolId, navItem);
+  switchNav(toolId, navItem, false);
   const workspace = document.querySelector('.workspace');
   if (workspace) workspace.scrollTop = 0;
+
+  if (pushHistory && window.history && window.history.pushState) {
+    try {
+      window.history.pushState({ view: 'tool', tool: toolId }, '', '#' + toolId);
+    } catch(e) {}
+  }
 }
 
 function filterHomeCategory(cat, btn) {
