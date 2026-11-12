@@ -1149,6 +1149,83 @@
     color: var(--text-muted);
     line-height: 1.6;
   }
+
+  /* TOOL GUIDE CARDS (HOW IT WORKS STEP-BY-STEP) */
+  .tool-guide-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    margin-top: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  }
+  .tool-guide-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    color: var(--primary);
+  }
+  .tool-guide-header h3 {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.01em;
+  }
+  .tool-guide-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+  }
+  .tool-step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary-glow);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .step-content strong {
+    display: block;
+    font-size: 13px;
+    color: var(--text-main);
+    margin-bottom: 3px;
+  }
+  .step-content p {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .tool-guide-tip {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+    font-size: 11.5px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tool-guide-tip svg {
+    width: 14px;
+    height: 14px;
+    stroke: #10b981;
+    fill: none;
+    stroke-width: 2.2;
+    flex-shrink: 0;
+  }
 </style>
 </head>
 <body>
@@ -2015,7 +2092,42 @@
 
         <div class="shimmer-progress" id="freestyle-progress"></div>
         <div class="status-box" id="freestyle-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Free Style Converter — How It Works</h3>
       </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Select Any Document</strong>
+            <p>Drop any PDF, Image (JPG, PNG, WEBP), Word, Excel, or PowerPoint.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Configure Output & Size</strong>
+            <p>Choose your target format and enter an optional target size (KB or MB).</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>1-Click Instant Conversion</strong>
+            <p>Click 'Convert & Process Files Now' to download your converted file.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Enter exact sizes like 100 KB or 200 KB to match government and college portal limits.</span>
+      </div>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -2050,7 +2162,42 @@
 
       <div class="shimmer-progress" id="merge_pdf-progress"></div>
       <div class="status-box" id="merge_pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Merge PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload PDF Documents</strong>
+            <p>Click or drag & drop 2 or more PDF files into the dropzone.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Arrange File Sequence</strong>
+            <p>Reorder files by drag-and-drop or click 'Reverse Order'.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Combine & Download</strong>
+            <p>Click 'Merge PDFs' to download one unified, clean PDF document.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Files are merged entirely in browser memory — fast, private, and zero server uploads.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 2. SPLIT PDF ==================== -->
@@ -2089,7 +2236,42 @@
 
       <div class="shimmer-progress" id="split_pdf-progress"></div>
       <div class="status-box" id="split_pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Split PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Source PDF</strong>
+            <p>Select the PDF file you wish to split or divide.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Choose Extraction Mode</strong>
+            <p>Specify custom page ranges (e.g. 1-3, 5) or separate all pages.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Download Separated Files</strong>
+            <p>Click 'Split PDF' to download separate PDF files or a packaged ZIP.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Perfect for separating specific chapters, homework sheets, or single invoices.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 3. REMOVE PAGES ==================== -->
@@ -2119,7 +2301,42 @@
 
       <div class="shimmer-progress" id="remove_pages-progress"></div>
       <div class="status-box" id="remove_pages-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Remove Pages — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Your PDF</strong>
+            <p>Select the PDF file containing pages you want to delete.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Specify Pages to Remove</strong>
+            <p>Enter page numbers or ranges to delete (e.g., 2, 4, 7-9).</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Download Cleaned PDF</strong>
+            <p>Click 'Remove Pages' to save your updated document without deleted pages.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Quickly eliminates blank scanner pages, confidential sheets, or duplicate notes.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 4. EXTRACT PAGES ==================== -->
@@ -2149,7 +2366,42 @@
 
       <div class="shimmer-progress" id="extract_pages-progress"></div>
       <div class="status-box" id="extract_pages-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Extract Pages — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload PDF Document</strong>
+            <p>Select the PDF document from your phone or computer.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Select Target Pages</strong>
+            <p>Enter the page numbers you want to extract and keep (e.g., 1, 3, 5-8).</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Generate Extracted PDF</strong>
+            <p>Click 'Extract Pages' to download a clean PDF containing only those pages.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Extracts original vector text, crisp images, and page layouts without quality loss.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 5. ORGANIZE PDF ==================== -->
@@ -2184,7 +2436,42 @@
 
       <div class="shimmer-progress" id="organize_pdf-progress"></div>
       <div class="status-box" id="organize_pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Organize PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Load PDF Thumbnails</strong>
+            <p>Upload your PDF to view an interactive thumbnail grid of all pages.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Reorder, Rotate & Delete</strong>
+            <p>Drag pages to reorder, click rotate icon to turn 90°, or trash icon to delete.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Export Organized PDF</strong>
+            <p>Click 'Save Organized PDF' to download your reorganized file.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Great for collating research binders, course packets, and exam submission packets.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 6. SCAN TO PDF ==================== -->
@@ -2238,7 +2525,42 @@
 
       <div class="shimmer-progress" id="scan_pdf-progress"></div>
       <div class="status-box" id="scan_pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Scan to PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Open Device Camera</strong>
+            <p>Click 'Open Camera' to activate your smartphone or laptop webcam.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Capture Pages</strong>
+            <p>Align your document and snap multiple page photos in sequence.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Generate Clean PDF</strong>
+            <p>Click 'Generate Multi-Page PDF' to compile all photos into one document.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Works natively on Android, iOS, and PC without downloading any third-party app.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== WORD TO PDF ==================== -->
@@ -2281,7 +2603,42 @@
 
       <div class="shimmer-progress" id="word2pdf-progress"></div>
       <div class="status-box" id="word2pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Word to PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Select Word File</strong>
+            <p>Upload any Microsoft Word document (.docx or .doc).</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Set Page Layout</strong>
+            <p>Choose Portrait or Landscape orientation and standard or narrow margins.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Convert & Download</strong>
+            <p>Click 'Convert Word to PDF' to receive a crisp, printable PDF document.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Accurately preserves typography, headings, tables, bullet points, and embedded images.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== POWERPOINT TO PDF ==================== -->
@@ -2324,7 +2681,42 @@
 
       <div class="shimmer-progress" id="ppt2pdf-progress"></div>
       <div class="status-box" id="ppt2pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>PowerPoint to PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Presentation</strong>
+            <p>Select your PowerPoint slide deck (.pptx or .ppt).</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Review Slide Preview</strong>
+            <p>Check total slide count and select your preferred presentation layout.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Generate Slide PDF</strong>
+            <p>Click 'Convert PowerPoint to PDF' to download high-resolution slide handouts.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Ideal for students and professors turning heavy slide decks into lightweight study handouts.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== EXCEL TO PDF ==================== -->
@@ -2367,7 +2759,42 @@
 
       <div class="shimmer-progress" id="excel2pdf-progress"></div>
       <div class="status-box" id="excel2pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Excel to PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Spreadsheet</strong>
+            <p>Select an Excel workbook (.xlsx, .xls) or CSV spreadsheet.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Choose Orientation</strong>
+            <p>Select Landscape (recommended for wide tables) and custom margins.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Create Tabular PDF</strong>
+            <p>Click 'Convert Excel to PDF' to generate clean, aligned printable tables.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Automatically calculates sheet dimensions and formats header rows with clean green headers.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== PDF TO WORD ==================== -->
@@ -2400,7 +2827,42 @@
 
       <div class="shimmer-progress" id="pdf2word-progress"></div>
       <div class="status-box" id="pdf2word-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>PDF to Word — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Locked PDF</strong>
+            <p>Select any PDF document you need to edit or reformat.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Text & Layout Extraction</strong>
+            <p>The engine extracts paragraphs, titles, tables, and typography.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Download Editable DOCX</strong>
+            <p>Click 'Convert PDF to Word' to download an editable Microsoft Word document.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Easily edit protected assignments, certificates, or agreement templates in Word.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== PDF TO POWERPOINT ==================== -->
@@ -2433,7 +2895,42 @@
 
       <div class="shimmer-progress" id="pdf2ppt-progress"></div>
       <div class="status-box" id="pdf2ppt-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>PDF to PowerPoint — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Select PDF Document</strong>
+            <p>Upload the PDF presentation or document you want as slides.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Render Slide Layout</strong>
+            <p>Each PDF page is converted into a high-clarity presentation slide.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Download PPTX</strong>
+            <p>Click 'Convert PDF to PowerPoint' to get an editable presentation file.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Ready for projector presentations in lecture halls, classrooms, and business meetings.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== PDF TO EXCEL ==================== -->
@@ -2466,7 +2963,42 @@
 
       <div class="shimmer-progress" id="pdf2excel-progress"></div>
       <div class="status-box" id="pdf2excel-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>PDF to Excel — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Data PDF</strong>
+            <p>Upload a PDF containing numeric tables, invoices, or financial data.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Analyze Columns & Rows</strong>
+            <p>The smart table detector extracts cell values, numbers, and headers.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Export Spreadsheet</strong>
+            <p>Click 'Extract Tables to Excel' to download an editable .xlsx workbook.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Saves hours of manual re-typing by extracting numbers straight into Excel cells.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== IMAGE TO EXCEL ==================== -->
@@ -2536,7 +3068,42 @@
           </div>
           <small style="font-size:11px; color:var(--text-muted); margin-top:6px; display:block;">Double-click or tap any cell to edit text if needed before downloading.</small>
         </div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>IMAGE to EXCEL OCR — How It Works</h3>
       </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Table Image</strong>
+            <p>Upload or drag & drop a photo, screenshot, or scan of any table (JPG, PNG).</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Run High-Res OCR Scan</strong>
+            <p>Click 'Scan & Extract Table to Screen' to recognize columns and cell text.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Edit & Export to Excel</strong>
+            <p>Preview and edit cells on-screen if needed, then click 'Download Excel (.xlsx)'.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Digitize paper invoices, restaurant receipts, and textbook tables into real Excel spreadsheets.</span>
+      </div>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -2581,7 +3148,42 @@
 
       <div class="shimmer-progress" id="img2pdf-progress"></div>
       <div class="status-box" id="img2pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Images to PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Select Multiple Photos</strong>
+            <p>Upload JPG, PNG, WEBP, or BMP images from your device.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Reorder & Arrange</strong>
+            <p>Rearrange photo order and choose page orientation or fit options.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Convert to Single PDF</strong>
+            <p>Click 'Convert Images to PDF' to compile everything into one PDF.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Great for submitting multi-page homework photos and government ID cards.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 8. PDF TO IMAGES ==================== -->
@@ -2628,7 +3230,42 @@
 
       <div class="shimmer-progress" id="pdf2img-progress"></div>
       <div class="status-box" id="pdf2img-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>PDF to Images — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload PDF Document</strong>
+            <p>Select the PDF you want to convert into image files.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Choose Image Format</strong>
+            <p>Select JPG, PNG, or WEBP and set your preferred resolution / DPI.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Download Single or ZIP</strong>
+            <p>Click 'Convert PDF to Images' to download pages individually or as a ZIP.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Use PNG for maximum clarity with diagrams; use JPG for smaller file sizes.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 9. FORMAT CONVERTER ==================== -->
@@ -2672,7 +3309,42 @@
 
       <div class="shimmer-progress" id="fmt-progress"></div>
       <div class="status-box" id="fmt-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Format Converter — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Images</strong>
+            <p>Select one or more images in JPG, PNG, WEBP, or BMP format.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Select Target Format</strong>
+            <p>Pick the new format you want to convert your images into.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Batch Convert</strong>
+            <p>Click 'Convert Images Now' to download converted images in 1 click.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Convert heavy photos to modern WEBP to boost web performance and save storage.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 10. STITCH IMAGES ==================== -->
@@ -2721,7 +3393,42 @@
 
       <div class="shimmer-progress" id="merge-progress"></div>
       <div class="status-box" id="merge-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Stitch 2-5 Images — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Select 2 to 5 Images</strong>
+            <p>Upload the photos, screenshots, or receipts you want to join.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Choose Direction</strong>
+            <p>Select Vertical Stack (scrolling collage) or Horizontal Panoramic.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Stitch & Download</strong>
+            <p>Click 'Stitch Images' to generate a seamless, unified image.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Great for stitching long chat screenshots, receipt tails, and before-and-after photos.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 11. SMART SIZE MATCHER (OPTIMIZE) ==================== -->
@@ -2782,7 +3489,42 @@
 
       <div class="shimmer-progress" id="comp-progress"></div>
       <div class="status-box" id="comp-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Compress PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Oversized PDF</strong>
+            <p>Select the heavy PDF document you need to shrink.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Set Target Size</strong>
+            <p>Choose a compression preset or enter an exact target size (e.g. 100 KB, 200 KB).</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Download Compact PDF</strong>
+            <p>Click 'Compress PDF' to download your optimized, lightweight file.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Iterative compression tunes PDF size precisely for job, college, and exam portals.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 12. PROTECT PDF ==================== -->
@@ -2820,7 +3562,42 @@
 
       <div class="shimmer-progress" id="protect_pdf-progress"></div>
       <div class="status-box" id="protect_pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Protect PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Select PDF File</strong>
+            <p>Upload the confidential document you want to secure.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Set Strong Password</strong>
+            <p>Enter and confirm your secure document encryption password.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Encrypt & Download</strong>
+            <p>Click 'Protect PDF' to apply military-grade AES encryption.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Safeguards salary slips, academic transcripts, and personal records from unauthorized access.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 13. UNLOCK PDF ==================== -->
@@ -2853,7 +3630,42 @@
 
       <div class="shimmer-progress" id="unlock_pdf-progress"></div>
       <div class="status-box" id="unlock_pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Unlock PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Locked PDF</strong>
+            <p>Select the password-protected PDF document.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Enter Password</strong>
+            <p>Type the authorized password to unlock the document.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Remove Security</strong>
+            <p>Click 'Unlock PDF' to permanently remove the password prompt.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Allows printing, editing, and sharing without entering a password every single time.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 14. SIGN PDF ==================== -->
@@ -2919,7 +3731,42 @@
               <input type="checkbox" id="sign_pdf-remove-bg" checked> Make white background transparent
             </label>
           </div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Sign PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload PDF Document</strong>
+            <p>Upload the agreement, form, or letter you need to sign.</p>
+          </div>
         </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Draw Digital Signature</strong>
+            <p>Use your finger, mouse, or stylus on the touch-enabled signature pad.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Position & Apply</strong>
+            <p>Place the signature onto the document and click 'Apply Signature & Download'.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Sign college admission forms, NDA agreements, and permission slips right from your phone.</span>
+      </div>
+    </div>
+  </div>
       </div>
 
       <div class="form-row">
@@ -2993,7 +3840,42 @@
 
       <div class="shimmer-progress" id="redact_pdf-progress"></div>
       <div class="status-box" id="redact_pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Redact PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Sensitive PDF</strong>
+            <p>Select the PDF containing private or confidential details.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Blackout Private Areas</strong>
+            <p>Click and drag to draw permanent black or white blackout boxes.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Save Redacted PDF</strong>
+            <p>Click 'Apply Permanent Redaction & Save' to generate the scrubbed file.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Permanently flattens redacted regions so hidden text can never be selected or uncovered.</span>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- ==================== 16. COMPARE PDF ==================== -->
@@ -3043,7 +3925,42 @@
       </div>
 
       <div class="status-box" id="compare_pdf-status"></div>
+    <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
+    <div class="tool-guide-card">
+      <div class="tool-guide-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <h3>Compare PDF — How It Works</h3>
+      </div>
+      <div class="tool-guide-steps">
+        
+        <div class="tool-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Upload Both Documents</strong>
+            <p>Select Document A (Original) and Document B (Modified).</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Synchronized Inspection</strong>
+            <p>Zoom and flip through pages simultaneously in side-by-side view.</p>
+          </div>
+        </div>
+        <div class="tool-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Spot Differences</strong>
+            <p>Easily identify added text, removed clauses, altered numbers, or edits.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-guide-tip">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span><b>Pro Tip:</b> Essential for verifying legal contracts, teacher grading, and project revisions.</span>
+      </div>
     </div>
+  </div>
   </div>
 
 </main>
