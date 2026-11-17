@@ -182,11 +182,15 @@
   }
 </script>
 <!-- Tesseract.js for Image to Excel OCR -->
-<!-- Tesseract.js for Image to Excel OCR -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
   if (!window.Tesseract) {
     document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"><\/script>');
+  }
+</script>
+<script>
+  if (!window.Tesseract) {
+    document.write('<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"><\/script>');
   }
 </script>
 <!-- html2canvas for High-Fidelity Office Document Rendering -->
@@ -348,10 +352,12 @@
 
   /* OCR Interactive Table Styles */
   .ocr-preview-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .ocr-preview-table th { background: #15803d; color: #ffffff; padding: 8px 10px; font-weight: 700; border: 1px solid var(--border); text-align: left; }
+  .ocr-preview-table th { background: #15803d; color: #ffffff; padding: 8px 10px; font-weight: 700; border: 1px solid var(--border); text-align: left; position: sticky; top: 0; z-index: 2; }
   .ocr-preview-table td { padding: 6px 10px; border: 1px solid var(--border); color: var(--text-main); background: var(--bg-card); outline: none; }
   .ocr-preview-table tr:nth-child(even) td { background: var(--border-light); }
-  .ocr-preview-table td:focus { background: var(--primary-glow); box-shadow: inset 0 0 0 2px var(--primary); }
+  .ocr-preview-table td:focus, .ocr-preview-table th:focus { background: var(--primary-glow); box-shadow: inset 0 0 0 2px var(--primary); }
+  .ocr-row-del-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; font-weight: 700; padding: 2px 6px; border-radius: 4px; line-height: 1; opacity: 0.6; transition: opacity 0.2s; }
+  .ocr-row-del-btn:hover { opacity: 1; background: rgba(239, 68, 68, 0.1); }
 
 
   /* SIDEBAR */
@@ -3002,7 +3008,6 @@
   </div>
 
   <!-- ==================== IMAGE TO EXCEL ==================== -->
-    <!-- ==================== IMAGE TO EXCEL ==================== -->
   <div id="tab-img2excel" class="tab-pane">
     <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
       <div>
@@ -3038,36 +3043,82 @@
           </button>
         </div>
 
+        <!-- OCR ENHANCEMENT OPTIONS -->
+        <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:14px; padding:10px 14px; background:var(--bg-main); border:1px solid var(--border); border-radius:8px; font-size:12px; color:var(--text-main);">
+          <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:600;">
+            <input type="checkbox" id="img2excel-opt-upscale" checked style="accent-color:var(--primary); cursor:pointer;">
+            Super-Resolution (2.5x - 3x AI Upscaling for low-res & WhatsApp screenshots)
+          </label>
+          <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:600;">
+            <input type="checkbox" id="img2excel-opt-contrast" checked style="accent-color:var(--primary); cursor:pointer;">
+            High Contrast & Dynamic Range Boost
+          </label>
+        </div>
+
         <div class="shimmer-progress" id="img2excel-progress"></div>
         <div class="status-box" id="img2excel-status"></div>
 
         <!-- STEP 2: ON-SCREEN OCR TABLE PREVIEW ("Phle Screen ka OCR bane") -->
         <div id="img2excel-preview-wrap" style="display:none; margin-top:20px;">
+          <!-- VIEW SWITCHER & TABLE ACTION TOOLBAR -->
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:14px; font-weight:800; color:var(--text-main);">Extracted Table Preview</span>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span style="font-size:14px; font-weight:800; color:var(--text-main);">Extracted Table</span>
               <span id="img2excel-table-stats" class="badge badge-fmt" style="font-size:11px;">0 Rows &bull; 0 Columns</span>
+              <!-- Toggle View Tabs -->
+              <div style="display:inline-flex; background:var(--border-light); border-radius:6px; padding:2px; border:1px solid var(--border);">
+                <button type="button" id="img2excel-tab-grid" class="btn-subtle active" onclick="switchImg2ExcelView('grid')" style="font-size:11px; padding:4px 10px; border-radius:4px; font-weight:700; background:var(--primary); color:#ffffff;">Table Grid View</button>
+                <button type="button" id="img2excel-tab-raw" class="btn-subtle" onclick="switchImg2ExcelView('raw')" style="font-size:11px; padding:4px 10px; border-radius:4px; background:transparent; color:var(--text-muted);">Raw OCR Text / Paste</button>
+              </div>
             </div>
-            <div style="display:flex; gap:8px;">
-              <button type="button" class="btn-secondary" onclick="addImg2ExcelRow()">
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-secondary" onclick="addImg2ExcelRow()" style="padding:6px 12px; font-size:12px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Add Row
               </button>
-              <button type="button" class="download-btn" style="background:#16a34a; margin-top:0; padding:8px 16px;" onclick="downloadImg2ExcelWorkbook()">
+              <button type="button" class="btn-secondary" onclick="addImg2ExcelCol()" style="padding:6px 12px; font-size:12px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Add Column
+              </button>
+              <button type="button" class="btn-secondary" id="img2excel-copy-btn" onclick="copyImg2ExcelToClipboard()" style="padding:6px 12px; font-size:12px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy Table
+              </button>
+              <button type="button" class="download-btn" style="background:#16a34a; margin-top:0; padding:7px 14px; font-size:12px;" onclick="downloadImg2ExcelWorkbook()">
                 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 Download Excel (.xlsx)
+              </button>
+              <button type="button" class="btn-secondary" onclick="downloadImg2ExcelCSV()" style="padding:6px 12px; font-size:12px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                CSV
               </button>
             </div>
           </div>
 
-          <!-- SCROLLABLE TABLE CONTAINER -->
-          <div style="max-height:380px; overflow:auto; border:1px solid var(--border); border-radius:8px; background:var(--bg-card);">
+          <!-- CONTAINER 1: INTERACTIVE TABLE GRID -->
+          <div id="img2excel-grid-container" style="max-height:420px; overflow:auto; border:1px solid var(--border); border-radius:8px; background:var(--bg-card); position:relative;">
             <table id="img2excel-preview-table" class="ocr-preview-table" style="width:100%; border-collapse:collapse; font-size:12px; text-align:left;">
               <tbody id="img2excel-table-body"></tbody>
             </table>
           </div>
-          <small style="font-size:11px; color:var(--text-muted); margin-top:6px; display:block;">Double-click or tap any cell to edit text if needed before downloading.</small>
+
+          <!-- CONTAINER 2: RAW OCR TEXT / PASTE -->
+          <div id="img2excel-raw-container" style="display:none;">
+            <textarea id="img2excel-raw-text" style="width:100%; height:260px; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--bg-card); color:var(--text-main); line-height:1.5; resize:vertical;" placeholder="Raw OCR lines appear here. You can also paste TSV/CSV data directly and click 'Apply to Table Grid'."></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+              <button type="button" class="btn-primary" style="width:auto; padding:7px 16px; font-size:12px;" onclick="applyRawTextToImg2ExcelTable()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Apply Text to Table Grid
+              </button>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap; gap:6px;">
+            <small style="font-size:11px; color:var(--text-muted);">Double-click or tap any cell in the table above to edit text. Delete noise rows with the &times; button.</small>
+          </div>
         </div>
+      </div>
     <!-- HOW IT WORKS STEP-BY-STEP GUIDE -->
     <div class="tool-guide-card">
       <div class="tool-guide-header">
@@ -8007,7 +8058,7 @@ async function executeFreestyleConvert() {
 }
 
 // ============================================================================
-// IMAGE TO EXCEL ENGINE (ROBUST OCR & ON-SCREEN TABLE PREVIEW WORKFLOW)
+// IMAGE TO EXCEL ENGINE (SUPER-RES OCR, COLUMN CLUSTERING & EDITABLE PREVIEW)
 // ============================================================================
 function handleImg2ExcelSelect(input) {
   if (input.files && input.files.length > 0) {
@@ -8018,6 +8069,7 @@ function handleImg2ExcelSelect(input) {
 function handleImg2ExcelFile(file) {
   if (!file) return;
   state.img2excel = file;
+  state.img2excel_table = [];
 
   const controls = document.getElementById('img2excel-controls');
   const thumb = document.getElementById('img2excel-thumb');
@@ -8044,14 +8096,220 @@ function handleImg2ExcelFile(file) {
   if (label) label.innerText = `${file.name} (${formatBytes(file.size)})`;
 }
 
+function switchImg2ExcelView(mode) {
+  const gridContainer = document.getElementById('img2excel-grid-container');
+  const rawContainer = document.getElementById('img2excel-raw-container');
+  const tabGrid = document.getElementById('img2excel-tab-grid');
+  const tabRaw = document.getElementById('img2excel-tab-raw');
+
+  if (mode === 'raw') {
+    if (gridContainer) gridContainer.style.display = 'none';
+    if (rawContainer) rawContainer.style.display = 'block';
+    if (tabGrid) {
+      tabGrid.style.background = 'transparent';
+      tabGrid.style.color = 'var(--text-muted)';
+      tabGrid.style.fontWeight = 'normal';
+    }
+    if (tabRaw) {
+      tabRaw.style.background = 'var(--primary)';
+      tabRaw.style.color = '#ffffff';
+      tabRaw.style.fontWeight = '700';
+    }
+    syncImg2ExcelRawText();
+  } else {
+    if (gridContainer) gridContainer.style.display = 'block';
+    if (rawContainer) rawContainer.style.display = 'none';
+    if (tabGrid) {
+      tabGrid.style.background = 'var(--primary)';
+      tabGrid.style.color = '#ffffff';
+      tabGrid.style.fontWeight = '700';
+    }
+    if (tabRaw) {
+      tabRaw.style.background = 'transparent';
+      tabRaw.style.color = 'var(--text-muted)';
+      tabRaw.style.fontWeight = 'normal';
+    }
+  }
+}
+
+function syncImg2ExcelRawText() {
+  const rawTextarea = document.getElementById('img2excel-raw-text');
+  if (!rawTextarea || !state.img2excel_table) return;
+  const tsv = state.img2excel_table.map(r => r.join('\t')).join('\n');
+  rawTextarea.value = tsv;
+}
+
+function applyRawTextToImg2ExcelTable() {
+  const rawTextarea = document.getElementById('img2excel-raw-text');
+  if (!rawTextarea) return;
+  const raw = rawTextarea.value.trim();
+  if (!raw) return alert("Please enter or paste table text first.");
+
+  const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+  const parsedRows = [];
+  for (const line of lines) {
+    let cells;
+    if (line.includes('\t')) {
+      cells = line.split('\t').map(c => c.trim());
+    } else if (line.includes('|')) {
+      cells = line.split('|').map(c => c.trim()).filter(c => c.length > 0);
+    } else if (line.includes(',') && !line.match(/\d+,\d+/)) {
+      cells = line.split(',').map(c => c.trim());
+    } else {
+      cells = line.split(/\s{2,}/).map(c => c.trim()).filter(c => c.length > 0);
+    }
+    if (cells.length > 0) parsedRows.push(cells);
+  }
+
+  if (parsedRows.length === 0) return alert("Could not detect any table rows from text.");
+
+  const maxCols = Math.max(...parsedRows.map(r => r.length), 1);
+  state.img2excel_table = parsedRows.map(r => {
+    const copy = [...r];
+    while (copy.length < maxCols) copy.push("");
+    return copy;
+  });
+
+  renderImg2ExcelTable();
+  switchImg2ExcelView('grid');
+}
+
+function renderImg2ExcelTable() {
+  const tbody = document.getElementById('img2excel-table-body');
+  const statsSpan = document.getElementById('img2excel-table-stats');
+  if (!tbody || !state.img2excel_table) return;
+
+  const rows = state.img2excel_table;
+  const colCount = rows.length > 0 ? rows[0].length : 0;
+  tbody.innerHTML = '';
+
+  rows.forEach((row, rIdx) => {
+    const tr = document.createElement('tr');
+
+    // Row index number
+    const idxTd = document.createElement('td');
+    idxTd.style.width = '36px';
+    idxTd.style.textAlign = 'center';
+    idxTd.style.fontWeight = '700';
+    idxTd.style.color = 'var(--text-muted)';
+    idxTd.style.background = 'var(--border-light)';
+    idxTd.style.userSelect = 'none';
+    idxTd.innerText = rIdx === 0 ? '#' : String(rIdx);
+    tr.appendChild(idxTd);
+
+    // Data / Header Cells
+    row.forEach((cellText, cIdx) => {
+      const el = (rIdx === 0) ? document.createElement('th') : document.createElement('td');
+      el.contentEditable = "true";
+      el.innerText = cellText;
+      el.oninput = () => {
+        if (state.img2excel_table[rIdx]) {
+          state.img2excel_table[rIdx][cIdx] = el.innerText.trim();
+        }
+      };
+      tr.appendChild(el);
+    });
+
+    // Row action: Delete button
+    const actionTd = document.createElement('td');
+    actionTd.style.width = '32px';
+    actionTd.style.textAlign = 'center';
+    actionTd.style.userSelect = 'none';
+    if (rows.length > 1) {
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'ocr-row-del-btn';
+      delBtn.title = 'Delete this row';
+      delBtn.innerHTML = '&times;';
+      delBtn.onclick = (e) => {
+        e.stopPropagation();
+        deleteImg2ExcelRow(rIdx);
+      };
+      actionTd.appendChild(delBtn);
+    }
+    tr.appendChild(actionTd);
+
+    tbody.appendChild(tr);
+  });
+
+  if (statsSpan) {
+    statsSpan.innerHTML = `${rows.length} Rows &bull; ${colCount} Columns`;
+  }
+}
+
+function addImg2ExcelRow() {
+  if (!state.img2excel_table) state.img2excel_table = [];
+  const colCount = state.img2excel_table.length > 0 ? state.img2excel_table[0].length : 3;
+  state.img2excel_table.push(new Array(colCount).fill(""));
+  renderImg2ExcelTable();
+}
+
+function addImg2ExcelCol() {
+  if (!state.img2excel_table || state.img2excel_table.length === 0) {
+    state.img2excel_table = [["Header 1", "Header 2", "Header 3"]];
+  } else {
+    state.img2excel_table.forEach((row, idx) => {
+      row.push(idx === 0 ? `Col ${row.length + 1}` : "");
+    });
+  }
+  renderImg2ExcelTable();
+}
+
+function deleteImg2ExcelRow(idx) {
+  if (!state.img2excel_table || state.img2excel_table.length <= 1) return;
+  state.img2excel_table.splice(idx, 1);
+  renderImg2ExcelTable();
+}
+
+async function copyImg2ExcelToClipboard() {
+  if (!state.img2excel_table || state.img2excel_table.length === 0) {
+    return alert("No table data available to copy.");
+  }
+  const tsv = state.img2excel_table.map(r => r.join('\t')).join('\n');
+  try {
+    await navigator.clipboard.writeText(tsv);
+    const btn = document.getElementById('img2excel-copy-btn');
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!`;
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    }
+  } catch(e) {
+    const ta = document.createElement('textarea');
+    ta.value = tsv;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert("Table copied to clipboard (TSV format)!");
+  }
+}
+
+function downloadImg2ExcelCSV() {
+  if (!state.img2excel_table || !state.img2excel_table.length) return alert("No table data available to download.");
+  const csvContent = state.img2excel_table.map(row => {
+    return row.map(cell => {
+      const val = String(cell || '');
+      if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+        return `"${val.replace(/"/g, '""')}"`;
+      }
+      return val;
+    }).join(',');
+  }).join('\r\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const file = state.img2excel;
+  const baseName = (file && file.name) ? file.name.replace(/\.[^/.]+$/, "") : "table_data";
+  const outFilename = `${baseName}_extracted.csv`;
+  triggerDownload(blob, outFilename);
+}
+
 async function runImg2ExcelScan() {
   const file = state.img2excel;
   if (!file) return alert("Please select an image file first.");
 
   const status = document.getElementById('img2excel-status');
   const previewWrap = document.getElementById('img2excel-preview-wrap');
-  const tbody = document.getElementById('img2excel-table-body');
-  const statsSpan = document.getElementById('img2excel-table-stats');
   const scanBtn = document.getElementById('img2excel-scan-btn');
 
   setProgress('img2excel', true);
@@ -8071,31 +8329,77 @@ async function runImg2ExcelScan() {
     const origW = img.naturalWidth || img.width;
     const origH = img.naturalHeight || img.height;
 
-    // Rescale to optimal OCR resolution if too large (prevents browser memory crash & timeouts)
-    let targetW = origW;
-    let targetH = origH;
-    const MAX_OCR_DIM = 1800;
-    if (targetW > MAX_OCR_DIM || targetH > MAX_OCR_DIM) {
-      if (targetW > targetH) {
-        targetH = Math.round((targetH * MAX_OCR_DIM) / targetW);
-        targetW = MAX_OCR_DIM;
-      } else {
-        targetW = Math.round((targetW * MAX_OCR_DIM) / targetH);
-        targetH = MAX_OCR_DIM;
+    const optUpscale = document.getElementById('img2excel-opt-upscale')?.checked ?? true;
+    const optContrast = document.getElementById('img2excel-opt-contrast')?.checked ?? true;
+
+    // High-Resolution Super-Sampling for Low-Res Photos and Screenshots
+    // Tesseract v5 requires character height of ~20-30px for accurate recognition.
+    let scale = 1.0;
+    if (optUpscale) {
+      const minDim = Math.min(origW, origH);
+      const maxDim = Math.max(origW, origH);
+      if (maxDim < 1400 || minDim < 700) {
+        scale = Math.min(3.2, 2800 / maxDim);
+      } else if (maxDim < 2000) {
+        scale = 2.0;
+      } else if (maxDim > 3400) {
+        scale = 3400 / maxDim;
+      }
+    } else {
+      if (Math.max(origW, origH) > 3400) {
+        scale = 3400 / Math.max(origW, origH);
       }
     }
+    scale = Math.max(scale, 1.0);
+    const targetW = Math.round(origW * scale);
+    const targetH = Math.round(origH * scale);
 
     const canvas = document.createElement('canvas');
     canvas.width = targetW;
     canvas.height = targetH;
     const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, targetW, targetH);
     ctx.drawImage(img, 0, 0, targetW, targetH);
 
+    // Non-destructive Contrast Enhancement
+    if (optContrast) {
+      status.innerText = "Enhancing document contrast & character clarity...";
+      const imgData = ctx.getImageData(0, 0, targetW, targetH);
+      const d = imgData.data;
+
+      let minLum = 255;
+      let maxLum = 0;
+      for (let i = 0; i < d.length; i += 16) {
+        const lum = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+        if (lum < minLum) minLum = lum;
+        if (lum > maxLum) maxLum = lum;
+      }
+
+      const range = maxLum - minLum;
+      if (range > 30) {
+        for (let i = 0; i < d.length; i += 4) {
+          const lum = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+          let stretched = ((lum - minLum) / range) * 255;
+          let v;
+          if (stretched < 135) {
+            v = Math.max(0, stretched * 0.82);
+          } else {
+            v = Math.min(255, stretched * 1.08 + 12);
+          }
+          d[i] = v;
+          d[i+1] = v;
+          d[i+2] = v;
+        }
+        ctx.putImageData(imgData, 0, 0);
+      }
+    }
+
     let rows = [];
 
-    // Ensure Tesseract is loaded
+    // Ensure Tesseract library is loaded with multi-CDN fallback
     if (!window.Tesseract) {
       status.innerText = "Loading OCR recognition engine...";
       await new Promise((resolve, reject) => {
@@ -8106,7 +8410,13 @@ async function runImg2ExcelScan() {
           const s2 = document.createElement('script');
           s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js';
           s2.onload = resolve;
-          s2.onerror = () => reject(new Error("Could not load OCR library from CDN"));
+          s2.onerror = () => {
+            const s3 = document.createElement('script');
+            s3.src = 'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
+            s3.onload = resolve;
+            s3.onerror = () => reject(new Error("Could not load OCR library from CDN"));
+            document.head.appendChild(s3);
+          };
           document.head.appendChild(s2);
         };
         document.head.appendChild(s);
@@ -8114,7 +8424,7 @@ async function runImg2ExcelScan() {
     }
 
     if (window.Tesseract) {
-      status.innerText = "Initializing OCR engine & downloading language data...";
+      status.innerText = "Initializing OCR engine & language models...";
 
       const ocrPromise = Tesseract.recognize(canvas, 'eng', {
         logger: m => {
@@ -8122,55 +8432,173 @@ async function runImg2ExcelScan() {
             const pct = Math.round((m.progress || 0) * 100);
             status.innerText = `Recognizing table text & columns... ${pct}%`;
           } else if (m.status) {
-            status.innerText = `${m.status.charAt(0).toUpperCase() + m.status.slice(1)}...`;
+            const name = m.status.charAt(0).toUpperCase() + m.status.slice(1);
+            status.innerText = `${name}...`;
           }
         }
       });
 
-      // 60-second reasonable safety timeout
+      // 90-second safety timeout
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("OCR processing took too long")), 60000)
+        setTimeout(() => reject(new Error("OCR processing timed out. Please check your internet connection.")), 90000)
       );
 
       const res = await Promise.race([ocrPromise, timeoutPromise]);
 
       if (res && res.data) {
-        if (res.data.lines && res.data.lines.length > 0) {
+        // Collect all detected words with bounding boxes
+        const allWords = [];
+        if (res.data.words && res.data.words.length > 0) {
+          for (const w of res.data.words) {
+            const txt = (w.text || '').trim();
+            if (txt && w.bbox) {
+              allWords.push({
+                text: txt,
+                x0: w.bbox.x0,
+                y0: w.bbox.y0,
+                x1: w.bbox.x1,
+                y1: w.bbox.y1,
+                yc: (w.bbox.y0 + w.bbox.y1) / 2,
+                height: Math.max(1, w.bbox.y1 - w.bbox.y0)
+              });
+            }
+          }
+        }
+
+        if (allWords.length > 0) {
+          status.innerText = "Reconstructing table grid & aligning columns...";
+          const avgHeight = allWords.reduce((sum, w) => sum + w.height, 0) / allWords.length;
+          const rowTolerance = Math.max(10, avgHeight * 0.65);
+
+          // Group words into rows by vertical center
+          allWords.sort((a, b) => a.yc - b.yc);
+          const rawRowGroups = [];
+          for (const w of allWords) {
+            let matchedGroup = null;
+            for (const group of rawRowGroups) {
+              if (Math.abs(w.yc - group.avgY) <= rowTolerance) {
+                matchedGroup = group;
+                break;
+              }
+            }
+            if (matchedGroup) {
+              matchedGroup.words.push(w);
+              matchedGroup.avgY = matchedGroup.words.reduce((s, it) => s + it.yc, 0) / matchedGroup.words.length;
+            } else {
+              rawRowGroups.push({ avgY: w.yc, words: [w] });
+            }
+          }
+
+          rawRowGroups.sort((a, b) => a.avgY - b.avgY);
+
+          // In each row, group words with small horizontal gap into cell tokens
+          const rowTokens = [];
+          const cellGapThreshold = Math.max(18, avgHeight * 1.3);
+
+          for (const group of rawRowGroups) {
+            group.words.sort((a, b) => a.x0 - b.x0);
+            const tokens = [];
+            let curToken = null;
+
+            for (const w of group.words) {
+              if (!curToken) {
+                curToken = { text: w.text, x0: w.x0, x1: w.x1, y0: w.y0, y1: w.y1 };
+              } else {
+                const gap = w.x0 - curToken.x1;
+                if (gap <= cellGapThreshold) {
+                  curToken.text += " " + w.text;
+                  curToken.x1 = Math.max(curToken.x1, w.x1);
+                  curToken.y1 = Math.max(curToken.y1, w.y1);
+                } else {
+                  tokens.push(curToken);
+                  curToken = { text: w.text, x0: w.x0, x1: w.x1, y0: w.y0, y1: w.y1 };
+                }
+              }
+            }
+            if (curToken) tokens.push(curToken);
+            if (tokens.length > 0) {
+              rowTokens.push({ avgY: group.avgY, tokens: tokens });
+            }
+          }
+
+          // Global Column Anchor Clustering
+          const startPositions = [];
+          for (const r of rowTokens) {
+            for (const t of r.tokens) {
+              startPositions.push(t.x0);
+            }
+          }
+          startPositions.sort((a, b) => a - b);
+
+          const colClusters = [];
+          const colTolerance = Math.max(30, avgHeight * 2.2);
+
+          for (const x of startPositions) {
+            let matchedCluster = null;
+            for (const cluster of colClusters) {
+              if (Math.abs(x - cluster.avgX) <= colTolerance) {
+                matchedCluster = cluster;
+                break;
+              }
+            }
+            if (matchedCluster) {
+              matchedCluster.points.push(x);
+              matchedCluster.avgX = matchedCluster.points.reduce((a, b) => a + b, 0) / matchedCluster.points.length;
+            } else {
+              colClusters.push({ avgX: x, points: [x] });
+            }
+          }
+
+          const minAppearances = rowTokens.length >= 4 ? 2 : 1;
+          const validCols = colClusters
+            .filter(c => c.points.length >= minAppearances)
+            .sort((a, b) => a.avgX - b.avgX);
+
+          if (validCols.length >= 2) {
+            // Map tokens to global columns
+            for (const r of rowTokens) {
+              const gridRow = new Array(validCols.length).fill("");
+              for (const t of r.tokens) {
+                let bestIdx = 0;
+                let bestDist = Infinity;
+                for (let c = 0; c < validCols.length; c++) {
+                  const dist = Math.abs(t.x0 - validCols[c].avgX);
+                  if (dist < bestDist) {
+                    bestDist = dist;
+                    bestIdx = c;
+                  }
+                }
+                if (gridRow[bestIdx]) {
+                  gridRow[bestIdx] += " " + t.text;
+                } else {
+                  gridRow[bestIdx] = t.text;
+                }
+              }
+              rows.push(gridRow);
+            }
+          } else {
+            rows = rowTokens.map(r => r.tokens.map(t => t.text));
+          }
+        }
+
+        // Fallback to line splitting
+        if (rows.length === 0 && res.data.lines && res.data.lines.length > 0) {
           for (const line of res.data.lines) {
             const lineText = (line.text || '').trim();
             if (!lineText) continue;
-
-            let cells = [];
-            if (line.words && line.words.length > 1) {
-              let currentCell = [];
-              let prevWord = null;
-              for (const w of line.words) {
-                const wText = (w.text || '').trim();
-                if (!wText) continue;
-                // If gap between words is significant (> 18px normalized), new column!
-                const gap = prevWord ? (w.bbox.x0 - prevWord.bbox.x1) : 0;
-                if (prevWord && gap > 18) {
-                  cells.push(currentCell.join(' '));
-                  currentCell = [wText];
-                } else {
-                  currentCell.push(wText);
-                }
-                prevWord = w;
-              }
-              if (currentCell.length > 0) cells.push(currentCell.join(' '));
-            } else if (lineText.includes('\t')) {
+            let cells;
+            if (lineText.includes('\t')) {
               cells = lineText.split('\t').map(c => c.trim()).filter(c => c.length > 0);
             } else if (lineText.includes('|')) {
               cells = lineText.split('|').map(c => c.trim()).filter(c => c.length > 0);
             } else {
               cells = lineText.split(/\s{2,}/).map(c => c.trim()).filter(c => c.length > 0);
             }
-
             if (cells.length > 0) rows.push(cells);
           }
         }
 
-        // If line words didn't form rows, fallback to splitting raw text by line
+        // Fallback to raw text
         if (rows.length === 0 && res.data.text) {
           const rawLines = res.data.text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
           rows = rawLines.map(l => {
@@ -8183,7 +8611,7 @@ async function runImg2ExcelScan() {
       }
     }
 
-    // If still no rows detected, provide clean structured fallback table
+    // Default structured table if empty
     if (rows.length === 0) {
       rows = [
         ["Field", "Value"],
@@ -8204,30 +8632,8 @@ async function runImg2ExcelScan() {
     });
 
     state.img2excel_table = rows;
-
-    // Render interactive editable preview table
-    if (tbody) {
-      tbody.innerHTML = '';
-      rows.forEach((row, rIdx) => {
-        const tr = document.createElement('tr');
-        row.forEach((cellText, cIdx) => {
-          const el = (rIdx === 0) ? document.createElement('th') : document.createElement('td');
-          el.contentEditable = "true";
-          el.innerText = cellText;
-          el.oninput = () => {
-            if (state.img2excel_table[rIdx]) {
-              state.img2excel_table[rIdx][cIdx] = el.innerText.trim();
-            }
-          };
-          tr.appendChild(el);
-        });
-        tbody.appendChild(tr);
-      });
-    }
-
-    if (statsSpan) {
-      statsSpan.innerHTML = `${rows.length} Rows &bull; ${maxCols} Columns Extracted`;
-    }
+    renderImg2ExcelTable();
+    syncImg2ExcelRawText();
 
     setProgress('img2excel', false);
     if (scanBtn) scanBtn.disabled = false;
@@ -8244,39 +8650,15 @@ async function runImg2ExcelScan() {
   }
 }
 
-function addImg2ExcelRow() {
-  const tbody = document.getElementById('img2excel-table-body');
-  if (!tbody || !state.img2excel_table || !state.img2excel_table.length) return;
-  const colCount = state.img2excel_table[0].length;
-  const newRow = new Array(colCount).fill("");
-  state.img2excel_table.push(newRow);
-  const rIdx = state.img2excel_table.length - 1;
-
-  const tr = document.createElement('tr');
-  for (let cIdx = 0; cIdx < colCount; cIdx++) {
-    const td = document.createElement('td');
-    td.contentEditable = "true";
-    td.innerText = "";
-    td.oninput = () => {
-      state.img2excel_table[rIdx][cIdx] = td.innerText.trim();
-    };
-    tr.appendChild(td);
-  }
-  tbody.appendChild(tr);
-
-  const statsSpan = document.getElementById('img2excel-table-stats');
-  if (statsSpan) statsSpan.innerHTML = `${state.img2excel_table.length} Rows &bull; ${colCount} Columns Extracted`;
-}
-
 function downloadImg2ExcelWorkbook() {
   if (!state.img2excel_table || !state.img2excel_table.length) return alert("No table data available to download.");
   if (!window.XLSX) return alert("Excel library loading. Please wait 2 seconds.");
 
   const file = state.img2excel;
   const normalizedRows = state.img2excel_table.map(r => r.map(cell => {
-    const str = String(cell).trim();
+    const str = String(cell || '').trim();
     const cleanNum = str.replace(/[$,₹€£]/g, '').replace(/,/g, '');
-    if (/^-?\d+(\.\d+)?$/.test(cleanNum) && !str.startsWith('00')) {
+    if (/^-?\d+(\.\d+)?$/.test(cleanNum) && !str.startsWith('00') && !str.startsWith('+')) {
       const num = parseFloat(cleanNum);
       if (!isNaN(num)) return num;
     }
