@@ -523,8 +523,9 @@
 
   /* STATUS BOX */
   .status-box { margin-top: 14px; padding: 12px 16px; border-radius: var(--radius-md); font-size: 13px; display: none; }
-  .status-box.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; display: block; animation: paneEnter 0.2s ease; }
-  .status-box.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; display: block; }
+  .status-box.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; display: block !important; animation: paneEnter 0.2s ease; }
+  .status-box.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; display: block !important; }
+  .status-box.info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; display: block !important; }
 
   /* DOWNLOAD & SHARE BUTTONS */
   .download-btn {
@@ -4224,16 +4225,10 @@ window.saveFileToDevice = function(downloadId) {
   const item = window.generatedDownloads[downloadId];
   if (!item) return alert("Download file not found. Please try again.");
 
-  const { blob, filename, mimeType } = item;
-  const mobile = isMobileDevice();
+  const { blob, filename } = item;
 
   try {
-    let dlBlob = blob;
-    if (mobile && (mimeType === 'application/pdf' || blob.type === 'application/pdf' || filename.endsWith('.pdf'))) {
-      dlBlob = new Blob([blob], { type: 'application/octet-stream' });
-    }
-
-    const url = URL.createObjectURL(dlBlob);
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.style.display = 'none';
     a.href = url;
@@ -4314,13 +4309,7 @@ function renderDownloadStatusCard(downloadId, successMessage, buttonLabel = 'Dow
 
 function triggerDownload(blobOrUrl, filename) {
   try {
-    let blob = blobOrUrl;
-    const mobile = isMobileDevice();
-
-    if (blob instanceof Blob && mobile && (blob.type === 'application/pdf' || filename.endsWith('.pdf'))) {
-      blob = new Blob([blob], { type: 'application/octet-stream' });
-    }
-
+    const blob = blobOrUrl;
     const url = typeof blob === 'string' ? blob : URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.style.display = 'none';
@@ -4554,26 +4543,32 @@ async function rasterizeImageSafe(file, maxDim = 2400) {
 
 async function embedImageInPdf(pdfDoc, file) {
   const ext = (file.name || '').split('.').pop().toLowerCase();
-  const isPng = file.type === 'image/png' || ext === 'png';
   const isJpg = file.type === 'image/jpeg' || file.type === 'image/jpg' || ext === 'jpg' || ext === 'jpeg';
+  const isPng = file.type === 'image/png' || ext === 'png';
 
-  if (isPng && file.size < 1.5 * 1024 * 1024) {
+  // 1. For JPGs, try direct embed first (fastest, preserves 100% original quality, zero extra RAM)
+  if (isJpg) {
+    try {
+      const buf = await file.arrayBuffer();
+      return await pdfDoc.embedJpg(buf);
+    } catch (e) {
+      // Progressive JPEG or unsupported color space: fall through to safe rasterizer
+    }
+  }
+
+  // 2. For PNGs, try direct embed
+  if (isPng) {
     try {
       const buf = await file.arrayBuffer();
       return await pdfDoc.embedPng(buf);
-    } catch (e) {}
+    } catch (e) {
+      // Unusual chunk or indexed PNG: fall through to safe rasterizer
+    }
   }
 
-  try {
-    const jpegBuf = await rasterizeImageSafe(file, 2400);
-    return await pdfDoc.embedJpg(jpegBuf);
-  } catch (err) {
-    if (isJpg) {
-      const buf = await file.arrayBuffer();
-      return await pdfDoc.embedJpg(buf);
-    }
-    throw err;
-  }
+  // 3. Fallback / other formats (WEBP, BMP, GIF, progressive JPG):
+  const jpegBuf = await rasterizeImageSafe(file, 2400);
+  return await pdfDoc.embedJpg(jpegBuf);
 }
 
 // CRC32 table for PNG chunk generation
@@ -4717,12 +4712,12 @@ async function executeMergePdfs() {
     triggerDownload(blob, filename);
 
     setProgress('merge_pdf', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(downloadId, `Successfully merged ${state.merge_pdf.length} PDFs into ${totalPages} pages!`, 'Download Merged PDF');
   } catch (err) {
     console.error(err);
     setProgress('merge_pdf', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
   }
 }
@@ -4795,7 +4790,7 @@ async function executeSplitPdf() {
       const dlId = registerDownloadItem(single.blob, single.name, 'application/pdf');
       triggerDownload(single.blob, single.name);
       setProgress('split_pdf', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       status.innerHTML = renderDownloadStatusCard(dlId, `Split complete! Extracted ${splitBlobs[0].name}`, 'Download Split PDF');
     } else {
       const zip = new JSZip();
@@ -4834,13 +4829,13 @@ async function executeSplitPdf() {
       html += '</div>';
 
       setProgress('split_pdf', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       status.innerHTML = html;
     }
   } catch (err) {
     console.error(err);
     setProgress('split_pdf', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error splitting PDF: " + err.message;
   }
 }
@@ -4897,12 +4892,12 @@ async function executeRemovePages() {
     triggerDownload(blob, filename);
 
     setProgress('remove_pages', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `Removed ${removeSet.size} page(s)! New document has ${keepIndices.length} pages.`, 'Download Cleaned PDF');
   } catch (err) {
     console.error(err);
     setProgress('remove_pages', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
   }
 }
@@ -4954,12 +4949,12 @@ async function executeExtractPages() {
     triggerDownload(blob, filename);
 
     setProgress('extract_pages', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `Extracted ${extractIndices.length} page(s) into new PDF!`, 'Download Extracted PDF');
   } catch (err) {
     console.error(err);
     setProgress('extract_pages', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
   }
 }
@@ -5150,12 +5145,12 @@ async function executeOrganizePdf() {
     triggerDownload(blob, filename);
 
     setProgress('organize_pdf', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `Saved ${state.organize_pdf.pages.length} organized & rotated pages!`, 'Download Organized PDF');
   } catch (err) {
     console.error(err);
     setProgress('organize_pdf', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
   }
 }
@@ -5246,12 +5241,12 @@ async function executeScanPdf() {
     triggerDownload(finalBlob, filename);
 
     setProgress('scan_pdf', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `Scanned ${state.scan_pdf.length} document page(s) into PDF!`, 'Download Scanned PDF');
   } catch (err) {
     console.error(err);
     setProgress('scan_pdf', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
   }
 }
@@ -5405,12 +5400,12 @@ async function executeWordToPdf() {
     triggerDownload(blob, filename);
 
     setProgress('word2pdf', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `Word document <b>${file.name}</b> converted to PDF successfully!`, 'Download PDF');
   } catch (err) {
     console.error("executeWordToPdf error:", err);
     setProgress('word2pdf', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error converting Word document: " + err.message;
   }
 }
@@ -5597,12 +5592,12 @@ async function executePptToPdf() {
     triggerDownload(blob, filename);
 
     setProgress('ppt2pdf', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `Presentation <b>${file.name}</b> (${slidesData.length} slides) converted to PDF!`, 'Download PDF');
   } catch (err) {
     console.error("executePptToPdf error:", err);
     setProgress('ppt2pdf', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error converting PowerPoint: " + err.message;
   }
 }
@@ -5676,12 +5671,12 @@ async function executeExcelToPdf() {
     triggerDownload(blob, filename);
 
     setProgress('excel2pdf', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `Spreadsheet <b>${file.name}</b> (${workbook.SheetNames.length} sheet(s)) converted to PDF!`, 'Download PDF');
   } catch (err) {
     console.error("executeExcelToPdf error:", err);
     setProgress('excel2pdf', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error converting Excel spreadsheet: " + err.message;
   }
 }
@@ -5820,12 +5815,12 @@ async function executePdfToWord() {
     triggerDownload(docxBlob, filename);
 
     setProgress('pdf2word', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `PDF converted to editable Word document <b>${filename}</b>!`, 'Download Word Document');
   } catch (err) {
     console.error("executePdfToWord error:", err);
     setProgress('pdf2word', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error converting PDF to Word: " + err.message;
   }
 }
@@ -5951,12 +5946,12 @@ async function executePdfToPpt() {
     triggerDownload(pptxBlob, filename);
 
     setProgress('pdf2ppt', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `PDF converted to PowerPoint presentation <b>${filename}</b> (${numPages} slide(s))!`, 'Download PowerPoint Presentation');
   } catch (err) {
     console.error("executePdfToPpt error:", err);
     setProgress('pdf2ppt', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error converting PDF to PowerPoint: " + err.message;
   }
 }
@@ -6062,12 +6057,12 @@ async function executePdfToExcel() {
     triggerDownload(excelBlob, filename);
 
     setProgress('pdf2excel', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `PDF tables converted to Excel spreadsheet <b>${filename}</b> (${numPages} sheet(s))!`, 'Download Excel Spreadsheet');
   } catch (err) {
     console.error("executePdfToExcel error:", err);
     setProgress('pdf2excel', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error converting PDF to Excel: " + err.message;
   }
 }
@@ -6076,19 +6071,27 @@ async function executePdfToExcel() {
 // TOOL 7: IMAGES TO PDF
 // ============================================================================
 async function executeImg2Pdf() {
-  if (state.img2pdf.length === 0) return alert("Please select at least one image.");
+  if (!state.img2pdf || state.img2pdf.length === 0) return alert("Please select at least one image.");
   const status = document.getElementById('img2pdf-status');
   const pdflib = getPdfLib();
   if (!pdflib) return alert("PDF Engine loading. Please wait 2 seconds.");
 
   setProgress('img2pdf', true);
-  status.style.display = 'none';
+  if (status) {
+    status.style.display = 'block';
+    status.className = 'status-box info';
+    status.innerText = `Starting conversion of ${state.img2pdf.length} image(s)...`;
+  }
 
   try {
     const pdfDoc = await pdflib.PDFDocument.create();
     const pageSize = document.getElementById('img2pdf-pagesize').value;
 
-    for (let file of state.img2pdf) {
+    for (let i = 0; i < state.img2pdf.length; i++) {
+      const file = state.img2pdf[i];
+      if (status) {
+        status.innerText = `Processing image ${i + 1} of ${state.img2pdf.length}: ${file.name}...`;
+      }
       const image = await embedImageInPdf(pdfDoc, file);
       let pw = image.width, ph = image.height;
       if (pageSize === 'A4') {
@@ -6106,6 +6109,7 @@ async function executeImg2Pdf() {
       page.drawImage(image, { x: (pw - tw) / 2, y: (ph - th) / 2, width: tw, height: th });
     }
 
+    if (status) status.innerText = "Finalizing PDF document...";
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const filename = "converted_images_" + Date.now().toString().slice(-4) + ".pdf";
@@ -6114,13 +6118,19 @@ async function executeImg2Pdf() {
     triggerDownload(blob, filename);
 
     setProgress('img2pdf', false);
-    status.className = 'status-box success';
-    status.innerHTML = renderDownloadStatusCard(downloadId, `Successfully converted ${state.img2pdf.length} image(s) to PDF!`, 'Download PDF');
+    if (status) {
+      status.style.display = 'block';
+      status.style.display = "block"; status.className = 'status-box success';
+      status.innerHTML = renderDownloadStatusCard(downloadId, `Successfully converted ${state.img2pdf.length} image(s) to PDF!`, 'Download PDF');
+    }
   } catch (err) {
-    console.error(err);
+    console.error("executeImg2Pdf error:", err);
     setProgress('img2pdf', false);
-    status.className = 'status-box error';
-    status.innerText = "Error: " + err.message;
+    if (status) {
+      status.style.display = 'block';
+      status.style.display = "block"; status.className = 'status-box error';
+      status.innerText = "Error converting images to PDF: " + err.message;
+    }
   }
 }
 
@@ -6202,20 +6212,20 @@ async function executePdf2Img() {
       }
       html += '</div>';
       setProgress('pdf2img', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       status.innerHTML = html;
     } else {
       const single = extractedBlobs[0];
       const singleId = registerDownloadItem(single.blob, single.name, single.blob.type || 'image/png');
       triggerDownload(single.blob, single.name);
       setProgress('pdf2img', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       status.innerHTML = renderDownloadStatusCard(singleId, `Extracted page image successfully!`, 'Download Image');
     }
   } catch (err) {
     console.error(err);
     setProgress('pdf2img', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
   }
 }
@@ -6276,7 +6286,7 @@ async function executeFormatConvert() {
       const singleId = registerDownloadItem(single.blob, single.name, single.blob.type || mime);
       triggerDownload(single.blob, single.name);
       setProgress('fmt', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       status.innerHTML = renderDownloadStatusCard(singleId, `Converted 1 image to ${targetFmt.toUpperCase()} successfully!`, 'Download Converted Image');
     } else if (zip) {
       const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -6316,13 +6326,13 @@ async function executeFormatConvert() {
       html += '</div>';
 
       setProgress('fmt', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       status.innerHTML = html;
     }
   } catch (err) {
     console.error(err);
     setProgress('fmt', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
   }
 }
@@ -6396,12 +6406,12 @@ async function executeMerge() {
     triggerDownload(blob, filename);
 
     setProgress('merge', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(downloadId, `Stitched ${state.merge.length} images into <b>${canvas.width} x ${canvas.height} px</b>!`, 'Download Stitched Image');
   } catch (err) {
     console.error(err);
     setProgress('merge', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
   }
 }
@@ -6501,7 +6511,7 @@ async function executeCompress() {
     triggerDownload(finalBlob, outFilename);
 
     setProgress('comp', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
 
     let statsHtml = '';
     if (targetBytes) {
@@ -6532,7 +6542,7 @@ async function executeCompress() {
   } catch (err) {
     console.error(err);
     setProgress('comp', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error resizing file: " + err.message;
   }
 }
@@ -6573,7 +6583,7 @@ async function executeProtectPdf() {
       triggerDownload(blob, filename);
 
       setProgress('protect_pdf', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       status.innerHTML = renderDownloadStatusCard(dlId, `Password protection applied successfully! (AES Encrypted)`, 'Download Protected PDF');
     } else {
       const zip = new JSZip();
@@ -6584,13 +6594,13 @@ async function executeProtectPdf() {
       triggerDownload(zipBlob, filename);
 
       setProgress('protect_pdf', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       status.innerHTML = renderDownloadStatusCard(dlId, `PDF secured and packaged with password protection.`, 'Download Protected File');
     }
   } catch (err) {
     console.error(err);
     setProgress('protect_pdf', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error protecting PDF: " + err.message;
   }
 }
@@ -6695,12 +6705,12 @@ async function executeUnlockPdf() {
     triggerDownload(blob, filename);
 
     setProgress('unlock_pdf', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `Document unlocked successfully! All password restrictions permanently removed.`, 'Download Unlocked PDF');
   } catch (err) {
     console.error("executeUnlockPdf error:", err);
     setProgress('unlock_pdf', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error unlocking PDF: " + err.message;
   }
 }
@@ -6962,12 +6972,12 @@ async function executeSignPdf() {
     triggerDownload(blob, filename);
 
     setProgress('sign_pdf', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `Signature stamped on ${pagesToSign.length} page(s)!`, 'Download Signed PDF');
   } catch (err) {
     console.error("executeSignPdf error:", err);
     setProgress('sign_pdf', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
   }
 }
@@ -7131,12 +7141,12 @@ async function executeRedactPdf() {
     triggerDownload(blob, filename);
 
     setProgress('redact_pdf', false);
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(dlId, `Burned ${totalBoxes} permanent blackout redactions into PDF!`, 'Download Redacted PDF');
   } catch (err) {
     console.error(err);
     setProgress('redact_pdf', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error: " + err.message;
   }
 }
@@ -7773,7 +7783,7 @@ async function executeFreestyleConvert() {
       triggerDownload(outBlob, outFilename);
 
       setProgress('freestyle', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       const finalKb = (outBlob.size / 1024).toFixed(1);
       const diffKb = targetBytes ? Math.abs((targetBytes - outBlob.size) / 1024).toFixed(1) : null;
       status.innerHTML = renderDownloadStatusCard(
@@ -7830,7 +7840,7 @@ async function executeFreestyleConvert() {
       triggerDownload(zipBlob, outFilename);
 
       setProgress('freestyle', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       status.innerHTML = renderDownloadStatusCard(dlId, `Extracted <b>${totalExtracted}</b> image(s) into <b>${outFilename}</b> (${(zipBlob.size / 1024).toFixed(1)} KB)!`, 'Download ZIP Archive');
       return;
     }
@@ -7897,7 +7907,7 @@ async function executeFreestyleConvert() {
       triggerDownload(imgBlob, outFilename);
 
       setProgress('freestyle', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       const finalKb = (imgBlob.size / 1024).toFixed(1);
       status.innerHTML = renderDownloadStatusCard(dlId, `Stitched <b>${imgFiles.length}</b> images into <b>${outFilename}</b> (${finalKb} KB)!`, 'Download Stitched Image');
       return;
@@ -8010,7 +8020,7 @@ async function executeFreestyleConvert() {
       triggerDownload(resultBlob, outFilename);
 
       setProgress('freestyle', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       const finalKb = (resultBlob.size / 1024).toFixed(1);
       status.innerHTML = renderDownloadStatusCard(dlId, `Converted to <b>${outFilename}</b> (${finalKb} KB)!`, `Download ${targetFormat.toUpperCase()}`);
     } else {
@@ -8046,13 +8056,13 @@ async function executeFreestyleConvert() {
       triggerDownload(zipBlob, outFilename);
 
       setProgress('freestyle', false);
-      status.className = 'status-box success';
+      status.style.display = "block"; status.className = 'status-box success';
       status.innerHTML = renderDownloadStatusCard(dlId, `Batch converted <b>${files.length}</b> files into <b>${outFilename}</b> (${(zipBlob.size / 1024).toFixed(1)} KB)!`, 'Download ZIP Archive');
     }
   } catch (err) {
     console.error("executeFreestyleConvert error:", err);
     setProgress('freestyle', false);
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error in Free Style Converter: " + err.message;
   }
 }
@@ -8424,13 +8434,18 @@ async function runImg2ExcelScan() {
     }
 
     if (window.Tesseract) {
-      status.innerText = "Initializing OCR engine & language models...";
+      status.innerText = "Initializing fast OCR engine & language models...";
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
 
-      const ocrPromise = Tesseract.recognize(canvas, 'eng', {
+      const ocrPromise = Tesseract.recognize(dataUrl, 'eng', {
+        langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast',
         logger: m => {
           if (m.status === 'recognizing text') {
             const pct = Math.round((m.progress || 0) * 100);
             status.innerText = `Recognizing table text & columns... ${pct}%`;
+          } else if (m.status === 'loading language traineddata') {
+            const pct = Math.round((m.progress || 0) * 100);
+            status.innerText = `Downloading OCR language data (1.8 MB)... ${pct}%`;
           } else if (m.status) {
             const name = m.status.charAt(0).toUpperCase() + m.status.slice(1);
             status.innerText = `${name}...`;
@@ -8637,7 +8652,7 @@ async function runImg2ExcelScan() {
 
     setProgress('img2excel', false);
     if (scanBtn) scanBtn.disabled = false;
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = `Table scan complete! Extracted <b>${rows.length} rows</b> and <b>${maxCols} columns</b>. Review or edit the table below, then click <b>Download Excel (.xlsx)</b>.`;
     if (previewWrap) previewWrap.style.display = 'block';
 
@@ -8645,7 +8660,7 @@ async function runImg2ExcelScan() {
     console.error("runImg2ExcelScan error:", err);
     setProgress('img2excel', false);
     if (scanBtn) scanBtn.disabled = false;
-    status.className = 'status-box error';
+    status.style.display = "block"; status.className = 'status-box error';
     status.innerText = "Error scanning image table: " + err.message;
   }
 }
@@ -8690,7 +8705,7 @@ function downloadImg2ExcelWorkbook() {
 
   const status = document.getElementById('img2excel-status');
   if (status) {
-    status.className = 'status-box success';
+    status.style.display = "block"; status.className = 'status-box success';
     status.innerHTML = renderDownloadStatusCard(
       dlId,
       `Excel Spreadsheet <b>${outFilename}</b> generated (${(outBlob.size / 1024).toFixed(1)} KB)!`,
