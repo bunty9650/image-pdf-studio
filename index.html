@@ -3156,7 +3156,6 @@
       </div>
     </div>
   </div>
-    </div>
   </div>
 
   <!-- ==================== 7. IMAGES TO PDF ==================== -->
@@ -8434,194 +8433,104 @@ async function runImg2ExcelScan() {
     }
 
     if (window.Tesseract) {
-      status.innerText = "Initializing fast OCR engine & language models...";
+      status.innerText = "Initializing fast OCR engine (1.8 MB model)...";
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
 
-      const ocrPromise = Tesseract.recognize(dataUrl, 'eng', {
-        langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast',
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            const pct = Math.round((m.progress || 0) * 100);
-            status.innerText = `Recognizing table text & columns... ${pct}%`;
-          } else if (m.status === 'loading language traineddata') {
-            const pct = Math.round((m.progress || 0) * 100);
-            status.innerText = `Downloading OCR language data (1.8 MB)... ${pct}%`;
-          } else if (m.status) {
-            const name = m.status.charAt(0).toUpperCase() + m.status.slice(1);
-            status.innerText = `${name}...`;
-          }
+      // Create optimized worker with uniform block PSM and interword spaces
+      let worker = null;
+      let res = null;
+
+      try {
+        if (typeof Tesseract.createWorker === 'function') {
+          worker = await Tesseract.createWorker('eng', 1, {
+            langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast',
+            logger: m => {
+              if (m.status === 'recognizing text') {
+                const pct = Math.round((m.progress || 0) * 100);
+                status.innerText = `Recognizing table text & columns... ${pct}%`;
+              } else if (m.status === 'loading language traineddata') {
+                const pct = Math.round((m.progress || 0) * 100);
+                status.innerText = `Downloading OCR model (1.8 MB)... ${pct}%`;
+              } else if (m.status) {
+                const name = m.status.charAt(0).toUpperCase() + m.status.slice(1);
+                status.innerText = `${name}...`;
+              }
+            }
+          });
+
+          await worker.setParameters({
+            tessedit_pageseg_mode: '6', // uniform block mode
+            preserve_interword_spaces: '1'
+          });
+
+          res = await worker.recognize(dataUrl);
+          await worker.terminate();
         }
-      });
+      } catch (workerErr) {
+        console.warn("createWorker issue, falling back to Tesseract.recognize:", workerErr);
+        if (worker) { try { await worker.terminate(); } catch(e){} }
+      }
 
-      // 90-second safety timeout
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("OCR processing timed out. Please check your internet connection.")), 90000)
-      );
-
-      const res = await Promise.race([ocrPromise, timeoutPromise]);
+      if (!res) {
+        // Fallback to direct recognize
+        res = await Tesseract.recognize(dataUrl, 'eng', {
+          langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast',
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              const pct = Math.round((m.progress || 0) * 100);
+              status.innerText = `Recognizing table text & columns... ${pct}%`;
+            }
+          }
+        });
+      }
 
       if (res && res.data) {
-        // Collect all detected words with bounding boxes
-        const allWords = [];
-        if (res.data.words && res.data.words.length > 0) {
-          for (const w of res.data.words) {
-            const txt = (w.text || '').trim();
-            if (txt && w.bbox) {
-              allWords.push({
-                text: txt,
-                x0: w.bbox.x0,
-                y0: w.bbox.y0,
-                x1: w.bbox.x1,
-                y1: w.bbox.y1,
-                yc: (w.bbox.y0 + w.bbox.y1) / 2,
-                height: Math.max(1, w.bbox.y1 - w.bbox.y0)
-              });
+        const fullText = (res.data.text || '').trim();
+        status.innerText = "Parsing table structure and formatting cells...";
+
+        function cleanCell(c) {
+          if (!c) return '';
+          let s = String(c).trim();
+          // Remove table border artifacts (leading/trailing pipes, underlines, tildes)
+          s = s.replace(/^[|_\-—~\[\]\s]+/, '').replace(/[|_\-—~\[\]\s]+$/, '');
+          return s.trim();
+        }
+
+        // Primary: Parse full text line by line
+        if (fullText) {
+          const rawLines = fullText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+          for (const line of rawLines) {
+            let cells = [];
+            if (line.includes('|')) {
+              cells = line.split('|').map(cleanCell);
+            } else if (line.includes('\t')) {
+              cells = line.split('\t').map(cleanCell);
+            } else {
+              cells = line.split(/\s{2,}/).map(cleanCell);
+            }
+            // Filter out empty ghost cells
+            const validCells = cells.filter(c => c.length > 0);
+            if (validCells.length > 0) {
+              rows.push(validCells);
             }
           }
         }
 
-        if (allWords.length > 0) {
-          status.innerText = "Reconstructing table grid & aligning columns...";
-          const avgHeight = allWords.reduce((sum, w) => sum + w.height, 0) / allWords.length;
-          const rowTolerance = Math.max(10, avgHeight * 0.65);
-
-          // Group words into rows by vertical center
-          allWords.sort((a, b) => a.yc - b.yc);
-          const rawRowGroups = [];
-          for (const w of allWords) {
-            let matchedGroup = null;
-            for (const group of rawRowGroups) {
-              if (Math.abs(w.yc - group.avgY) <= rowTolerance) {
-                matchedGroup = group;
-                break;
-              }
-            }
-            if (matchedGroup) {
-              matchedGroup.words.push(w);
-              matchedGroup.avgY = matchedGroup.words.reduce((s, it) => s + it.yc, 0) / matchedGroup.words.length;
-            } else {
-              rawRowGroups.push({ avgY: w.yc, words: [w] });
-            }
-          }
-
-          rawRowGroups.sort((a, b) => a.avgY - b.avgY);
-
-          // In each row, group words with small horizontal gap into cell tokens
-          const rowTokens = [];
-          const cellGapThreshold = Math.max(18, avgHeight * 1.3);
-
-          for (const group of rawRowGroups) {
-            group.words.sort((a, b) => a.x0 - b.x0);
-            const tokens = [];
-            let curToken = null;
-
-            for (const w of group.words) {
-              if (!curToken) {
-                curToken = { text: w.text, x0: w.x0, x1: w.x1, y0: w.y0, y1: w.y1 };
-              } else {
-                const gap = w.x0 - curToken.x1;
-                if (gap <= cellGapThreshold) {
-                  curToken.text += " " + w.text;
-                  curToken.x1 = Math.max(curToken.x1, w.x1);
-                  curToken.y1 = Math.max(curToken.y1, w.y1);
-                } else {
-                  tokens.push(curToken);
-                  curToken = { text: w.text, x0: w.x0, x1: w.x1, y0: w.y0, y1: w.y1 };
-                }
-              }
-            }
-            if (curToken) tokens.push(curToken);
-            if (tokens.length > 0) {
-              rowTokens.push({ avgY: group.avgY, tokens: tokens });
-            }
-          }
-
-          // Global Column Anchor Clustering
-          const startPositions = [];
-          for (const r of rowTokens) {
-            for (const t of r.tokens) {
-              startPositions.push(t.x0);
-            }
-          }
-          startPositions.sort((a, b) => a - b);
-
-          const colClusters = [];
-          const colTolerance = Math.max(30, avgHeight * 2.2);
-
-          for (const x of startPositions) {
-            let matchedCluster = null;
-            for (const cluster of colClusters) {
-              if (Math.abs(x - cluster.avgX) <= colTolerance) {
-                matchedCluster = cluster;
-                break;
-              }
-            }
-            if (matchedCluster) {
-              matchedCluster.points.push(x);
-              matchedCluster.avgX = matchedCluster.points.reduce((a, b) => a + b, 0) / matchedCluster.points.length;
-            } else {
-              colClusters.push({ avgX: x, points: [x] });
-            }
-          }
-
-          const minAppearances = rowTokens.length >= 4 ? 2 : 1;
-          const validCols = colClusters
-            .filter(c => c.points.length >= minAppearances)
-            .sort((a, b) => a.avgX - b.avgX);
-
-          if (validCols.length >= 2) {
-            // Map tokens to global columns
-            for (const r of rowTokens) {
-              const gridRow = new Array(validCols.length).fill("");
-              for (const t of r.tokens) {
-                let bestIdx = 0;
-                let bestDist = Infinity;
-                for (let c = 0; c < validCols.length; c++) {
-                  const dist = Math.abs(t.x0 - validCols[c].avgX);
-                  if (dist < bestDist) {
-                    bestDist = dist;
-                    bestIdx = c;
-                  }
-                }
-                if (gridRow[bestIdx]) {
-                  gridRow[bestIdx] += " " + t.text;
-                } else {
-                  gridRow[bestIdx] = t.text;
-                }
-              }
-              rows.push(gridRow);
-            }
-          } else {
-            rows = rowTokens.map(r => r.tokens.map(t => t.text));
-          }
-        }
-
-        // Fallback to line splitting
+        // Secondary / Fallback: If line words had bounding boxes
         if (rows.length === 0 && res.data.lines && res.data.lines.length > 0) {
           for (const line of res.data.lines) {
             const lineText = (line.text || '').trim();
             if (!lineText) continue;
             let cells;
-            if (lineText.includes('\t')) {
-              cells = lineText.split('\t').map(c => c.trim()).filter(c => c.length > 0);
-            } else if (lineText.includes('|')) {
-              cells = lineText.split('|').map(c => c.trim()).filter(c => c.length > 0);
+            if (lineText.includes('|')) {
+              cells = lineText.split('|').map(cleanCell).filter(c => c.length > 0);
+            } else if (lineText.includes('\t')) {
+              cells = lineText.split('\t').map(cleanCell).filter(c => c.length > 0);
             } else {
-              cells = lineText.split(/\s{2,}/).map(c => c.trim()).filter(c => c.length > 0);
+              cells = lineText.split(/\s{2,}/).map(cleanCell).filter(c => c.length > 0);
             }
             if (cells.length > 0) rows.push(cells);
           }
-        }
-
-        // Fallback to raw text
-        if (rows.length === 0 && res.data.text) {
-          const rawLines = res.data.text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-          rows = rawLines.map(l => {
-            if (l.includes('\t')) return l.split('\t').map(c => c.trim());
-            if (l.includes('|')) return l.split('|').map(c => c.trim()).filter(c => c.length > 0);
-            const cols = l.split(/\s{2,}/).map(c => c.trim()).filter(c => c.length > 0);
-            return cols.length > 0 ? cols : [l];
-          });
         }
       }
     }
@@ -8652,7 +8561,8 @@ async function runImg2ExcelScan() {
 
     setProgress('img2excel', false);
     if (scanBtn) scanBtn.disabled = false;
-    status.style.display = "block"; status.className = 'status-box success';
+    status.style.display = 'block';
+    status.className = 'status-box success';
     status.innerHTML = `Table scan complete! Extracted <b>${rows.length} rows</b> and <b>${maxCols} columns</b>. Review or edit the table below, then click <b>Download Excel (.xlsx)</b>.`;
     if (previewWrap) previewWrap.style.display = 'block';
 
@@ -8660,7 +8570,8 @@ async function runImg2ExcelScan() {
     console.error("runImg2ExcelScan error:", err);
     setProgress('img2excel', false);
     if (scanBtn) scanBtn.disabled = false;
-    status.style.display = "block"; status.className = 'status-box error';
+    status.style.display = 'block';
+    status.className = 'status-box error';
     status.innerText = "Error scanning image table: " + err.message;
   }
 }
