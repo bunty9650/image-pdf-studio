@@ -797,17 +797,79 @@
   }
   .btn-secondary:hover { background: #e2e8f0; color: #0f172a; }
 
-  /* FILE CARD LIST */
-  .file-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; max-height: 240px; overflow-y: auto; }
+  /* FILE CARD LIST & MULTI-FILE REORDER CONTROLS */
+  .file-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; max-height: 280px; overflow-y: auto; }
   .file-card {
-    display: flex; align-items: center; justify-content: space-between; padding: 9px 12px;
+    display: flex; align-items: center; justify-content: space-between; padding: 8px 12px;
     background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 13px;
-    animation: cardSlide 0.15s ease;
+    animation: cardSlide 0.15s ease; position: relative; gap: 8px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
   }
   .file-card:hover { border-color: #cbd5e1; }
   @keyframes cardSlide { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 
-  .file-card-info { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+  .file-card[draggable="true"] { cursor: grab; user-select: none; }
+  .file-card[draggable="true"]:active { cursor: grabbing; }
+  .file-card.dragging {
+    opacity: 0.45;
+    transform: scale(0.98);
+    border: 1.5px dashed var(--primary) !important;
+    background: rgba(37, 99, 235, 0.05);
+  }
+  .file-card.drag-over { border-color: var(--primary); }
+  .file-card.drag-over-top {
+    border-top: 3px solid var(--primary) !important;
+    border-top-left-radius: 4px; border-top-right-radius: 4px;
+  }
+  .file-card.drag-over-bottom {
+    border-bottom: 3px solid var(--primary) !important;
+    border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;
+  }
+
+  .drag-handle {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); cursor: grab; padding: 4px 2px;
+    border-radius: 4px; flex-shrink: 0;
+    transition: color 0.15s, background-color 0.15s;
+  }
+  .drag-handle:hover {
+    color: var(--primary); background: rgba(37, 99, 235, 0.08);
+  }
+  .drag-handle svg {
+    width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none;
+  }
+
+  .seq-picker {
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    background: var(--primary); color: #ffffff; border-radius: 6px;
+    font-weight: 800; font-size: 11px; height: 24px; min-width: 32px; padding: 0 5px;
+    cursor: pointer; flex-shrink: 0; box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+    transition: transform 0.1s ease, box-shadow 0.15s ease;
+  }
+  .seq-picker:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.45);
+  }
+  .seq-picker .seq-num {
+    pointer-events: none; font-size: 11px; font-weight: 800; letter-spacing: -0.02em;
+  }
+  .seq-picker .seq-dropdown {
+    position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%;
+    cursor: pointer; font-size: 13px;
+  }
+
+  .page-thumb-card[draggable="true"] {
+    cursor: grab;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .page-thumb-card.dragging {
+    opacity: 0.4; transform: scale(0.95);
+    border: 1.5px dashed var(--primary) !important;
+  }
+  .page-thumb-card.drag-over-left { border-left: 3px solid var(--primary) !important; }
+  .page-thumb-card.drag-over-right { border-right: 3px solid var(--primary) !important; }
+
+  .file-card-info { display: flex; align-items: center; gap: 8px; overflow: hidden; flex: 1; }
   .seq-badge {
     background: var(--primary); color: #fff; font-size: 10px; font-weight: 800; width: 20px; height: 20px;
     border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
@@ -816,13 +878,13 @@
     width: 36px; height: 36px; border-radius: 5px; object-fit: cover; background: #e2e8f0; flex-shrink: 0;
     cursor: pointer; border: 1px solid var(--border);
   }
-  .file-card-name { font-weight: 700; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 420px; }
+  .file-card-name { font-weight: 700; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 380px; }
   .badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
   .badge-fmt { background: #eff6ff; color: var(--primary); }
   .badge-pdf { background: #fee2e2; color: #ef4444; }
   .badge-size { background: #f1f5f9; color: var(--text-muted); }
 
-  .file-card-actions { display: flex; align-items: center; gap: 3px; }
+  .file-card-actions { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
   .icon-btn {
     background: transparent; border: none; cursor: pointer; padding: 5px; border-radius: 5px;
     display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: all 0.15s;
@@ -831,6 +893,9 @@
   .icon-btn.primary:hover { background: #eff6ff; color: var(--primary); }
   .icon-btn.danger:hover { background: #fee2e2; color: var(--danger); }
   .icon-btn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
+  [data-theme="dark"] .icon-btn:hover { background: #1e293b; color: #f8fafc; }
+  [data-theme="dark"] .icon-btn.danger:hover { background: rgba(239, 68, 68, 0.25); color: #ef4444; }
+  [data-theme="dark"] .drag-handle:hover { color: #60a5fa; background: rgba(59, 130, 246, 0.15); }
 
   /* PILL SELECTOR CARDS */
   .pill-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -2377,20 +2442,36 @@
 
       <!-- SELECTED FILES QUEUE LIST -->
       <div id="freestyle-queue-wrap" style="display:none; margin-bottom:18px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border);">
-          <span style="font-size:13px; font-weight:800; color:var(--text-main);" id="freestyle-queue-count">0 Files Selected</span>
-          <div style="display:flex; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:8px;">
+          <div>
+            <span style="font-size:13px; font-weight:800; color:var(--text-main);" id="freestyle-queue-count">0 Files Selected</span>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Drag cards, use arrow buttons, or tap sequence badge to reorder</div>
+          </div>
+          <div class="toolbar-actions" style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="btn-secondary" onclick="reverseOrder('freestyle')" title="Reverse file sequence">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+              Reverse
+            </button>
+            <button type="button" class="btn-secondary" onclick="sortListByName('freestyle', true)" title="Sort by Name A to Z">
+              A-Z
+            </button>
+            <button type="button" class="btn-secondary" onclick="sortListByName('freestyle', false)" title="Sort by Name Z to A">
+              Z-A
+            </button>
+            <button type="button" class="btn-secondary" onclick="sortListBySize('freestyle', true)" title="Sort by Size">
+              Size
+            </button>
             <button type="button" class="btn-secondary" onclick="document.getElementById('freestyle-input').click()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              Add More Files
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add More
             </button>
             <button type="button" class="btn-secondary" onclick="clearFreestyleQueue()" style="color:var(--danger);">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
               Clear All
             </button>
           </div>
         </div>
-        <div id="freestyle-file-list" class="file-list" style="max-height:240px; overflow-y:auto;"></div>
+        <div id="freestyle-file-list" class="file-list" style="max-height:280px; overflow-y:auto;"></div>
       </div>
 
       <!-- CONVERSION CONTROLS -->
@@ -2507,11 +2588,18 @@
       </div>
       <input type="file" id="merge_pdf-input" class="file-input" multiple accept="application/pdf" onchange="handleFilesSelect(this, 'merge_pdf')">
 
-      <div class="toolbar-row" id="merge_pdf-tools" style="display:none;">
-        <span id="merge_pdf-counter" style="font-size:12px; font-weight:700; color:var(--text-muted);">0 files</span>
-        <div class="toolbar-actions">
-          <button class="btn-secondary" onclick="reverseOrder('merge_pdf')">Reverse Order</button>
-          <button class="btn-secondary" onclick="clearList('merge_pdf')">Clear All</button>
+      <div class="toolbar-row" id="merge_pdf-tools" style="display:none; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <span id="merge_pdf-counter" style="font-size:12px; font-weight:700; color:var(--text-main);">0 files</span>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Drag cards, use arrow buttons, or tap sequence badge to reorder</div>
+        </div>
+        <div class="toolbar-actions" style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="reverseOrder('merge_pdf')" title="Reverse PDF merge order">Reverse</button>
+          <button type="button" class="btn-secondary" onclick="sortListByName('merge_pdf', true)" title="Sort by file name A to Z">A-Z</button>
+          <button type="button" class="btn-secondary" onclick="sortListByName('merge_pdf', false)" title="Sort by file name Z to A">Z-A</button>
+          <button type="button" class="btn-secondary" onclick="sortListBySize('merge_pdf', true)" title="Sort by file size">Size</button>
+          <button type="button" class="btn-secondary" onclick="document.getElementById('merge_pdf-input').click()" title="Add more PDF files">Add More</button>
+          <button type="button" class="btn-secondary" onclick="clearList('merge_pdf')" style="color:var(--danger);">Clear All</button>
         </div>
       </div>
 
@@ -2780,12 +2868,16 @@
       </div>
       <input type="file" id="organize_pdf-input" class="file-input" accept="application/pdf" onchange="loadOrganizePdf(this)">
 
-      <div class="toolbar-row" id="organize_pdf-tools" style="display:none;">
-        <span id="organize_pdf-counter" style="font-size:12px; font-weight:700; color:var(--text-muted);">0 pages</span>
-        <div class="toolbar-actions">
-          <button class="btn-secondary" onclick="rotateAllPages(-90)">Rotate All Left</button>
-          <button class="btn-secondary" onclick="rotateAllPages(90)">Rotate All Right</button>
-          <button class="btn-secondary" onclick="resetOrganizePages()">Reset</button>
+      <div class="toolbar-row" id="organize_pdf-tools" style="display:none; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <span id="organize_pdf-counter" style="font-size:12px; font-weight:700; color:var(--text-main);">0 pages</span>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Drag page thumbnails to reorder pages</div>
+        </div>
+        <div class="toolbar-actions" style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="reverseOrganizePages()" title="Reverse page sequence">Reverse Pages</button>
+          <button type="button" class="btn-secondary" onclick="rotateAllPages(-90)">Rotate All Left</button>
+          <button type="button" class="btn-secondary" onclick="rotateAllPages(90)">Rotate All Right</button>
+          <button type="button" class="btn-secondary" onclick="resetOrganizePages()">Reset</button>
         </div>
       </div>
 
@@ -2850,10 +2942,17 @@
       </div>
       <input type="file" id="scan_pdf-input" class="file-input" multiple accept="image/*" onchange="handleFilesSelect(this, 'scan_pdf')">
 
-      <div class="toolbar-row" id="scan_pdf-tools" style="display:none;">
-        <span id="scan_pdf-counter" style="font-size:12px; font-weight:700; color:var(--text-muted);">0 photos</span>
-        <div class="toolbar-actions">
-          <button class="btn-secondary" onclick="clearList('scan_pdf')">Clear All</button>
+      <div class="toolbar-row" id="scan_pdf-tools" style="display:none; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <span id="scan_pdf-counter" style="font-size:12px; font-weight:700; color:var(--text-main);">0 photos</span>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Drag cards, use arrow buttons, or tap sequence badge to reorder</div>
+        </div>
+        <div class="toolbar-actions" style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="reverseOrder('scan_pdf')" title="Reverse page sequence">Reverse</button>
+          <button type="button" class="btn-secondary" onclick="sortListByName('scan_pdf', true)" title="Sort by file name A to Z">A-Z</button>
+          <button type="button" class="btn-secondary" onclick="sortListByName('scan_pdf', false)" title="Sort by file name Z to A">Z-A</button>
+          <button type="button" class="btn-secondary" onclick="document.getElementById('scan_pdf-input').click()" title="Add more scans">Add More</button>
+          <button type="button" class="btn-secondary" onclick="clearList('scan_pdf')" style="color:var(--danger);">Clear All</button>
         </div>
       </div>
 
@@ -3540,11 +3639,18 @@
       </div>
       <input type="file" id="img2pdf-input" class="file-input" multiple accept="image/*" onchange="handleFilesSelect(this, 'img2pdf')">
 
-      <div class="toolbar-row" id="img2pdf-tools" style="display:none;">
-        <span id="img2pdf-counter" style="font-size:12px; font-weight:700; color:var(--text-muted);">0 images</span>
-        <div class="toolbar-actions">
-          <button class="btn-secondary" onclick="reverseOrder('img2pdf')">Reverse Order</button>
-          <button class="btn-secondary" onclick="clearList('img2pdf')">Clear All</button>
+      <div class="toolbar-row" id="img2pdf-tools" style="display:none; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <span id="img2pdf-counter" style="font-size:12px; font-weight:700; color:var(--text-main);">0 images</span>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Drag cards, use arrow buttons, or tap sequence badge to reorder</div>
+        </div>
+        <div class="toolbar-actions" style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="reverseOrder('img2pdf')" title="Reverse image order">Reverse</button>
+          <button type="button" class="btn-secondary" onclick="sortListByName('img2pdf', true)" title="Sort images A to Z">A-Z</button>
+          <button type="button" class="btn-secondary" onclick="sortListByName('img2pdf', false)" title="Sort images Z to A">Z-A</button>
+          <button type="button" class="btn-secondary" onclick="sortListBySize('img2pdf', true)" title="Sort by file size">Size</button>
+          <button type="button" class="btn-secondary" onclick="document.getElementById('img2pdf-input').click()" title="Add more images">Add More</button>
+          <button type="button" class="btn-secondary" onclick="clearList('img2pdf')" style="color:var(--danger);">Clear All</button>
         </div>
       </div>
 
@@ -3701,10 +3807,18 @@
       </div>
       <input type="file" id="fmt-input" class="file-input" multiple accept="image/*" onchange="handleFilesSelect(this, 'fmt')">
 
-      <div class="toolbar-row" id="fmt-tools" style="display:none;">
-        <span id="fmt-counter" style="font-size:12px; font-weight:700; color:var(--text-muted);">0 images</span>
-        <div class="toolbar-actions">
-          <button class="btn-secondary" onclick="clearList('fmt')">Clear All</button>
+      <div class="toolbar-row" id="fmt-tools" style="display:none; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <span id="fmt-counter" style="font-size:12px; font-weight:700; color:var(--text-main);">0 images</span>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Drag cards, use arrow buttons, or tap sequence badge to reorder</div>
+        </div>
+        <div class="toolbar-actions" style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="reverseOrder('fmt')" title="Reverse sequence">Reverse</button>
+          <button type="button" class="btn-secondary" onclick="sortListByName('fmt', true)" title="Sort images A to Z">A-Z</button>
+          <button type="button" class="btn-secondary" onclick="sortListByName('fmt', false)" title="Sort images Z to A">Z-A</button>
+          <button type="button" class="btn-secondary" onclick="sortListBySize('fmt', true)" title="Sort by file size">Size</button>
+          <button type="button" class="btn-secondary" onclick="document.getElementById('fmt-input').click()" title="Add more images">Add More</button>
+          <button type="button" class="btn-secondary" onclick="clearList('fmt')" style="color:var(--danger);">Clear All</button>
         </div>
       </div>
 
@@ -3780,11 +3894,17 @@
       </div>
       <input type="file" id="merge-input" class="file-input" multiple accept="image/*" onchange="handleFilesSelect(this, 'merge')">
 
-      <div class="toolbar-row" id="merge-tools" style="display:none;">
-        <span id="merge-counter" style="font-size:12px; font-weight:700; color:var(--text-muted);">0 images</span>
-        <div class="toolbar-actions">
-          <button class="btn-secondary" onclick="reverseOrder('merge')">Reverse Order</button>
-          <button class="btn-secondary" onclick="clearList('merge')">Clear All</button>
+      <div class="toolbar-row" id="merge-tools" style="display:none; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <span id="merge-counter" style="font-size:12px; font-weight:700; color:var(--text-main);">0 images</span>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">Drag cards, use arrow buttons, or tap sequence badge to reorder</div>
+        </div>
+        <div class="toolbar-actions" style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" onclick="reverseOrder('merge')" title="Reverse stitching order">Reverse</button>
+          <button type="button" class="btn-secondary" onclick="sortListByName('merge', true)" title="Sort images A to Z">A-Z</button>
+          <button type="button" class="btn-secondary" onclick="sortListByName('merge', false)" title="Sort images Z to A">Z-A</button>
+          <button type="button" class="btn-secondary" onclick="document.getElementById('merge-input').click()" title="Add more images">Add More</button>
+          <button type="button" class="btn-secondary" onclick="clearList('merge')" style="color:var(--danger);">Clear All</button>
         </div>
       </div>
 
@@ -4724,6 +4844,158 @@ async function handleFilesSelect(input, key) {
   await renderFileList(key);
 }
 
+// ============================================================================
+// UNIVERSAL DRAG & DROP AND SEQUENCE REORDERING ENGINE
+// ============================================================================
+let draggedItemIndex = null;
+let draggedListKey = null;
+
+function getDropDestinationIndex(fromIdx, targetIdx, isAfter) {
+  if (fromIdx === targetIdx) return fromIdx;
+  if (fromIdx < targetIdx) {
+    return isAfter ? targetIdx : targetIdx - 1;
+  } else {
+    return isAfter ? targetIdx + 1 : targetIdx;
+  }
+}
+
+function attachCardDragAndDrop(card, key, idx) {
+  card.setAttribute('draggable', 'true');
+
+  card.addEventListener('dragstart', (e) => {
+    draggedItemIndex = idx;
+    draggedListKey = key;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', String(idx)); } catch (err) {}
+  });
+
+  card.addEventListener('dragend', () => {
+    card.classList.remove('dragging');
+    draggedItemIndex = null;
+    draggedListKey = null;
+    document.querySelectorAll('.file-card.drag-over').forEach(el => {
+      el.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+    });
+  });
+
+  card.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (draggedListKey !== key || draggedItemIndex === null || draggedItemIndex === idx) return;
+    e.dataTransfer.dropEffect = 'move';
+    const rect = card.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    card.classList.add('drag-over');
+    if (e.clientY < midY) {
+      card.classList.add('drag-over-top');
+      card.classList.remove('drag-over-bottom');
+    } else {
+      card.classList.add('drag-over-bottom');
+      card.classList.remove('drag-over-top');
+    }
+  });
+
+  card.addEventListener('dragleave', () => {
+    card.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+  });
+
+  card.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    card.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+    if (draggedListKey !== key || draggedItemIndex === null || draggedItemIndex === idx) return;
+
+    const rect = card.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    const isAfter = e.clientY >= midY;
+    const destIndex = getDropDestinationIndex(draggedItemIndex, idx, isAfter);
+    const fromIdx = draggedItemIndex;
+    draggedItemIndex = null;
+    draggedListKey = null;
+
+    moveItemToPosition(key, fromIdx, destIndex);
+  });
+}
+
+function getListArray(key) {
+  if (key === 'freestyle') {
+    if (!Array.isArray(state.freestyle)) state.freestyle = [];
+    return state.freestyle;
+  }
+  if (!Array.isArray(state[key])) state[key] = [];
+  return state[key];
+}
+
+function refreshListUI(key) {
+  if (key === 'freestyle') {
+    renderFreestyleQueue();
+  } else {
+    renderFileList(key);
+  }
+}
+
+function moveItem(key, idx, dir) {
+  const arr = getListArray(key);
+  const target = idx + dir;
+  if (target < 0 || target >= arr.length) return;
+  const temp = arr[idx];
+  arr[idx] = arr[target];
+  arr[target] = temp;
+  refreshListUI(key);
+}
+
+function moveItemToPosition(key, fromIdx, toIdx) {
+  const arr = getListArray(key);
+  if (fromIdx < 0 || fromIdx >= arr.length) return;
+  toIdx = Math.max(0, Math.min(arr.length - 1, toIdx));
+  if (fromIdx === toIdx) return;
+  const [item] = arr.splice(fromIdx, 1);
+  arr.splice(toIdx, 0, item);
+  refreshListUI(key);
+}
+
+function removeItem(key, idx) {
+  const arr = getListArray(key);
+  if (idx >= 0 && idx < arr.length) {
+    arr.splice(idx, 1);
+    refreshListUI(key);
+  }
+}
+
+function reverseOrder(key) {
+  const arr = getListArray(key);
+  arr.reverse();
+  refreshListUI(key);
+}
+
+function sortListByName(key, asc = true) {
+  const arr = getListArray(key);
+  if (arr.length < 2) return;
+  arr.sort((a, b) => {
+    const nameA = (a.name || '').toLowerCase();
+    const nameB = (b.name || '').toLowerCase();
+    return asc ? nameA.localeCompare(nameB, undefined, { numeric: true }) : nameB.localeCompare(nameA, undefined, { numeric: true });
+  });
+  refreshListUI(key);
+}
+
+function sortListBySize(key, asc = true) {
+  const arr = getListArray(key);
+  if (arr.length < 2) return;
+  arr.sort((a, b) => asc ? ((a.size || 0) - (b.size || 0)) : ((b.size || 0) - (a.size || 0)));
+  refreshListUI(key);
+}
+
+function clearList(key) {
+  if (key === 'freestyle') {
+    state.freestyle = [];
+    renderFreestyleQueue();
+  } else {
+    state[key] = [];
+    renderFileList(key);
+  }
+}
+
 async function renderFileList(key) {
   const container = document.getElementById(key + '-list');
   const tools = document.getElementById(key + '-tools');
@@ -4731,27 +5003,59 @@ async function renderFileList(key) {
   if (!container) return;
   container.innerHTML = '';
 
-  if (!state[key] || state[key].length === 0) {
+  const list = state[key];
+  if (!list || list.length === 0) {
     if (tools) tools.style.display = 'none';
     return;
   }
   if (tools) tools.style.display = 'flex';
-  if (counter) counter.innerText = state[key].length + ' item(s)';
+  if (counter) counter.innerText = list.length + ' item(s)';
 
-  for (let idx = 0; idx < state[key].length; idx++) {
-    const f = state[key][idx];
+  const total = list.length;
+  for (let idx = 0; idx < total; idx++) {
+    const f = list[idx];
     const card = document.createElement('div');
     card.className = 'file-card';
+
+    // Drag and Drop
+    attachCardDragAndDrop(card, key, idx);
 
     const info = document.createElement('div');
     info.className = 'file-card-info';
 
-    const badge = document.createElement('div');
-    badge.className = 'seq-badge';
-    badge.innerText = idx + 1;
-    info.appendChild(badge);
+    // Drag handle
+    const dragHandle = document.createElement('div');
+    dragHandle.className = 'drag-handle';
+    dragHandle.title = 'Drag to reorder sequence';
+    dragHandle.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>';
+    info.appendChild(dragHandle);
 
-    const isPdf = f.type === 'application/pdf' || f.name.endsWith('.pdf');
+    // Sequence Picker Badge with dropdown
+    const seqPicker = document.createElement('div');
+    seqPicker.className = 'seq-picker';
+    seqPicker.title = `Sequence #${idx + 1} of ${total} - Click or tap to jump to position`;
+    seqPicker.innerHTML = `<span class="seq-num">#${idx + 1}</span>`;
+
+    const seqSelect = document.createElement('select');
+    seqSelect.className = 'seq-dropdown';
+    seqSelect.title = 'Change sequence position';
+    for (let p = 1; p <= total; p++) {
+      const opt = document.createElement('option');
+      opt.value = p;
+      opt.innerText = '#' + p + (p === idx + 1 ? ' (Current)' : '');
+      if (p === idx + 1) opt.selected = true;
+      seqSelect.appendChild(opt);
+    }
+    seqSelect.onchange = (e) => {
+      e.stopPropagation();
+      const targetPos = parseInt(e.target.value) - 1;
+      moveItemToPosition(key, idx, targetPos);
+    };
+    seqPicker.appendChild(seqSelect);
+    info.appendChild(seqPicker);
+
+    // Thumbnail / Icon
+    const isPdf = f.type === 'application/pdf' || (f.name && f.name.toLowerCase().endsWith('.pdf'));
     if (!isPdf) {
       const thumb = document.createElement('img');
       thumb.className = 'file-card-thumb';
@@ -4775,59 +5079,62 @@ async function renderFileList(key) {
     const actions = document.createElement('div');
     actions.className = 'file-card-actions';
 
+    // Jump to Top (if idx > 1)
+    if (idx > 1) {
+      const topBtn = document.createElement('button');
+      topBtn.type = 'button';
+      topBtn.className = 'icon-btn';
+      topBtn.title = 'Jump to Top (#1)';
+      topBtn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="18 11 12 5 6 11"></polyline><line x1="18" y1="19" x2="6" y2="19"></line></svg>';
+      topBtn.onclick = (e) => { e.stopPropagation(); moveItemToPosition(key, idx, 0); };
+      actions.appendChild(topBtn);
+    }
+
+    // Move Up (if idx > 0)
     if (idx > 0) {
       const upBtn = document.createElement('button');
+      upBtn.type = 'button';
       upBtn.className = 'icon-btn';
       upBtn.title = 'Move Up';
       upBtn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>';
-      upBtn.onclick = () => moveItem(key, idx, -1);
+      upBtn.onclick = (e) => { e.stopPropagation(); moveItem(key, idx, -1); };
       actions.appendChild(upBtn);
     }
 
-    if (idx < state[key].length - 1) {
+    // Move Down (if idx < total - 1)
+    if (idx < total - 1) {
       const downBtn = document.createElement('button');
+      downBtn.type = 'button';
       downBtn.className = 'icon-btn';
       downBtn.title = 'Move Down';
       downBtn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>';
-      downBtn.onclick = () => moveItem(key, idx, 1);
+      downBtn.onclick = (e) => { e.stopPropagation(); moveItem(key, idx, 1); };
       actions.appendChild(downBtn);
     }
 
+    // Jump to Bottom (if idx < total - 2)
+    if (idx < total - 2) {
+      const botBtn = document.createElement('button');
+      botBtn.type = 'button';
+      botBtn.className = 'icon-btn';
+      botBtn.title = `Jump to Bottom (#${total})`;
+      botBtn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="6 13 12 19 18 13"></polyline><line x1="6" y1="5" x2="18" y2="5"></line></svg>';
+      botBtn.onclick = (e) => { e.stopPropagation(); moveItemToPosition(key, idx, total - 1); };
+      actions.appendChild(botBtn);
+    }
+
+    // Delete
     const delBtn = document.createElement('button');
+    delBtn.type = 'button';
     delBtn.className = 'icon-btn danger';
-    delBtn.title = 'Remove';
+    delBtn.title = 'Remove File';
     delBtn.innerHTML = '<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
-    delBtn.onclick = () => removeItem(key, idx);
+    delBtn.onclick = (e) => { e.stopPropagation(); removeItem(key, idx); };
     actions.appendChild(delBtn);
 
     card.appendChild(actions);
     container.appendChild(card);
   }
-}
-
-function moveItem(key, idx, dir) {
-  const arr = state[key];
-  const target = idx + dir;
-  if (target < 0 || target >= arr.length) return;
-  const temp = arr[idx];
-  arr[idx] = arr[target];
-  arr[target] = temp;
-  renderFileList(key);
-}
-
-function removeItem(key, idx) {
-  state[key].splice(idx, 1);
-  renderFileList(key);
-}
-
-function reverseOrder(key) {
-  state[key].reverse();
-  renderFileList(key);
-}
-
-function clearList(key) {
-  state[key] = [];
-  renderFileList(key);
 }
 
 function previewImage(url, name) {
@@ -5383,14 +5690,87 @@ async function loadOrganizePdf(input) {
   input.value = '';
 }
 
+let draggedPageIndex = null;
+
+function attachPageCardDragAndDrop(card, idx) {
+  card.setAttribute('draggable', 'true');
+
+  card.addEventListener('dragstart', (e) => {
+    draggedPageIndex = idx;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', String(idx)); } catch (err) {}
+  });
+
+  card.addEventListener('dragend', () => {
+    card.classList.remove('dragging');
+    draggedPageIndex = null;
+    document.querySelectorAll('.page-thumb-card.drag-over').forEach(el => {
+      el.classList.remove('drag-over', 'drag-over-left', 'drag-over-right');
+    });
+  });
+
+  card.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (draggedPageIndex === null || draggedPageIndex === idx) return;
+    e.dataTransfer.dropEffect = 'move';
+    const rect = card.getBoundingClientRect();
+    const midX = rect.left + rect.width / 2;
+    card.classList.add('drag-over');
+    if (e.clientX < midX) {
+      card.classList.add('drag-over-left');
+      card.classList.remove('drag-over-right');
+    } else {
+      card.classList.add('drag-over-right');
+      card.classList.remove('drag-over-left');
+    }
+  });
+
+  card.addEventListener('dragleave', () => {
+    card.classList.remove('drag-over', 'drag-over-left', 'drag-over-right');
+  });
+
+  card.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    card.classList.remove('drag-over', 'drag-over-left', 'drag-over-right');
+    if (draggedPageIndex === null || draggedPageIndex === idx) return;
+
+    const rect = card.getBoundingClientRect();
+    const midX = rect.left + rect.width / 2;
+    const isAfter = e.clientX >= midX;
+    const destIndex = getDropDestinationIndex(draggedPageIndex, idx, isAfter);
+    const fromIdx = draggedPageIndex;
+    draggedPageIndex = null;
+
+    if (destIndex !== fromIdx && state.organize_pdf && Array.isArray(state.organize_pdf.pages)) {
+      const [item] = state.organize_pdf.pages.splice(fromIdx, 1);
+      state.organize_pdf.pages.splice(destIndex, 0, item);
+      renderOrganizeGrid();
+    }
+  });
+}
+
+function reverseOrganizePages() {
+  if (state.organize_pdf && Array.isArray(state.organize_pdf.pages) && state.organize_pdf.pages.length > 1) {
+    state.organize_pdf.pages.reverse();
+    renderOrganizeGrid();
+  }
+}
+
 function renderOrganizeGrid() {
   const grid = document.getElementById('organize_pdf-grid');
   if (!grid) return;
   grid.innerHTML = '';
 
+  const total = state.organize_pdf.pages.length;
   state.organize_pdf.pages.forEach((p, idx) => {
     const card = document.createElement('div');
     card.className = 'page-thumb-card';
+    card.title = 'Drag page to reorder';
+
+    // Drag and Drop
+    attachPageCardDragAndDrop(card, idx);
 
     if (p.rotation !== 0) {
       const rBadge = document.createElement('div');
@@ -5440,7 +5820,7 @@ function renderOrganizeGrid() {
       actions.appendChild(moveLeft);
     }
 
-    if (idx < state.organize_pdf.pages.length - 1) {
+    if (idx < total - 1) {
       const moveRight = document.createElement('button');
       moveRight.className = 'thumb-btn';
       moveRight.title = 'Move Right';
@@ -7688,7 +8068,11 @@ function setupDropzones() {
           if (item.max && state[item.key].length >= item.max) break;
           state[item.key].push(f);
         }
-        await renderFileList(item.key);
+        if (item.key === 'freestyle') {
+          renderFreestyleQueue();
+        } else {
+          await renderFileList(item.key);
+        }
       }
     });
   });
@@ -7896,19 +8280,49 @@ function renderFreestyleQueue() {
   if (!list) return;
   list.innerHTML = '';
 
+  const total = state.freestyle.length;
   state.freestyle.forEach((file, idx) => {
     const card = document.createElement('div');
     card.className = 'file-card';
 
+    // Drag and Drop
+    attachCardDragAndDrop(card, 'freestyle', idx);
+
     const info = document.createElement('div');
     info.className = 'file-card-info';
 
-    const badge = document.createElement('div');
-    badge.className = 'seq-badge';
-    badge.innerText = idx + 1;
-    info.appendChild(badge);
+    // Drag handle
+    const dragHandle = document.createElement('div');
+    dragHandle.className = 'drag-handle';
+    dragHandle.title = 'Drag to reorder sequence';
+    dragHandle.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>';
+    info.appendChild(dragHandle);
 
-    const ext = file.name.split('.').pop().toLowerCase();
+    // Sequence Picker Badge with dropdown
+    const seqPicker = document.createElement('div');
+    seqPicker.className = 'seq-picker';
+    seqPicker.title = `Sequence #${idx + 1} of ${total} - Click or tap to jump to position`;
+    seqPicker.innerHTML = `<span class="seq-num">#${idx + 1}</span>`;
+
+    const seqSelect = document.createElement('select');
+    seqSelect.className = 'seq-dropdown';
+    seqSelect.title = 'Change sequence position';
+    for (let p = 1; p <= total; p++) {
+      const opt = document.createElement('option');
+      opt.value = p;
+      opt.innerText = '#' + p + (p === idx + 1 ? ' (Current)' : '');
+      if (p === idx + 1) opt.selected = true;
+      seqSelect.appendChild(opt);
+    }
+    seqSelect.onchange = (e) => {
+      e.stopPropagation();
+      const targetPos = parseInt(e.target.value) - 1;
+      moveItemToPosition('freestyle', idx, targetPos);
+    };
+    seqPicker.appendChild(seqSelect);
+    info.appendChild(seqPicker);
+
+    const ext = (file.name || '').split('.').pop().toLowerCase();
     const isImg = ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'].includes(ext);
 
     if (isImg) {
@@ -7951,6 +8365,51 @@ function renderFreestyleQueue() {
     const actions = document.createElement('div');
     actions.className = 'file-card-actions';
 
+    // Jump to Top (if idx > 1)
+    if (idx > 1) {
+      const topBtn = document.createElement('button');
+      topBtn.type = 'button';
+      topBtn.className = 'icon-btn';
+      topBtn.title = 'Jump to Top (#1)';
+      topBtn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="18 11 12 5 6 11"></polyline><line x1="18" y1="19" x2="6" y2="19"></line></svg>';
+      topBtn.onclick = (e) => { e.stopPropagation(); moveItemToPosition('freestyle', idx, 0); };
+      actions.appendChild(topBtn);
+    }
+
+    // Move Up (if idx > 0)
+    if (idx > 0) {
+      const upBtn = document.createElement('button');
+      upBtn.type = 'button';
+      upBtn.className = 'icon-btn';
+      upBtn.title = 'Move Up';
+      upBtn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>';
+      upBtn.onclick = (e) => { e.stopPropagation(); moveItem('freestyle', idx, -1); };
+      actions.appendChild(upBtn);
+    }
+
+    // Move Down (if idx < total - 1)
+    if (idx < total - 1) {
+      const downBtn = document.createElement('button');
+      downBtn.type = 'button';
+      downBtn.className = 'icon-btn';
+      downBtn.title = 'Move Down';
+      downBtn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+      downBtn.onclick = (e) => { e.stopPropagation(); moveItem('freestyle', idx, 1); };
+      actions.appendChild(downBtn);
+    }
+
+    // Jump to Bottom (if idx < total - 2)
+    if (idx < total - 2) {
+      const botBtn = document.createElement('button');
+      botBtn.type = 'button';
+      botBtn.className = 'icon-btn';
+      botBtn.title = `Jump to Bottom (#${total})`;
+      botBtn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="6 13 12 19 18 13"></polyline><line x1="6" y1="5" x2="18" y2="5"></line></svg>';
+      botBtn.onclick = (e) => { e.stopPropagation(); moveItemToPosition('freestyle', idx, total - 1); };
+      actions.appendChild(botBtn);
+    }
+
+    // Delete
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
     delBtn.className = 'icon-btn danger';
