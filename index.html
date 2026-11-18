@@ -356,8 +356,8 @@
   .ocr-preview-table td { padding: 6px 10px; border: 1px solid var(--border); color: var(--text-main); background: var(--bg-card); outline: none; }
   .ocr-preview-table tr:nth-child(even) td { background: var(--border-light); }
   .ocr-preview-table td:focus, .ocr-preview-table th:focus { background: var(--primary-glow); box-shadow: inset 0 0 0 2px var(--primary); }
-  .ocr-row-del-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; font-weight: 700; padding: 2px 6px; border-radius: 4px; line-height: 1; opacity: 0.6; transition: opacity 0.2s; }
-  .ocr-row-del-btn:hover { opacity: 1; background: rgba(239, 68, 68, 0.1); }
+  .ocr-row-del-btn, .ocr-col-del-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 15px; font-weight: 700; padding: 2px 6px; border-radius: 4px; line-height: 1; opacity: 0.7; transition: opacity 0.2s; }
+  .ocr-row-del-btn:hover, .ocr-col-del-btn:hover { opacity: 1; background: rgba(239, 68, 68, 0.15); }
 
 
   /* SIDEBAR */
@@ -3074,6 +3074,10 @@
             </div>
 
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-secondary" onclick="autoSplitImg2ExcelCols()" style="padding:6px 12px; font-size:12px;" title="Auto-detect & split columns by spacing & patterns">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                Auto Split Columns
+              </button>
               <button type="button" class="btn-secondary" onclick="addImg2ExcelRow()" style="padding:6px 12px; font-size:12px;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Add Row
@@ -3107,8 +3111,17 @@
           <!-- CONTAINER 2: RAW OCR TEXT / PASTE -->
           <div id="img2excel-raw-container" style="display:none;">
             <textarea id="img2excel-raw-text" style="width:100%; height:260px; font-family:monospace; font-size:12px; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--bg-card); color:var(--text-main); line-height:1.5; resize:vertical;" placeholder="Raw OCR lines appear here. You can also paste TSV/CSV data directly and click 'Apply to Table Grid'."></textarea>
-            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
-              <button type="button" class="btn-primary" style="width:auto; padding:7px 16px; font-size:12px;" onclick="applyRawTextToImg2ExcelTable()">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span style="font-size:12px; color:var(--text-muted); font-weight:600;">Split Columns by:</span>
+                <button type="button" class="btn-subtle" onclick="applyRawTextToImg2ExcelTable('auto')" style="font-size:11px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-weight:600;">Auto</button>
+                <button type="button" class="btn-subtle" onclick="applyRawTextToImg2ExcelTable('tab')" style="font-size:11px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-weight:600;">Tab</button>
+                <button type="button" class="btn-subtle" onclick="applyRawTextToImg2ExcelTable('space')" style="font-size:11px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-weight:600;">Single Space</button>
+                <button type="button" class="btn-subtle" onclick="applyRawTextToImg2ExcelTable('multispace')" style="font-size:11px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-weight:600;">2+ Spaces</button>
+                <button type="button" class="btn-subtle" onclick="applyRawTextToImg2ExcelTable('comma')" style="font-size:11px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-weight:600;">Comma</button>
+                <button type="button" class="btn-subtle" onclick="applyRawTextToImg2ExcelTable('pipe')" style="font-size:11px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-weight:600;">Pipe (|)</button>
+              </div>
+              <button type="button" class="btn-primary" style="width:auto; padding:7px 16px; font-size:12px;" onclick="applyRawTextToImg2ExcelTable('auto')">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 Apply Text to Table Grid
               </button>
@@ -7979,24 +7992,68 @@ async function executeFreestyleConvert() {
         let rows = [];
         if (window.Tesseract) {
           try {
-            const ocrRes = await Tesseract.recognize(file, 'eng');
-            if (ocrRes && ocrRes.data && ocrRes.data.lines && ocrRes.data.lines.length > 0) {
-              for (const line of ocrRes.data.lines) {
-                const lineText = (line.text || '').trim();
-                if (!lineText) continue;
-                const parts = lineText.split(/\t+|\s{2,}/).map(s => s.trim()).filter(Boolean);
-                if (parts.length > 0) rows.push(parts);
+            const ocrRes = await Tesseract.recognize(file, 'eng', {
+              langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast'
+            }, { text: true, blocks: true });
+            if (ocrRes && ocrRes.data && ocrRes.data.blocks && ocrRes.data.blocks.length > 0) {
+              for (const b of ocrRes.data.blocks) {
+                for (const p of (b.paragraphs || [])) {
+                  for (const l of (p.lines || [])) {
+                    if (l.words && l.words.length > 0) {
+                      const words = [...l.words].sort((a, b) => a.bbox.x0 - b.bbox.x0);
+                      const avgHeight = words.reduce((sum, w) => sum + Math.max(1, w.bbox.y1 - w.bbox.y0), 0) / words.length;
+                      const gapThreshold = Math.max(16, avgHeight * 0.95);
+                      const lineCells = [];
+                      let curCell = null;
+                      for (const w of words) {
+                        const txt = cleanCell(w.text);
+                        if (!txt) continue;
+                        if (!curCell) {
+                          curCell = { text: txt, x0: w.bbox.x0, x1: w.bbox.x1 };
+                        } else {
+                          const gap = w.bbox.x0 - curCell.x1;
+                          if (gap <= gapThreshold) {
+                            curCell.text += " " + txt;
+                            curCell.x1 = Math.max(curCell.x1, w.bbox.x1);
+                          } else {
+                            lineCells.push(curCell.text);
+                            curCell = { text: txt, x0: w.bbox.x0, x1: w.bbox.x1 };
+                          }
+                        }
+                      }
+                      if (curCell && curCell.text) lineCells.push(curCell.text);
+                      if (lineCells.length > 0) rows.push(lineCells);
+                    } else if (l.text && l.text.trim()) {
+                      const c = parseLineIntoCells(l.text);
+                      if (c.length > 0) rows.push(c);
+                    }
+                  }
+                }
               }
             }
-          } catch(e) {}
+            if (rows.length === 0 && ocrRes && ocrRes.data && ocrRes.data.text) {
+              const rawLines = ocrRes.data.text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+              for (const line of rawLines) {
+                const c = parseLineIntoCells(line);
+                if (c.length > 0) rows.push(c);
+              }
+            }
+          } catch(e) {
+            console.warn("Freestyle OCR error:", e);
+          }
         }
         if (rows.length === 0) {
           rows = [
-            ["Field", "Value"],
-            ["Image Name", file.name],
-            ["File Size", formatBytes(file.size)],
-            ["Converted At", new Date().toLocaleString()]
+            ["Column 1", "Column 2", "Column 3"],
+            ["", "", ""]
           ];
+        } else {
+          const maxCols = Math.max(...rows.map(r => r.length), 1);
+          rows = rows.map(r => {
+            const copy = [...r];
+            while (copy.length < maxCols) copy.push("");
+            return copy;
+          });
         }
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(rows);
@@ -8069,6 +8126,73 @@ async function executeFreestyleConvert() {
 // ============================================================================
 // IMAGE TO EXCEL ENGINE (SUPER-RES OCR, COLUMN CLUSTERING & EDITABLE PREVIEW)
 // ============================================================================
+function cleanCell(c) {
+  if (!c) return '';
+  let s = String(c).trim();
+  s = s.replace(/^[|_\-—~\[\]+=\s]+/, '').replace(/[|_\-—~\[\]+=\s]+$/, '');
+  return s.trim();
+}
+
+function parseLineIntoCells(lineStr, delimiter = 'auto') {
+  if (!lineStr || !lineStr.trim()) return [];
+  let s = lineStr.trim();
+
+  if (delimiter === 'tab') {
+    return s.split('\t').map(cleanCell).filter(Boolean);
+  }
+  if (delimiter === 'pipe') {
+    return s.split('|').map(cleanCell).filter(Boolean);
+  }
+  if (delimiter === 'comma') {
+    return s.split(',').map(cleanCell).filter(Boolean);
+  }
+  if (delimiter === 'space') {
+    return s.split(/\s+/).map(cleanCell).filter(Boolean);
+  }
+  if (delimiter === 'multispace') {
+    return s.split(/\s{2,}/).map(cleanCell).filter(Boolean);
+  }
+
+  // 'auto' mode
+  if (s.includes('\t')) {
+    return s.split('\t').map(cleanCell).filter(Boolean);
+  }
+  if (s.includes('|')) {
+    return s.split('|').map(cleanCell).filter(Boolean);
+  }
+  if (s.includes(';') && s.split(';').length >= 3) {
+    return s.split(';').map(cleanCell).filter(Boolean);
+  }
+  if (s.includes(',') && s.split(',').length >= 3 && !/\d+,\d{3}/.test(s)) {
+    return s.split(',').map(cleanCell).filter(Boolean);
+  }
+  if (/\s{2,}/.test(s)) {
+    return s.split(/\s{2,}/).map(cleanCell).filter(Boolean);
+  }
+
+  // Smart entity separation for single-spaced table text
+  const tokens = s.split(/\s+/).map(cleanCell).filter(Boolean);
+  if (tokens.length >= 2) {
+    const grouped = [];
+    let current = tokens[0];
+    for (let i = 1; i < tokens.length; i++) {
+      const t = tokens[i];
+      const isCurrNum = /^[\d\-_+()]+$/.test(current);
+      const isNextNum = /^[\d\-_+()]{6,}$/.test(t);
+      const isNextCode = /^[A-Z0-9_\-]{6,}$/.test(t);
+      if (isCurrNum || isNextNum || isNextCode) {
+        grouped.push(current);
+        current = t;
+      } else {
+        current += " " + t;
+      }
+    }
+    if (current) grouped.push(current);
+    return grouped.filter(Boolean);
+  }
+  return [s];
+}
+
 function handleImg2ExcelSelect(input) {
   if (input.files && input.files.length > 0) {
     handleImg2ExcelFile(input.files[0]);
@@ -8103,6 +8227,9 @@ function handleImg2ExcelFile(file) {
   if (nameEl) nameEl.innerText = file.name;
   if (infoEl) infoEl.innerHTML = `${formatBytes(file.size)} &bull; Ready for table scan`;
   if (label) label.innerText = `${file.name} (${formatBytes(file.size)})`;
+
+  // Auto-start scan immediately on file drop / select
+  runImg2ExcelScan();
 }
 
 function switchImg2ExcelView(mode) {
@@ -8148,7 +8275,7 @@ function syncImg2ExcelRawText() {
   rawTextarea.value = tsv;
 }
 
-function applyRawTextToImg2ExcelTable() {
+function applyRawTextToImg2ExcelTable(delimiter = 'auto') {
   const rawTextarea = document.getElementById('img2excel-raw-text');
   if (!rawTextarea) return;
   const raw = rawTextarea.value.trim();
@@ -8157,16 +8284,7 @@ function applyRawTextToImg2ExcelTable() {
   const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
   const parsedRows = [];
   for (const line of lines) {
-    let cells;
-    if (line.includes('\t')) {
-      cells = line.split('\t').map(c => c.trim());
-    } else if (line.includes('|')) {
-      cells = line.split('|').map(c => c.trim()).filter(c => c.length > 0);
-    } else if (line.includes(',') && !line.match(/\d+,\d+/)) {
-      cells = line.split(',').map(c => c.trim());
-    } else {
-      cells = line.split(/\s{2,}/).map(c => c.trim()).filter(c => c.length > 0);
-    }
+    const cells = parseLineIntoCells(line, delimiter);
     if (cells.length > 0) parsedRows.push(cells);
   }
 
@@ -8181,6 +8299,33 @@ function applyRawTextToImg2ExcelTable() {
 
   renderImg2ExcelTable();
   switchImg2ExcelView('grid');
+}
+
+function autoSplitImg2ExcelCols() {
+  if (!state.img2excel_table || !state.img2excel_table.length) return;
+  const newRows = state.img2excel_table.map(row => {
+    const lineStr = row.join(' ').trim();
+    const cells = parseLineIntoCells(lineStr, 'auto');
+    return cells.length > 0 ? cells : row;
+  });
+  const maxCols = Math.max(...newRows.map(r => r.length), 1);
+  state.img2excel_table = newRows.map(r => {
+    const copy = [...r];
+    while (copy.length < maxCols) copy.push("");
+    return copy;
+  });
+  renderImg2ExcelTable();
+  syncImg2ExcelRawText();
+}
+
+function deleteImg2ExcelCol(cIdx) {
+  if (!state.img2excel_table || state.img2excel_table.length === 0) return;
+  if (state.img2excel_table[0].length <= 1) return alert("Table must have at least one column.");
+  state.img2excel_table.forEach(row => {
+    row.splice(cIdx, 1);
+  });
+  renderImg2ExcelTable();
+  syncImg2ExcelRawText();
 }
 
 function renderImg2ExcelTable() {
@@ -8208,15 +8353,46 @@ function renderImg2ExcelTable() {
 
     // Data / Header Cells
     row.forEach((cellText, cIdx) => {
-      const el = (rIdx === 0) ? document.createElement('th') : document.createElement('td');
-      el.contentEditable = "true";
-      el.innerText = cellText;
-      el.oninput = () => {
-        if (state.img2excel_table[rIdx]) {
-          state.img2excel_table[rIdx][cIdx] = el.innerText.trim();
+      if (rIdx === 0) {
+        const th = document.createElement('th');
+        th.style.position = 'relative';
+        th.style.minWidth = '90px';
+
+        const cellSpan = document.createElement('span');
+        cellSpan.contentEditable = "true";
+        cellSpan.innerText = cellText;
+        cellSpan.oninput = () => {
+          if (state.img2excel_table[0]) {
+            state.img2excel_table[0][cIdx] = cellSpan.innerText.trim();
+          }
+        };
+        th.appendChild(cellSpan);
+
+        if (row.length > 1) {
+          const delColBtn = document.createElement('button');
+          delColBtn.type = 'button';
+          delColBtn.className = 'ocr-col-del-btn';
+          delColBtn.title = 'Delete this column';
+          delColBtn.innerHTML = '&times;';
+          delColBtn.style.cssText = 'float:right; margin-left:6px; cursor:pointer; background:none; border:none; color:#ef4444; font-weight:700; font-size:14px;';
+          delColBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteImg2ExcelCol(cIdx);
+          };
+          th.appendChild(delColBtn);
         }
-      };
-      tr.appendChild(el);
+        tr.appendChild(th);
+      } else {
+        const td = document.createElement('td');
+        td.contentEditable = "true";
+        td.innerText = cellText;
+        td.oninput = () => {
+          if (state.img2excel_table[rIdx]) {
+            state.img2excel_table[rIdx][cIdx] = td.innerText.trim();
+          }
+        };
+        tr.appendChild(td);
+      }
     });
 
     // Row action: Delete button
@@ -8342,7 +8518,6 @@ async function runImg2ExcelScan() {
     const optContrast = document.getElementById('img2excel-opt-contrast')?.checked ?? true;
 
     // High-Resolution Super-Sampling for Low-Res Photos and Screenshots
-    // Tesseract v5 requires character height of ~20-30px for accurate recognition.
     let scale = 1.0;
     if (optUpscale) {
       const minDim = Math.min(origW, origH);
@@ -8373,7 +8548,7 @@ async function runImg2ExcelScan() {
     ctx.fillRect(0, 0, targetW, targetH);
     ctx.drawImage(img, 0, 0, targetW, targetH);
 
-    // Non-destructive Contrast Enhancement
+    // Contrast Enhancement
     if (optContrast) {
       status.innerText = "Enhancing document contrast & character clarity...";
       const imgData = ctx.getImageData(0, 0, targetW, targetH);
@@ -8436,7 +8611,6 @@ async function runImg2ExcelScan() {
       status.innerText = "Initializing fast OCR engine (1.8 MB model)...";
       const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
 
-      // Create optimized worker with uniform block PSM and interword spaces
       let worker = null;
       let res = null;
 
@@ -8463,7 +8637,7 @@ async function runImg2ExcelScan() {
             preserve_interword_spaces: '1'
           });
 
-          res = await worker.recognize(dataUrl);
+          res = await worker.recognize(dataUrl, {}, { text: true, blocks: true });
           await worker.terminate();
         }
       } catch (workerErr) {
@@ -8481,70 +8655,74 @@ async function runImg2ExcelScan() {
               status.innerText = `Recognizing table text & columns... ${pct}%`;
             }
           }
-        });
+        }, { text: true, blocks: true });
       }
 
       if (res && res.data) {
-        const fullText = (res.data.text || '').trim();
-        status.innerText = "Parsing table structure and formatting cells...";
+        status.innerText = "Reconstructing table columns and formatting cells...";
 
-        function cleanCell(c) {
-          if (!c) return '';
-          let s = String(c).trim();
-          // Remove table border artifacts (leading/trailing pipes, underlines, tildes)
-          s = s.replace(/^[|_\-—~\[\]\s]+/, '').replace(/[|_\-—~\[\]\s]+$/, '');
-          return s.trim();
-        }
+        // Priority 1: Extract words with bounding box horizontal gap thresholding
+        if (res.data.blocks && res.data.blocks.length > 0) {
+          for (const b of res.data.blocks) {
+            for (const p of (b.paragraphs || [])) {
+              for (const l of (p.lines || [])) {
+                if (l.words && l.words.length > 0) {
+                  const sortedWords = [...l.words].sort((a, b) => a.bbox.x0 - b.bbox.x0);
+                  const avgHeight = sortedWords.reduce((sum, w) => sum + Math.max(1, w.bbox.y1 - w.bbox.y0), 0) / sortedWords.length;
+                  const gapThreshold = Math.max(16, avgHeight * 0.95);
 
-        // Primary: Parse full text line by line
-        if (fullText) {
-          const rawLines = fullText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-          for (const line of rawLines) {
-            let cells = [];
-            if (line.includes('|')) {
-              cells = line.split('|').map(cleanCell);
-            } else if (line.includes('\t')) {
-              cells = line.split('\t').map(cleanCell);
-            } else {
-              cells = line.split(/\s{2,}/).map(cleanCell);
-            }
-            // Filter out empty ghost cells
-            const validCells = cells.filter(c => c.length > 0);
-            if (validCells.length > 0) {
-              rows.push(validCells);
+                  const lineCells = [];
+                  let curCell = null;
+
+                  for (const w of sortedWords) {
+                    const txt = cleanCell(w.text);
+                    if (!txt) continue;
+
+                    if (!curCell) {
+                      curCell = { text: txt, x0: w.bbox.x0, x1: w.bbox.x1 };
+                    } else {
+                      const gap = w.bbox.x0 - curCell.x1;
+                      if (gap <= gapThreshold) {
+                        curCell.text += " " + txt;
+                        curCell.x1 = Math.max(curCell.x1, w.bbox.x1);
+                      } else {
+                        lineCells.push(curCell.text);
+                        curCell = { text: txt, x0: w.bbox.x0, x1: w.bbox.x1 };
+                      }
+                    }
+                  }
+                  if (curCell && curCell.text) {
+                    lineCells.push(curCell.text);
+                  }
+                  if (lineCells.length > 0) {
+                    rows.push(lineCells);
+                  }
+                } else if (l.text && l.text.trim()) {
+                  const c = parseLineIntoCells(l.text);
+                  if (c.length > 0) rows.push(c);
+                }
+              }
             }
           }
         }
 
-        // Secondary / Fallback: If line words had bounding boxes
-        if (rows.length === 0 && res.data.lines && res.data.lines.length > 0) {
-          for (const line of res.data.lines) {
-            const lineText = (line.text || '').trim();
-            if (!lineText) continue;
-            let cells;
-            if (lineText.includes('|')) {
-              cells = lineText.split('|').map(cleanCell).filter(c => c.length > 0);
-            } else if (lineText.includes('\t')) {
-              cells = lineText.split('\t').map(cleanCell).filter(c => c.length > 0);
-            } else {
-              cells = lineText.split(/\s{2,}/).map(cleanCell).filter(c => c.length > 0);
-            }
+        // Priority 2: Fallback to fullText line-by-line parsing
+        if (rows.length === 0 && res.data.text) {
+          const rawLines = res.data.text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+          for (const line of rawLines) {
+            const cells = parseLineIntoCells(line);
             if (cells.length > 0) rows.push(cells);
           }
         }
       }
     }
 
-    // Default structured table if empty
+    // If no text could be recognized at all
     if (rows.length === 0) {
-      rows = [
-        ["Field", "Value"],
-        ["Image Name", file.name],
-        ["Dimensions", `${origW} x ${origH} px`],
-        ["File Format", file.type || "Image"],
-        ["File Size", formatBytes(file.size)],
-        ["Note", "Table ready for editing. You can add rows or edit cells below."]
-      ];
+      status.style.display = 'block';
+      status.className = 'status-box info';
+      status.innerHTML = `Image scan completed, but no clear text was recognized. You can type or paste table data in the <b>Raw OCR Text / Paste</b> tab to export to Excel.`;
+      rows = [["Column 1", "Column 2", "Column 3"], ["", "", ""]];
     }
 
     // Normalize column counts across rows
@@ -8584,7 +8762,8 @@ function downloadImg2ExcelWorkbook() {
   const normalizedRows = state.img2excel_table.map(r => r.map(cell => {
     const str = String(cell || '').trim();
     const cleanNum = str.replace(/[$,₹€£]/g, '').replace(/,/g, '');
-    if (/^-?\d+(\.\d+)?$/.test(cleanNum) && !str.startsWith('00') && !str.startsWith('+')) {
+    // Only convert to number if it's an actual currency or small quantity/index, NOT a phone number or 10+ digit ID
+    if (/^-?\d+(\.\d+)?$/.test(cleanNum) && cleanNum.length < 10 && !str.startsWith('0') && !str.startsWith('+')) {
       const num = parseFloat(cleanNum);
       if (!isNaN(num)) return num;
     }

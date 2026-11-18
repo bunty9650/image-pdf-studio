@@ -1230,6 +1230,51 @@ def pdf_to_powerpoint(input_pdf: str, output_pptx: str) -> str:
     return output_pptx
 
 
+def clean_ocr_cell(c: str) -> str:
+    if not c:
+        return ""
+    s = str(c).strip()
+    s = re.sub(r'^[|_\-—~\[\]+=\s]+', '', s)
+    s = re.sub(r'[|_\-—~\[\]+=\s]+$', '', s)
+    return s.strip()
+
+
+def parse_ocr_line_into_cells(line_str: str) -> List[str]:
+    if not line_str or not line_str.strip():
+        return []
+    s = line_str.strip()
+    if '\t' in s:
+        cells = [clean_ocr_cell(c) for c in s.split('\t')]
+    elif '|' in s:
+        cells = [clean_ocr_cell(c) for c in s.split('|')]
+    elif ';' in s and len(s.split(';')) >= 3:
+        cells = [clean_ocr_cell(c) for c in s.split(';')]
+    elif ',' in s and len(s.split(',')) >= 3 and not re.search(r'\d+,\d{3}', s):
+        cells = [clean_ocr_cell(c) for c in s.split(',')]
+    elif re.search(r'\s{2,}', s):
+        cells = [clean_ocr_cell(c) for c in re.split(r'\s{2,}', s)]
+    else:
+        tokens = [clean_ocr_cell(t) for t in re.split(r'\s+', s) if t.strip()]
+        if len(tokens) >= 2:
+            grouped = []
+            curr = tokens[0]
+            for t in tokens[1:]:
+                is_curr_num = bool(re.match(r'^[\d\-_+()]+$', curr))
+                is_next_num = bool(re.match(r'^[\d\-_+()]{6,}$', t))
+                is_next_code = bool(re.match(r'^[A-Z0-9_\-]{6,}$', t))
+                if is_curr_num or is_next_num or is_next_code:
+                    grouped.append(curr)
+                    curr = t
+                else:
+                    curr += " " + t
+            if curr:
+                grouped.append(curr)
+            cells = grouped
+        else:
+            cells = [s]
+    return [c for c in cells if c]
+
+
 def image_to_excel(input_image: str, output_xlsx: str) -> str:
     """
     Extracts tabular data or text from an image into an Excel (.xlsx) spreadsheet.
@@ -1250,8 +1295,8 @@ def image_to_excel(input_image: str, output_xlsx: str) -> str:
     # Method 1: Create a temporary PDF and attempt OCR/table extraction
     try:
         img_doc = fitz.open()
-        img = Image.open(input_image)
-        w, h = img.size
+        with Image.open(input_image) as img:
+            w, h = img.size
         rect = fitz.Rect(0, 0, w, h)
         page = img_doc.new_page(width=w, height=h)
         page.insert_image(rect, filename=input_image)
@@ -1262,7 +1307,7 @@ def image_to_excel(input_image: str, output_xlsx: str) -> str:
             text = tp.extractText()
             lines = [l.strip() for l in text.split("\n") if l.strip()]
             for line in lines:
-                parts = re.split(r'\t+|\s{2,}', line)
+                parts = parse_ocr_line_into_cells(line)
                 if parts:
                     extracted_rows.append(parts)
         except Exception:
@@ -1272,23 +1317,27 @@ def image_to_excel(input_image: str, output_xlsx: str) -> str:
     except Exception:
         pass
 
-    # Method 2: If no OCR text extracted, record image analysis table
+    # Method 2: Fallback template if OCR not available on machine
     if not extracted_rows:
         try:
             with Image.open(input_image) as img:
                 extracted_rows = [
-                    ["Property", "Value"],
-                    ["Image Filename", os.path.basename(input_image)],
+                    ["Field", "Extracted Value"],
+                    ["Image Name", os.path.basename(input_image)],
                     ["Dimensions", f"{img.width} x {img.height} px"],
                     ["Format", str(img.format or "Image")],
-                    ["Color Mode", str(img.mode)],
-                    ["File Size (bytes)", str(os.path.getsize(input_image))]
+                    ["Status", "Image loaded. Use clear scanned tables for OCR extraction."]
                 ]
         except Exception:
-            extracted_rows = [["Image to Excel", "Processed successfully"]]
+            extracted_rows = [["Table Column 1", "Table Column 2"], ["", ""]]
 
+    # Normalize columns across all rows
+    max_cols = max((len(r) for r in extracted_rows), default=1)
     for r in extracted_rows:
-        ws.append(r)
+        row_copy = list(r)
+        while len(row_copy) < max_cols:
+            row_copy.append("")
+        ws.append(row_copy)
 
     wb.save(output_xlsx)
     return output_xlsx
